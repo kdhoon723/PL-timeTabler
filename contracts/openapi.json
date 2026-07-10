@@ -212,15 +212,6 @@
             "title": "Excludedcoursecodes",
             "type": "array"
           },
-          "items": {
-            "default": [],
-            "items": {
-              "additionalProperties": true,
-              "type": "object"
-            },
-            "title": "Items",
-            "type": "array"
-          },
           "lockedSectionIds": {
             "default": [],
             "items": {
