@@ -40,5 +40,28 @@
     ],
     "matchedSections": 1336,
     "courseCoveragePercent": 84.8
+  },
+  "academicRequirements": {
+    "asOf": "2026-07-10",
+    "curriculumHandbooks": {
+      "continuousYears": "2016-2026",
+      "files": 11,
+      "missingPublicYears": [2012, 2013, 2014, 2015]
+    },
+    "currentCurriculumUnits": {
+      "covered": 46,
+      "total": 46
+    },
+    "currentGraduationAssessmentUnits": {
+      "covered": 44,
+      "total": 44
+    },
+    "graduationAssessmentSourceUnits": 66,
+    "standardizedRequirementRows": 264,
+    "sourceInventory": "data/requirements/normalized/sources.json",
+    "research": [
+      "docs/research/DAEJIN_GRADUATION_RULES.md",
+      "docs/research/DAEJIN_ACADEMIC_REQUIREMENTS_SOURCE_AUDIT.md"
+    ]
   }
 }

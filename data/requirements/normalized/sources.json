@@ -1,0 +1,240 @@
+{
+  "schema_version": 1,
+  "as_of": "2026-07-10",
+  "official_sources": {
+    "regulations_portal": "https://www.daejin.ac.kr/daejin/844/subview.do",
+    "academic_regulations_2_1_01": "https://www.daejin.ac.kr/regltn/daejin/2/631/download.do",
+    "academic_regulations_enforcement_2_1_02": "https://www.daejin.ac.kr/regltn/daejin/2/612/download.do",
+    "graduation_thesis_regulations_3_3_02": "https://www.daejin.ac.kr/regltn/daejin/2/457/download.do",
+    "major_system": "https://els.daejin.ac.kr/daejin/974/subview.do",
+    "graduation_general": "https://www.daejin.ac.kr/daejin/983/subview.do",
+    "graduation_thesis_exam": "https://www.daejin.ac.kr/daejin/986/subview.do",
+    "curriculum_handbook_post_2016_2019": "https://japan.daejin.ac.kr/bbs/japan/425/422023/artclView.do",
+    "curriculum_handbook_post_2020": "https://japan.daejin.ac.kr/bbs/japan/425/422022/artclView.do",
+    "curriculum_handbook_post_2021": "https://www.daejin.ac.kr/bbs/daejin/188/427238/artclView.do",
+    "curriculum_handbook_post_2022": "https://www.daejin.ac.kr/bbs/daejin/188/427034/artclView.do",
+    "curriculum_handbook_post_2023": "https://www.daejin.ac.kr/bbs/daejin/188/426922/artclView.do",
+    "curriculum_handbook_post_2024": "https://www.daejin.ac.kr/bbs/daejin/188/441964/artclView.do",
+    "curriculum_handbook_post_2025": "https://www.daejin.ac.kr/bbs/daejin/188/450771/artclView.do",
+    "curriculum_handbook_post_2026": "https://www.daejin.ac.kr/bbs/daejin/188/458095/artclView.do",
+    "curriculum_handbook_viewer_2016": "https://ibook.daejin.ac.kr/Viewer/HH6ISED7GGXC",
+    "curriculum_handbook_viewer_2017": "https://ibook.daejin.ac.kr/Viewer/Y46LOG9ZTIV2",
+    "curriculum_handbook_viewer_2018": "https://ibook.daejin.ac.kr/Viewer/2LYAL15C0NE9",
+    "curriculum_handbook_viewer_2019": "https://ibook.daejin.ac.kr/Viewer/5Q1FAAC1NXYC",
+    "curriculum_handbook_viewer_2020": "https://ibook.daejin.ac.kr/Viewer/SAI3GO9O729A",
+    "curriculum_handbook_viewer_2021": "https://ibook.daejin.ac.kr/Viewer/7HZGOLWV3B7F",
+    "curriculum_handbook_viewer_2026": "https://ibook.daejin.ac.kr/Viewer/RU88FNZBASB0",
+    "graduation_requirements_xlsx_2026": "https://www.daejin.ac.kr/sites/daejin/files/2026학년도-졸업논문시험지정표_v39(2026.04.15.).xlsx",
+    "course_equivalency_notice_2026_1": "https://www.daejin.ac.kr/bbs/daejin/188/459395/artclView.do",
+    "replacement_courses_2026_1": "https://www.daejin.ac.kr/bbs/daejin/188/332287/download.do",
+    "equivalent_courses_2026_1": "https://www.daejin.ac.kr/bbs/daejin/188/332288/download.do",
+    "student_guide_2026": "https://www.daejin.ac.kr/pdfviewer/daejin/3/fileDown1/fileDownload.do"
+  },
+  "raw_files": [
+    {
+      "path": "data/requirements/raw/2016/2016-curriculum-guide.hwp",
+      "sha256": "61a4afb60cab2491ee9e8f98193f91b7f25ba1f429b15d132d10c095105ffe9c",
+      "bytes": 1170944,
+      "format": "HWP 5.0",
+      "pages": 155,
+      "published_at": "2016-06-22",
+      "source_page": "https://japan.daejin.ac.kr/bbs/japan/425/422023/artclView.do",
+      "viewer_url": "https://ibook.daejin.ac.kr/Viewer/HH6ISED7GGXC",
+      "download_url": "https://ibookcontents.daejin.ac.kr/Download/engine_host=ibook.daejin.ac.kr&bookcode=HH6ISED7GGXC&file_name=&file_no=1"
+    },
+    {
+      "path": "data/requirements/raw/2017/2017-curriculum-guide.pdf",
+      "sha256": "d2a5985631d8d3f6641644c12a62f053ef2abdb243cc37eb50121fb6b5cfda74",
+      "bytes": 1000318,
+      "format": "PDF 1.4",
+      "pages": 133,
+      "published_at": "2017-02-12",
+      "source_page": "https://japan.daejin.ac.kr/bbs/japan/425/422023/artclView.do",
+      "viewer_url": "https://ibook.daejin.ac.kr/Viewer/Y46LOG9ZTIV2",
+      "download_url": "https://japan.daejin.ac.kr/bbs/japan/425/303550/download.do"
+    },
+    {
+      "path": "data/requirements/raw/2018/2018-curriculum-guide.pdf",
+      "sha256": "20d0b4ccc0aecd4f7c3a2ccfc5ee5b6792092fc07c26414452ea798ab4721e3b",
+      "bytes": 1182864,
+      "format": "PDF 1.4",
+      "pages": 135,
+      "published_at": "2018-01-28",
+      "source_page": "https://japan.daejin.ac.kr/bbs/japan/425/422023/artclView.do",
+      "viewer_url": "https://ibook.daejin.ac.kr/Viewer/2LYAL15C0NE9",
+      "download_url": "https://japan.daejin.ac.kr/bbs/japan/425/303551/download.do"
+    },
+    {
+      "path": "data/requirements/raw/2019/2019-curriculum-guide.pdf",
+      "sha256": "6f9b0f9bbce68ecf7c5926b916f695fce160e344be87ab7bad356bcf68a19700",
+      "bytes": 928319,
+      "format": "PDF 1.4",
+      "pages": 131,
+      "published_at": "2019-01-25",
+      "source_page": "https://japan.daejin.ac.kr/bbs/japan/425/422023/artclView.do",
+      "viewer_url": "https://ibook.daejin.ac.kr/Viewer/5Q1FAAC1NXYC",
+      "download_url": "https://japan.daejin.ac.kr/bbs/japan/425/303552/download.do"
+    },
+    {
+      "path": "data/requirements/raw/2020/2020-curriculum-guide.pdf",
+      "sha256": "2c287e33ad49e2ff7b5f5b4c1cf4ff592e8c5f1ef62fec14438858a902be200f",
+      "bytes": 1172245,
+      "format": "PDF 1.6",
+      "pages": 131,
+      "published_at": "2020-02-10",
+      "source_page": "https://japan.daejin.ac.kr/bbs/japan/425/422022/artclView.do",
+      "viewer_url": "https://ibook.daejin.ac.kr/Viewer/SAI3GO9O729A",
+      "download_url": "https://japan.daejin.ac.kr/bbs/japan/425/303548/download.do"
+    },
+    {
+      "path": "data/requirements/raw/2021/2021-curriculum-guide.pdf",
+      "sha256": "2610d91d21542fa458456d2b391e657ed311fce45d2077eae855af93d4c592cb",
+      "bytes": 1283773,
+      "format": "PDF 1.4",
+      "pages": 131,
+      "published_at": "2021-01-27",
+      "source_page": "https://www.daejin.ac.kr/bbs/daejin/188/427238/artclView.do",
+      "viewer_url": "https://ibook.daejin.ac.kr/Viewer/7HZGOLWV3B7F",
+      "download_url": "https://ibookcontents.daejin.ac.kr/Download/engine_host=ibook.daejin.ac.kr&bookcode=7HZGOLWV3B7F&file_name=&file_no=1"
+    },
+    {
+      "path": "data/requirements/raw/2022/2022-curriculum-guide.pdf",
+      "sha256": "1e8aeef70d6d5fac8657a1e0205e6dd87dd3a83f4de0ea5a5552d1a05a3bcecd",
+      "bytes": 1384524,
+      "format": "PDF 1.4",
+      "pages": 135,
+      "published_at": "2022-01-21",
+      "source_page": "https://www.daejin.ac.kr/bbs/daejin/188/427034/artclView.do",
+      "download_url": "https://www.daejin.ac.kr/bbs/daejin/188/307282/download.do"
+    },
+    {
+      "path": "data/requirements/raw/2023/2023-curriculum-guide.pdf",
+      "sha256": "99ef841f8800a1d680f4dfb6d03165ae6a272a862164aa7628d3bb5d8cd5f065",
+      "bytes": 1352542,
+      "format": "PDF 1.4",
+      "pages": 142,
+      "published_at": "2023-01-19",
+      "source_page": "https://www.daejin.ac.kr/bbs/daejin/188/426922/artclView.do",
+      "download_url": "https://www.daejin.ac.kr/bbs/daejin/188/307185/download.do"
+    },
+    {
+      "path": "data/requirements/raw/2024/2024-curriculum-guide.pdf",
+      "sha256": "232f7268ef8ea487b3b53a5ef7a7cc877d753fb0dc8c1ce6885f74a901b20beb",
+      "bytes": 1054700,
+      "format": "PDF 1.4",
+      "pages": 110,
+      "published_at": "2024-01-09",
+      "source_page": "https://www.daejin.ac.kr/bbs/daejin/188/441964/artclView.do",
+      "download_url": "https://www.daejin.ac.kr/bbs/daejin/188/319262/download.do"
+    },
+    {
+      "path": "data/requirements/raw/2025/2025-curriculum-guide.pdf",
+      "sha256": "acbd59e272e589be9c4b9eb1d079f0086538e05669f62c8c531b7f699b69eb89",
+      "bytes": 1224640,
+      "format": "PDF 1.6",
+      "pages": 132,
+      "published_at": "2025-01-20",
+      "source_page": "https://www.daejin.ac.kr/bbs/daejin/188/450771/artclView.do",
+      "download_url": "https://www.daejin.ac.kr/bbs/daejin/188/324438/download.do"
+    },
+    {
+      "path": "data/requirements/raw/2026/2026-curriculum-guide.pdf",
+      "sha256": "6253f4e2be0156e61a13838d7b0438c8f6b5a5cd2f0aa60ed143d938c92d8298",
+      "bytes": 1176124,
+      "format": "PDF 1.6",
+      "pages": 133,
+      "published_at": "2026-01-19",
+      "source_page": "https://www.daejin.ac.kr/bbs/daejin/188/458095/artclView.do",
+      "viewer_url": "https://ibook.daejin.ac.kr/Viewer/RU88FNZBASB0",
+      "download_url": "https://ibookcontents.daejin.ac.kr/Download/engine_host=ibook.daejin.ac.kr&bookcode=RU88FNZBASB0&file_name=&file_no=1"
+    },
+    {
+      "path": "data/requirements/raw/2026/2026-graduation-assessment-designations.xlsx",
+      "sha256": "d8c4760871f34dfb5c650ec07617d4c6b6a8d19e6609cf8938b6505ad151e57f",
+      "bytes": 69589,
+      "format": "XLSX",
+      "sheets": 4,
+      "published_at": "2026-04-15",
+      "metadata_conflict": "filename is v39/2026-04-15; an internal sheet says version 40/2026-04-14",
+      "download_url": "https://www.daejin.ac.kr/sites/daejin/files/2026학년도-졸업논문시험지정표_v39(2026.04.15.).xlsx"
+    },
+    {
+      "path": "data/requirements/raw/2026/equivalencies/replacement-courses-2026-1.pdf",
+      "sha256": "96c669b23f3b0d3f3c99e183e0e1ec2c1ba12b6742f4e73a44fbd0499df99b72",
+      "bytes": 285913,
+      "format": "PDF 1.5",
+      "pages": 107,
+      "published_at": "2026-04-06",
+      "source_page": "https://www.daejin.ac.kr/bbs/daejin/188/459395/artclView.do",
+      "download_url": "https://www.daejin.ac.kr/bbs/daejin/188/332287/download.do"
+    },
+    {
+      "path": "data/requirements/raw/2026/equivalencies/equivalent-courses-2026-1.pdf",
+      "sha256": "3a1dd81ac4c1f0eed03753f0325626999e836b2c9236c971bcafa0067249fc6d",
+      "bytes": 2011678,
+      "format": "PDF 1.4",
+      "pages": 73,
+      "published_at": "2026-04-06",
+      "source_page": "https://www.daejin.ac.kr/bbs/daejin/188/459395/artclView.do",
+      "download_url": "https://www.daejin.ac.kr/bbs/daejin/188/332288/download.do"
+    },
+    {
+      "path": "data/requirements/raw/rules/academic-regulations-2-1-01-2026-06-15.hwp",
+      "sha256": "94ef8bef2c74aaf1856f1e337897745f7d74b521904afbac8e5b75bfed81e377",
+      "bytes": 174080,
+      "format": "HWP 5.0",
+      "effective_at": "2026-06-15",
+      "download_url": "https://www.daejin.ac.kr/regltn/daejin/2/631/download.do"
+    },
+    {
+      "path": "data/requirements/raw/rules/academic-regulations-enforcement-2-1-02-2026-02-09.hwp",
+      "sha256": "5767a01998d04f98778a10c64405039e1be86553bcfbe3eb3183e207eb506d99",
+      "bytes": 241152,
+      "format": "HWP 5.0",
+      "effective_at": "2026-02-09",
+      "download_url": "https://www.daejin.ac.kr/regltn/daejin/2/612/download.do"
+    },
+    {
+      "path": "data/requirements/raw/rules/graduation-thesis-regulations-3-3-02-2024-06-27.hwp",
+      "sha256": "aba1ccfeafb28cb8ec007cad73780e464133d861a5f4dce160a361bdce44ea64",
+      "bytes": 96768,
+      "format": "HWP 5.0",
+      "effective_at": "2024-06-27",
+      "download_url": "https://www.daejin.ac.kr/regltn/daejin/2/457/download.do"
+    }
+  ],
+  "remote_only_files": [
+    {
+      "title": "2026학년도 대학생활안내",
+      "url": "https://www.daejin.ac.kr/pdfviewer/daejin/3/fileDown1/fileDownload.do",
+      "sha256": "adc33b8de1fa091f4dd30cc13f6d34a2a5a1898f7def5df77c3787d7ae0b0a93",
+      "bytes": 41229217,
+      "format": "PDF 1.6",
+      "repository_policy": "URL and checksum only because the source is 41 MB"
+    }
+  ],
+  "missing_curriculum_handbooks": [
+    {
+      "academic_year": 2012,
+      "status": "not found in official public indexes",
+      "searched": ["central academic BBS", "university integrated search", "official iBook title index"]
+    },
+    {
+      "academic_year": 2013,
+      "status": "not found in official public indexes",
+      "note": "An official 2013 university handbook exists, but it was not substituted for a curriculum handbook.",
+      "handbook_url": "https://ibook.daejin.ac.kr/Viewer/33O08ODTNCSP",
+      "searched": ["central academic BBS", "university integrated search", "official iBook title index"]
+    },
+    {
+      "academic_year": 2014,
+      "status": "not found in official public indexes",
+      "searched": ["central academic BBS", "university integrated search", "official iBook title index"]
+    },
+    {
+      "academic_year": 2015,
+      "status": "not found in official public indexes",
+      "searched": ["central academic BBS", "university integrated search", "official iBook title index"]
+    }
+  ]
+}
