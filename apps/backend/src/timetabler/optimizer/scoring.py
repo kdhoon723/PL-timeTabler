@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from collections import defaultdict
-from itertools import pairwise
 
 from .models import Candidate, OptimizationRequest, ScoreBreakdown, Section, Session
 
@@ -27,7 +26,7 @@ def _daily_sessions(sections: tuple[Section, ...]) -> dict[int, list[Session]]:
 def _gap_and_movement(sessions: list[Session]) -> tuple[int, int]:
     gap_minutes = 0
     movement_transitions = 0
-    for left, right in pairwise(sessions):
+    for left, right in zip(sessions, sessions[1:], strict=False):
         gap = max(0, right.start_minute - left.end_minute)
         gap_minutes += gap
         if (
@@ -76,8 +75,12 @@ def build_candidate(
         if request.preferences.latest_end_minute is not None
         else 0
     )
-    preferred_day_off_violations = len(set(daily) & request.preferences.preferred_days_off)
-    avoided_day_sessions = sum(len(daily.get(day, ())) for day in request.preferences.avoided_days)
+    preferred_day_off_violations = len(
+        set(daily) & request.preferences.preferred_days_off
+    )
+    avoided_day_sessions = sum(
+        len(daily.get(day, ())) for day in request.preferences.avoided_days
+    )
 
     section_by_id = {section.section_id: section for section in request.sections}
     current_by_course = {

@@ -76,9 +76,11 @@ class BacktrackingOptimizer:
 
             course_id = courses[index]
             locked = locked_by_course.get(course_id)
-            options: tuple[Section | None, ...] = (
-                (locked,) if locked is not None else (None, *sections_by_course[course_id])
-            )
+            options: tuple[Section | None, ...]
+            if locked is not None:
+                options = (locked,)
+            else:
+                options = (None, *sections_by_course[course_id])
 
             for option in options:
                 if option is None:
@@ -120,7 +122,9 @@ class BacktrackingOptimizer:
             candidates=candidates,
             wall_time_seconds=monotonic() - started,
             explored_states=explored_states,
-            relaxations=infeasibility_hints(request) if status is SolverStatus.INFEASIBLE else (),
+            relaxations=infeasibility_hints(request)
+            if status is SolverStatus.INFEASIBLE
+            else (),
         )
 
 

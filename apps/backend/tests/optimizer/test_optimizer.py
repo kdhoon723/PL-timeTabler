@@ -99,7 +99,9 @@ class BacktrackingOptimizerTests(unittest.TestCase):
         self.assertEqual(result.candidates[0].section_ids, ("A-1", "B-2"))
         for candidate in result.candidates:
             selected = tuple(
-                item for item in request.sections if item.section_id in candidate.section_ids
+                item
+                for item in request.sections
+                if item.section_id in candidate.section_ids
             )
             self.assertTrue(selection_is_feasible(request, selected))
         self.assertEqual(
@@ -108,7 +110,9 @@ class BacktrackingOptimizerTests(unittest.TestCase):
         )
 
     def test_required_group_and_unverified_restriction(self) -> None:
-        unverified = section("D-1", "D", 3, Session(3, 9 * 60, 10 * 60), verified_eligible=None)
+        unverified = section(
+            "D-1", "D", 3, Session(3, 9 * 60, 10 * 60), verified_eligible=None
+        )
         request = OptimizationRequest(
             sections=(self.a1, self.c1, unverified),
             min_credits=5,
@@ -120,10 +124,14 @@ class BacktrackingOptimizerTests(unittest.TestCase):
         result = BacktrackingOptimizer().solve(request)
 
         self.assertEqual(result.status, SolverStatus.OPTIMAL)
-        self.assertTrue(any("D-1" in candidate.section_ids for candidate in result.candidates))
+        self.assertTrue(
+            any("D-1" in candidate.section_ids for candidate in result.candidates)
+        )
 
     def test_verified_ineligible_section_is_excluded(self) -> None:
-        unavailable = section("D-1", "D", 3, Session(3, 9 * 60, 10 * 60), verified_eligible=False)
+        unavailable = section(
+            "D-1", "D", 3, Session(3, 9 * 60, 10 * 60), verified_eligible=False
+        )
         request = OptimizationRequest(
             sections=(unavailable,),
             min_credits=3,
@@ -202,7 +210,9 @@ class CpSatOptimizerTests(unittest.TestCase):
             [candidate.section_ids for candidate in second.candidates],
         )
         self.assertEqual(len(first.candidates), 3)
-        self.assertEqual(len({candidate.section_ids for candidate in first.candidates}), 3)
+        self.assertEqual(
+            len({candidate.section_ids for candidate in first.candidates}), 3
+        )
 
     def test_cp_sat_distinguishes_infeasible(self) -> None:
         a = section("A-1", "A", 3, Session(0, 9 * 60, 10 * 60))
@@ -259,9 +269,13 @@ class CpSatOptimizerTests(unittest.TestCase):
             )
             for candidate in cp_result.candidates:
                 selected = tuple(
-                    item for item in request.sections if item.section_id in candidate.section_ids
+                    item
+                    for item in request.sections
+                    if item.section_id in candidate.section_ids
                 )
-                self.assertTrue(selection_is_feasible(request, selected), f"invalid seed={seed}")
+                self.assertTrue(
+                    selection_is_feasible(request, selected), f"invalid seed={seed}"
+                )
 
 
 if __name__ == "__main__":

@@ -30,17 +30,23 @@ def validate_request(request: OptimizationRequest) -> None:
     """Validate identifiers and invariants that indicate malformed input."""
 
     ids = [section.section_id for section in request.sections]
-    duplicates = sorted(section_id for section_id, count in Counter(ids).items() if count > 1)
+    duplicates = sorted(
+        section_id for section_id, count in Counter(ids).items() if count > 1
+    )
     if duplicates:
         raise InvalidProblemError(f"duplicate section ids: {', '.join(duplicates)}")
 
     section_by_id = {section.section_id: section for section in request.sections}
     referenced_ids = (
-        request.locked_section_ids | request.current_section_ids | request.excluded_section_ids
+        request.locked_section_ids
+        | request.current_section_ids
+        | request.excluded_section_ids
     )
     unknown_ids = referenced_ids - section_by_id.keys()
     if unknown_ids:
-        raise InvalidProblemError(f"unknown section ids: {', '.join(sorted(unknown_ids))}")
+        raise InvalidProblemError(
+            f"unknown section ids: {', '.join(sorted(unknown_ids))}"
+        )
 
     locked_courses = [
         section_by_id[section_id].course_id for section_id in request.locked_section_ids
@@ -54,14 +60,16 @@ def validate_request(request: OptimizationRequest) -> None:
         )
 
     current_courses = [
-        section_by_id[section_id].course_id for section_id in request.current_section_ids
+        section_by_id[section_id].course_id
+        for section_id in request.current_section_ids
     ]
     duplicate_current_courses = sorted(
         course for course, count in Counter(current_courses).items() if count > 1
     )
     if duplicate_current_courses:
         raise InvalidProblemError(
-            "multiple current sections for the same course: " + ", ".join(duplicate_current_courses)
+            "multiple current sections for the same course: "
+            + ", ".join(duplicate_current_courses)
         )
 
     for section in request.sections:
@@ -72,7 +80,9 @@ def validate_request(request: OptimizationRequest) -> None:
                 )
 
 
-def selection_is_feasible(request: OptimizationRequest, selected: tuple[Section, ...]) -> bool:
+def selection_is_feasible(
+    request: OptimizationRequest, selected: tuple[Section, ...]
+) -> bool:
     """Evaluate every documented hard constraint for a concrete selection."""
 
     selected_ids = {section.section_id for section in selected}
@@ -97,7 +107,9 @@ def selection_is_feasible(request: OptimizationRequest, selected: tuple[Section,
         if len(selected_courses & group.course_ids) < group.minimum_courses:
             return False
 
-    return not any(sections_conflict(left, right) for left, right in combinations(selected, 2))
+    return not any(
+        sections_conflict(left, right) for left, right in combinations(selected, 2)
+    )
 
 
 def infeasibility_hints(request: OptimizationRequest) -> tuple[str, ...]:
@@ -114,12 +126,16 @@ def infeasibility_hints(request: OptimizationRequest) -> tuple[str, ...]:
 
     missing_courses = request.required_course_ids - available_courses
     if missing_courses:
-        hints.append(f"필수 과목 후보를 추가하세요: {', '.join(sorted(missing_courses))}")
+        hints.append(
+            f"필수 과목 후보를 추가하세요: {', '.join(sorted(missing_courses))}"
+        )
 
     for group in request.required_groups:
         available = len(group.course_ids & available_courses)
         if available < group.minimum_courses:
-            hints.append(f"{group.group_id} 그룹의 필수 개수를 줄이거나 후보 과목을 추가하세요")
+            hints.append(
+                f"{group.group_id} 그룹의 필수 개수를 줄이거나 후보 과목을 추가하세요"
+            )
 
     locked = [section_by_id[section_id] for section_id in request.locked_section_ids]
     conflicting_locked = [

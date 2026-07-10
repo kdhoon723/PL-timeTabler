@@ -96,7 +96,10 @@ class Preferences:
             and not 0 <= self.earliest_start_minute <= 24 * 60
         ):
             raise ValueError("earliest_start_minute must be within a day")
-        if self.latest_end_minute is not None and not 0 <= self.latest_end_minute <= 24 * 60:
+        if (
+            self.latest_end_minute is not None
+            and not 0 <= self.latest_end_minute <= 24 * 60
+        ):
             raise ValueError("latest_end_minute must be within a day")
         if self.max_campus_days is not None and not 0 <= self.max_campus_days <= 7:
             raise ValueError("max_campus_days must be between 0 and 7")
