@@ -17,6 +17,20 @@ async function addCourse(page: Page, query: string, courseName: RegExp, sectionN
   await page.getByRole('button', { name: '과목 검색 닫기' }).click()
 }
 
+async function seedDraft(page: Page, sectionId = '922601-01') {
+  await page.addInitScript(({ seededSectionId }) => {
+    localStorage.setItem('pl-timetabler:onboarding:v1', 'complete')
+    localStorage.setItem('pl-timetabler:draft:v1', JSON.stringify({
+      schemaVersion: 1,
+      semester: '2026-1',
+      dataVersion: 'e2e-seed',
+      items: [{ sectionId: seededSectionId, role: 'want', locked: false }],
+      preferences: { targetCredits: 2, minCredits: 2, maxCredits: 21, preferredFreeDays: [], avoidBefore: null, avoidAfter: null, minLunchMinutes: 60, maxDailyMinutes: 360, compactness: 70, minimizeChanges: true },
+      updatedAt: '2026-07-11T00:00:00.000Z',
+    }))
+  }, { seededSectionId: sectionId })
+}
+
 test.describe('responsive timetable editor', () => {
 
   test('keeps first-run focus inside the accessible setup dialog', async ({ page }) => {
@@ -59,6 +73,8 @@ test.describe('responsive timetable editor', () => {
     await page.getByRole('option', { name: /컴퓨터공학전공/ }).click()
     await page.getByRole('button', { name: '3학년' }).click()
     await page.getByRole('button', { name: '국내학생' }).click()
+    await expect(page.getByRole('alert')).toContainText('보통 1학년')
+    await page.getByRole('checkbox', { name: /현재 3학년이 맞습니다/ }).check()
     await page.getByRole('button', { name: '시간표 만들기' }).click()
 
     await expect(page.getByText('컴퓨터공학전공 · 3학년')).toBeVisible()
@@ -153,12 +169,92 @@ test.describe('responsive timetable editor', () => {
     test.skip(testInfo.project.name !== 'mobile-390', '390px layout contract')
     await page.addInitScript(() => {
       localStorage.setItem('pl-timetabler:onboarding:v1', 'complete')
-      localStorage.setItem('pl-timetabler:profile:v1', JSON.stringify({ schemaVersion: 1, department: '컴퓨터공학전공', admissionYear: 2026, currentGrade: 3, entryType: 'FRESHMAN', studentType: 'DOMESTIC', sectionGroup: 'UNKNOWN', updatedAt: '2026-07-11T00:00:00Z' }))
+      localStorage.setItem('pl-timetabler:profile:v1', JSON.stringify({ schemaVersion: 1, department: '컴퓨터공학전공', admissionYear: 2026, currentGrade: 3, entryType: 'FRESHMAN', studentType: 'DOMESTIC', sectionGroup: 'UNKNOWN', gradeMismatchAcknowledged: true, updatedAt: '2026-07-11T00:00:00Z' }))
     })
     await page.goto('/')
     await expect(page.getByRole('button', { name: /필수 과목 먼저/ })).toHaveAttribute('aria-expanded', 'false')
     const box = await page.locator('.timetable-grid').boundingBox()
     expect(box?.y).toBeLessThanOrEqual(360)
+  })
+})
+
+test.describe('desktop preview and guided section drag', () => {
+  test('previews a candidate without mutation, applies it, and preserves undo', async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== 'desktop-1440', 'desktop preview contract')
+    await seedDraft(page)
+    await page.route('**/api/v1/optimizations', async (route) => {
+      if (new URL(route.request().url()).pathname !== '/api/v1/optimizations') return route.continue()
+      await route.fulfill({
+        contentType: 'application/json',
+        body: JSON.stringify({
+          id: 'e2e-preview',
+          status: 'OPTIMAL',
+          result: {
+            candidates: [{
+              rank: 1,
+              sectionIds: ['922601-03'],
+              metrics: { totalCredits: 2, campusDays: 1, gapMinutes: 0, firstClassMinute: 570, lastClassMinute: 690 },
+              scoreComponents: { weighted: 100 },
+              explanation: ['금요일 오전 분반으로 교체'],
+              unmetPreferences: [],
+            }],
+            reasons: [],
+          },
+        }),
+      })
+    })
+    await openEditor(page)
+
+    await page.getByRole('button', { name: '시간표 3개 만들기' }).click()
+    await page.getByRole('button', { name: '후보 1 미리보기' }).click()
+
+    await expect(page.getByRole('region', { name: '후보 1 변경 내용' })).toBeFocused()
+    await expect(page.getByText('교체: AI시대의컴퓨팅사고 01분반 → 03분반')).toBeVisible()
+    await expect(page.getByLabel(/AI시대의컴퓨팅사고 화.*교체 전 분반/)).toBeVisible()
+    await expect(page.getByLabel(/AI시대의컴퓨팅사고 금.*교체 후 분반/)).toBeVisible()
+    expect(await page.evaluate(() => JSON.parse(localStorage.getItem('pl-timetabler:draft:v1')!).items[0].sectionId)).toBe('922601-01')
+
+    await page.getByRole('button', { name: '후보 적용' }).click()
+    await expect(page.getByRole('button', { name: /AI시대의컴퓨팅사고 금 09:30/ })).toBeVisible()
+    await page.getByRole('button', { name: '되돌리기' }).click()
+    await expect(page.getByRole('button', { name: /AI시대의컴퓨팅사고 화 11:30/ })).toBeVisible()
+  })
+
+  test('drops only on an official alternative and keeps replacement undoable', async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== 'desktop-1440', 'desktop drag contract')
+    await seedDraft(page)
+    await openEditor(page)
+
+    const source = page.getByRole('button', { name: /AI시대의컴퓨팅사고 화 11:30.*드래그/ })
+    await expect(source).toHaveAttribute('draggable', 'true')
+    const dataTransfer = await page.evaluateHandle(() => new DataTransfer())
+    await source.dispatchEvent('dragstart', { dataTransfer })
+    const officialSlot = page.locator('[data-drop-section-id="922601-03"]')
+    await expect(officialSlot).toBeVisible()
+    await officialSlot.dispatchEvent('dragenter', { dataTransfer })
+    await expect(officialSlot).toHaveClass(/active/)
+    await officialSlot.dispatchEvent('dragover', { dataTransfer })
+    await officialSlot.dispatchEvent('drop', { dataTransfer })
+    await dataTransfer.dispose()
+
+    await expect(page.getByRole('button', { name: /AI시대의컴퓨팅사고 금 09:30/ })).toBeVisible()
+    await expect(page.locator('.timetable-section [role="status"]')).toContainText('03분반으로 교체했습니다')
+    expect(await page.evaluate(() => JSON.parse(localStorage.getItem('pl-timetabler:draft:v1')!).items[0].sectionId)).toBe('922601-03')
+    await page.getByRole('button', { name: '되돌리기' }).click()
+    await expect(page.getByRole('button', { name: /AI시대의컴퓨팅사고 화 11:30/ })).toBeVisible()
+    await expect(page.getByRole('dialog', { name: 'AI시대의컴퓨팅사고' })).toHaveCount(0)
+  })
+
+  test('keeps click and keyboard alternatives complete at every viewport', async ({ page }, testInfo) => {
+    await seedDraft(page)
+    await openEditor(page)
+    const block = page.getByRole('button', { name: /AI시대의컴퓨팅사고 화 11:30/ })
+    await expect(block).toHaveAttribute('draggable', testInfo.project.name === 'desktop-1440' ? 'true' : 'false')
+    await block.focus()
+    await page.keyboard.press('Enter')
+    const dialog = page.getByRole('dialog', { name: 'AI시대의컴퓨팅사고' })
+    await expect(dialog).toBeVisible()
+    await expect(dialog.getByRole('button', { name: /03분반.*교체/ })).toBeVisible()
   })
 })
 
@@ -219,6 +315,7 @@ test.describe('production optimizer integration', () => {
     await page.getByRole('button', { name: '과목 검색 닫기' }).click()
     const mobileTools = page.getByRole('button', { name: /자동 생성/ }).first()
     if (await mobileTools.isVisible()) await mobileTools.click()
+    await page.getByText('세부 조건 조정').click()
     await page.getByRole('spinbutton', { name: '최소 학점' }).fill('9')
     await page.getByRole('spinbutton', { name: '최대 학점' }).fill('12')
     await page.getByRole('spinbutton', { name: '목표 학점' }).fill('12')
@@ -227,7 +324,8 @@ test.describe('production optimizer integration', () => {
     await expect(page.getByRole('article').filter({ hasText: '후보 1' })).toBeVisible({ timeout: 15_000 })
     await expect(page.getByRole('article').filter({ hasText: '후보 2' })).toBeVisible()
     await expect(page.getByRole('article').filter({ hasText: '후보 3' })).toBeVisible()
-    await page.getByRole('article').filter({ hasText: '후보 1' }).getByRole('button', { name: '이 후보 적용' }).click()
+    await page.getByRole('article').filter({ hasText: '후보 1' }).getByRole('button', { name: '후보 1 미리보기' }).click()
+    await page.getByRole('button', { name: '후보 적용' }).click()
     await expect(page.getByText('자동 생성 후보를 적용했습니다.')).toBeVisible()
   })
 })

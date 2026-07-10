@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react'
 import { cancelOptimizationJob, createOptimizationJob, getOptimizationJob } from '../api/client'
+import { diffCandidate } from '../domain/candidateDiff'
 import type { Candidate, DraftSnapshot, OptimizationJob, Section } from '../types'
 import { CheckIcon, SlidersIcon } from './Icons'
 
-interface Props { draft: DraftSnapshot; sections: readonly Section[]; onApply: (candidate: Candidate) => void }
+interface Props { draft: DraftSnapshot; sections: readonly Section[]; onPreview: (candidate: Candidate) => void }
 const DONE = new Set(['SUCCEEDED', 'INFEASIBLE', 'TIME_LIMIT', 'CANCELLED', 'FAILED'])
 
-export function OptimizerPanel({ draft, sections, onApply }: Props) {
+export function OptimizerPanel({ draft, sections, onPreview }: Props) {
   const [job, setJob] = useState<OptimizationJob | null>(null)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -64,13 +65,16 @@ export function OptimizerPanel({ draft, sections, onApply }: Props) {
     {job?.status === 'INFEASIBLE' && <div className="infeasible" role="alert"><strong>모든 조건을 동시에 만족하는 시간표가 없습니다.</strong><ul>{job.relaxationSuggestions.map((suggestion) => <li key={suggestion}>{suggestion}</li>)}</ul><button type="button" className="secondary-button" onClick={generate}>조건을 바꾼 뒤 다시 생성</button></div>}
     {job?.status === 'TIME_LIMIT' && !job.candidates.length && <div className="inline-error">제한 시간 안에 후보를 찾지 못했습니다. 후보 과목 수를 줄이거나 조건을 완화해 주세요.</div>}
     {!!job?.candidates.length && <div className="candidate-list" aria-label="자동 생성 후보">
-      {job.candidates.slice(0, 3).map((candidate, index) => <article className="candidate" key={candidate.id}>
+      {job.candidates.slice(0, 3).map((candidate, index) => {
+        const diff = diffCandidate(candidate.sectionIds, draft.items, sectionById)
+        return <article className="candidate" key={candidate.id}>
         <div className="candidate-heading"><div><span>후보 {index + 1}</span><h3>{candidate.metrics.campusDays}일 등교 · {candidate.metrics.credits}학점</h3></div><strong>{candidate.metrics.totalGapMinutes}분 공강</strong></div>
         <dl><div><dt>첫 수업</dt><dd>{candidate.metrics.earliest ?? '없음'}</dd></div><div><dt>마지막 수업</dt><dd>{candidate.metrics.latest ?? '없음'}</dd></div></dl>
+        <p className="candidate-change-summary">교체 {diff.swaps.length} · 추가 {diff.added.length} · 제외 {diff.removed.length}</p>
         <ul className="reason-list">{candidate.reasons.slice(0, 3).map((reason) => <li key={reason}><CheckIcon />{reason}</li>)}</ul>
         {!!candidate.unmetPreferences.length && <p className="unmet">미반영: {candidate.unmetPreferences.join(', ')}</p>}
-        <button type="button" className={index === 0 ? 'primary-button' : 'secondary-button'} onClick={() => onApply(candidate)}>이 후보 적용</button>
-      </article>)}
+        <button type="button" className={index === 0 ? 'primary-button' : 'secondary-button'} onClick={() => onPreview(candidate)}>후보 {index + 1} 미리보기</button>
+      </article>})}
     </div>}
     {job && DONE.has(job.status) && <button type="button" className="text-button" onClick={generate}>새 조건으로 다시 만들기</button>}
   </section>

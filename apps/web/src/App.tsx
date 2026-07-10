@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from 'react'
 import { loadAuthSession, loadCatalog, loadCommonRules, loadDepartmentSources, loadMajorRequiredCourses } from './api/client'
 import { findAlternatives, findConflicts } from './domain/conflicts'
+import { diffCandidate } from './domain/candidateDiff'
 import { computeMetrics } from './domain/metrics'
 import { encodeDraft } from './domain/share'
 import { exportTimetablePng } from './domain/exportImage'
@@ -9,6 +10,7 @@ import { draftReducer, itemsWithAppliedBackup, itemsWithCourseRole, loadSavedDra
 import type { AcademicProfile, AuthSession, Candidate, CommonRules, CourseRole, DepartmentSource, MajorRequiredCourses, Section } from './types'
 import { AppHeader } from './components/AppHeader'
 import { AuthSheet } from './components/AuthSheet'
+import { CandidatePreviewBar } from './components/CandidatePreviewBar'
 import { ConflictNotice } from './components/ConflictNotice'
 import { CourseSearchSheet } from './components/CourseSearchSheet'
 import { Onboarding } from './components/Onboarding'
@@ -43,6 +45,7 @@ export default function App() {
   const [catalogError, setCatalogError] = useState<string | null>(null)
   const [searchOpen, setSearchOpen] = useState(false)
   const [selectedId, setSelectedId] = useState<string | null>(null)
+  const [candidatePreview, setCandidatePreview] = useState<{ candidate: Candidate; baseUpdatedAt: string } | null>(null)
   const [showTools, setShowTools] = useState(false)
   const [route, setRoute] = useState(location.pathname)
   const [toast, setToast] = useState<string | null>(null)
@@ -56,12 +59,15 @@ export default function App() {
   const [departments, setDepartments] = useState<DepartmentSource[]>([])
   const [majorRequired, setMajorRequired] = useState<MajorRequiredCourses | null>(null)
   const isDesktopTools = useMediaQuery('(min-width: 768px)')
+  const isDesktopDrag = useMediaQuery('(min-width: 1200px)')
   const presentRef = useRef(state.present)
   const toolsDialogRef = useRef<HTMLDialogElement>(null)
   const toolsCloseRef = useRef<HTMLButtonElement>(null)
   const toolsTriggerRef = useRef<HTMLButtonElement>(null)
   const showToolsRef = useRef(showTools)
   const toolsHistoryRef = useRef(false)
+  const previewBarRef = useRef<HTMLElement>(null)
+  const focusPreviewAfterToolsCloseRef = useRef(false)
   presentRef.current = state.present
   showToolsRef.current = showTools
 
@@ -69,17 +75,28 @@ export default function App() {
   const activeSections = useMemo(() => state.present.items.filter((item) => item.role === 'must' || item.role === 'want').map((item) => sectionById.get(item.sectionId)).filter((section): section is Section => !!section), [sectionById, state.present.items])
   const metrics = useMemo(() => computeMetrics(activeSections), [activeSections])
   const conflicts = useMemo(() => findConflicts(state.present.items, sectionById), [sectionById, state.present.items])
+  const previewDiff = useMemo(() => candidatePreview ? diffCandidate(candidatePreview.candidate.sectionIds, state.present.items, sectionById) : null, [candidatePreview, sectionById, state.present.items])
+  const previewItems = useMemo(() => candidatePreview ? planItemsForCandidate(candidatePreview.candidate.sectionIds, state.present.items, sectionById) : null, [candidatePreview, sectionById, state.present.items])
+  const previewConflicts = useMemo(() => previewItems ? findConflicts(previewItems, sectionById) : conflicts, [conflicts, previewItems, sectionById])
+  const previewStatusById = useMemo(() => previewDiff ? new Map(previewDiff.previewSections.map(({ section, state: previewState }) => [section.id, previewState])) : undefined, [previewDiff])
+  const gridSections = previewDiff ? previewDiff.previewSections.map(({ section }) => section) : activeSections
   const selectedSection = selectedId ? sectionById.get(selectedId) ?? null : null
   const selectedItem = selectedId ? state.present.items.find((item) => item.sectionId === selectedId) : undefined
   const alternatives = selectedSection ? findAlternatives(selectedSection, catalog, activeSections) : []
+  const dragAlternativesById = useMemo(() => new Map(activeSections.map((section) => [section.id, findAlternatives(section, catalog, activeSections)])), [activeSections, catalog])
   const showToast = useCallback((message: string, undoable = false) => {
     setToast(message)
     setToastUndoable(undoable)
   }, [])
+  const focusPreviewBar = useCallback(() => requestAnimationFrame(() => requestAnimationFrame(() => {
+    previewBarRef.current?.scrollIntoView?.({ block: 'start' })
+    previewBarRef.current?.focus()
+  })), [])
 
   const fetchCatalog = useCallback(() => {
     setCatalogError(null)
     loadCatalog(presentRef.current.semester).then(({ catalog: loaded, offline }) => {
+      setCandidatePreview(null)
       setCatalog(loaded.sections)
       setCatalogMeta({ version: loaded.dataVersion, updatedAt: loaded.updatedAt, offline })
       const validIds = new Set(loaded.sections.map((section) => section.id))
@@ -108,13 +125,16 @@ export default function App() {
       if (showToolsRef.current) {
         setShowTools(false)
         toolsHistoryRef.current = false
-        requestAnimationFrame(() => toolsTriggerRef.current?.focus())
+        const focusPreview = focusPreviewAfterToolsCloseRef.current
+        focusPreviewAfterToolsCloseRef.current = false
+        if (focusPreview) focusPreviewBar()
+        else requestAnimationFrame(() => toolsTriggerRef.current?.focus())
       }
       setRoute(location.pathname)
     }
     addEventListener('popstate', handler)
     return () => removeEventListener('popstate', handler)
-  }, [])
+  }, [focusPreviewBar])
   useEffect(() => {
     const dialog = toolsDialogRef.current
     if (!dialog || isDesktopTools) return
@@ -123,6 +143,9 @@ export default function App() {
       requestAnimationFrame(() => toolsCloseRef.current?.focus())
     } else if (!showTools && dialog.open) dialog.close()
   }, [isDesktopTools, showTools])
+  useEffect(() => {
+    if (candidatePreview && candidatePreview.baseUpdatedAt !== state.present.updatedAt) setCandidatePreview(null)
+  }, [candidatePreview, state.present.updatedAt])
   useEffect(() => {
     const handleShortcut = (event: KeyboardEvent) => {
       if (!(event.ctrlKey || event.metaKey) || event.altKey || event.key.toLocaleLowerCase() !== 'z') return
@@ -151,13 +174,25 @@ export default function App() {
     }
     setShowTools(true)
   }
-  const closeTools = () => {
+  const closeTools = (focusTarget: 'trigger' | 'preview' = 'trigger') => {
+    focusPreviewAfterToolsCloseRef.current = focusTarget === 'preview'
     if (toolsHistoryRef.current && history.state?.plTimetablerOverlay === 'tools') history.back()
     else {
       setShowTools(false)
       toolsHistoryRef.current = false
-      requestAnimationFrame(() => toolsTriggerRef.current?.focus())
+      if (focusTarget === 'preview') focusPreviewBar()
+      else requestAnimationFrame(() => toolsTriggerRef.current?.focus())
     }
+  }
+  const previewCandidate = (candidate: Candidate) => {
+    setCandidatePreview({ candidate, baseUpdatedAt: state.present.updatedAt })
+    setSelectedId(null)
+    if (!isDesktopTools && showTools) closeTools('preview')
+    else focusPreviewBar()
+  }
+  const cancelCandidatePreview = () => {
+    setCandidatePreview(null)
+    requestAnimationFrame(() => document.getElementById('timetable-title')?.focus())
   }
   const addSection = (section: Section, role: CourseRole = 'want') => {
     const excludedSameCourse = state.present.items.filter((item) => item.role === 'exclude' && sectionById.get(item.sectionId)?.courseCode === section.courseCode)
@@ -182,7 +217,15 @@ export default function App() {
     if (!selectedSection) return
     dispatch({ type: 'SWAP', fromId: selectedSection.id, toId: section.id }); setSelectedId(section.id); showToast(`${section.sectionCode}분반으로 교체했습니다.`, true)
   }
-  const applyCandidate = (candidate: Candidate) => { dispatch({ type: 'APPLY', items: planItemsForCandidate(candidate.sectionIds, state.present.items, sectionById) }); showToast('자동 생성 후보를 적용했습니다.', true); closeTools() }
+  const dragReplaceSection = (source: Section, replacement: Section) => {
+    const sourceItem = state.present.items.find((item) => item.sectionId === source.id)
+    const validReplacement = findAlternatives(source, catalog, activeSections).some((section) => section.id === replacement.id)
+    if (!isDesktopDrag || candidatePreview || !sourceItem || sourceItem.locked || !validReplacement) return
+    dispatch({ type: 'SWAP', fromId: source.id, toId: replacement.id })
+    setSelectedId(null)
+    showToast(`${source.name} ${source.sectionCode}분반을 ${replacement.sectionCode}분반으로 교체했습니다.`, true)
+  }
+  const applyCandidate = (candidate: Candidate) => { dispatch({ type: 'APPLY', items: planItemsForCandidate(candidate.sectionIds, state.present.items, sectionById) }); setCandidatePreview(null); showToast('자동 생성 후보를 적용했습니다.', true); if (showTools) closeTools() }
   const applyBackup = (section: Section) => { dispatch({ type: 'ITEMS', items: itemsWithAppliedBackup(section.id, state.present.items, sectionById) }); showToast(`${section.name}을 현재 시간표에 적용했습니다.`, true) }
 
   const share = async () => {
@@ -197,7 +240,7 @@ export default function App() {
 
   const completeProfile = (next: AcademicProfile) => {
     try { saveAcademicProfile(next) } catch { showToast('학적 정보를 브라우저에 저장하지 못했습니다.') }
-    setProfile(next); setOnboardingOpen(false); setProfileEditorOpen(false); showToast(`${next.department} 기준을 적용했습니다.`)
+    setProfile(next); setCandidatePreview(null); setOnboardingOpen(false); setProfileEditorOpen(false); showToast(`${next.department} 기준을 적용했습니다.`)
   }
   const skipOnboarding = () => {
     try { completeOnboardingWithoutProfile() } catch { /* the current visit can still continue */ }
@@ -206,7 +249,7 @@ export default function App() {
 
   if (route === '/requirements') return <><RequirementsPage catalog={catalog} profile={profile} onBack={() => navigate('/')} onAddCourse={(section) => { addSection(section, 'must'); navigate('/') }} /><Toast message={toast} onClose={() => setToast(null)} /></>
 
-  const toolsContent = <><PreferencesPanel preferences={state.present.preferences} onChange={(preferences) => dispatch({ type: 'PREFERENCES', preferences })} /><OptimizerPanel draft={state.present} sections={catalog} onApply={applyCandidate} /><RegistrationChecklist items={state.present.items} sectionById={sectionById} onApplyBackup={applyBackup} onMessage={(message) => showToast(message)} /><section className="export-panel"><h2>내보내기</h2><div><button type="button" className="secondary-button" onClick={exportImage}>PNG 저장</button><button type="button" className="secondary-button" onClick={() => print()}>인쇄·PDF</button></div></section><p className="source-copy">대진대학교 공개 개설과목 · 데이터 {catalogMeta?.version.slice(0, 12) ?? '확인 중'}</p></>
+  const toolsContent = <><PreferencesPanel preferences={state.present.preferences} onChange={(preferences) => dispatch({ type: 'PREFERENCES', preferences })} /><OptimizerPanel draft={state.present} sections={catalog} onPreview={previewCandidate} /><RegistrationChecklist items={state.present.items} sectionById={sectionById} onApplyBackup={applyBackup} onMessage={(message) => showToast(message)} /><section className="export-panel"><h2>내보내기</h2><div><button type="button" className="secondary-button" onClick={exportImage}>PNG 저장</button><button type="button" className="secondary-button" onClick={() => print()}>인쇄·PDF</button></div></section><p className="source-copy">대진대학교 공개 개설과목 · 데이터 {catalogMeta?.version.slice(0, 12) ?? '확인 중'}</p></>
 
   return <div className="app-shell">
     <AppHeader credits={metrics.credits} profile={profile} authSession={authSession} canUndo={!!state.past.length} canRedo={!!state.future.length} onUndo={() => dispatch({ type: 'UNDO' })} onRedo={() => dispatch({ type: 'REDO' })} onShare={share} onExportPng={exportImage} onExportPdf={() => print()} onNavigate={navigate} onProfile={() => setProfileEditorOpen(true)} onAccount={() => setAuthOpen(true)} />
@@ -214,10 +257,10 @@ export default function App() {
     {catalogMeta && <div className="data-status"><span>{catalogMeta.offline ? '저장된 데이터 사용 중' : '최신 데이터 연결됨'}</span><span>2026-1 · {catalogMeta.updatedAt} 기준</span></div>}
     <main className="editor-layout">
       <aside className="desktop-search"><button type="button" className="primary-button full-button" onClick={() => setSearchOpen(true)}><PlusIcon />과목 추가</button><SelectedCourseList items={state.present.items} sectionById={sectionById} onSelect={(section) => setSelectedId(section.id)} /></aside>
-      <div className="editor-main"><div className="tablet-editor-actions"><button type="button" className="primary-button" onClick={() => setSearchOpen(true)}><PlusIcon />과목 추가</button></div><RequiredCoursePanel profile={profile} rules={commonRules} majorRequired={majorRequired} catalog={catalog} items={state.present.items} sectionById={sectionById} onEditProfile={() => setProfileEditorOpen(true)} onAddRequired={(section) => addSection(section, 'must')} /><ConflictNotice conflicts={conflicts} onOpen={setSelectedId} /><TimetableGrid sections={activeSections} conflicts={conflicts} lockedIds={new Set(state.present.items.filter((item) => item.locked).map((item) => item.sectionId))} onSelect={(section) => setSelectedId(section.id)} />
+      <div className="editor-main"><div className="tablet-editor-actions"><button type="button" className="primary-button" onClick={() => setSearchOpen(true)}><PlusIcon />과목 추가</button></div><RequiredCoursePanel profile={profile} rules={commonRules} majorRequired={majorRequired} catalog={catalog} items={state.present.items} sectionById={sectionById} onEditProfile={() => setProfileEditorOpen(true)} onAddRequired={(section) => addSection(section, 'must')} /><ConflictNotice conflicts={candidatePreview ? previewConflicts : conflicts} onOpen={setSelectedId} />{candidatePreview && previewDiff && <CandidatePreviewBar candidate={candidatePreview.candidate} diff={previewDiff} containerRef={previewBarRef} onCancel={cancelCandidatePreview} onApply={() => applyCandidate(candidatePreview.candidate)} />}<TimetableGrid sections={gridSections} conflicts={candidatePreview ? previewConflicts : conflicts} lockedIds={new Set(state.present.items.filter((item) => item.locked).map((item) => item.sectionId))} onSelect={(section) => setSelectedId(section.id)} previewStatusById={previewStatusById} dragEnabled={isDesktopDrag && !candidatePreview} dragAlternativesById={dragAlternativesById} onReplace={dragReplaceSection} />
         <div className="mobile-summary"><SelectedCourseList items={state.present.items} sectionById={sectionById} onSelect={(section) => setSelectedId(section.id)} /></div>
       </div>
-      {isDesktopTools ? <aside className="tools-panel" aria-label="자동 생성과 준비">{toolsContent}</aside> : <dialog className="tools-dialog" ref={toolsDialogRef} aria-labelledby="tools-dialog-title" onCancel={(event) => { event.preventDefault(); closeTools() }}><div className="mobile-tools-header"><h2 id="tools-dialog-title">자동 생성과 준비</h2><button ref={toolsCloseRef} type="button" onClick={closeTools}>닫기</button></div>{toolsContent}</dialog>}
+      {isDesktopTools ? <aside className="tools-panel" aria-label="자동 생성과 준비">{toolsContent}</aside> : <dialog className="tools-dialog" ref={toolsDialogRef} aria-labelledby="tools-dialog-title" onCancel={(event) => { event.preventDefault(); closeTools() }}><div className="mobile-tools-header"><h2 id="tools-dialog-title">자동 생성과 준비</h2><button ref={toolsCloseRef} type="button" onClick={() => closeTools()}>닫기</button></div>{toolsContent}</dialog>}
     </main>
     <div className="mobile-action-bar"><button type="button" className="secondary-button" onClick={(event) => openTools(event.currentTarget)}><SlidersIcon />자동 생성</button><button type="button" className="primary-button" onClick={() => setSearchOpen(true)}><PlusIcon />과목 추가</button></div>
     <CourseSearchSheet open={searchOpen} sections={catalog} items={state.present.items} onClose={() => setSearchOpen(false)} onAdd={addSection} />

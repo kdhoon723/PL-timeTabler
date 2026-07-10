@@ -35,6 +35,9 @@
   - 사용자가 고른 과목을 존중하면서 충돌 없는 분반과 더 나은 공강 구성을 제안한다.
   - 입학연도·학과·전공 방식에 맞는 졸업요건과 아직 부족한 교양·전공 영역을 근거와 함께 보여준다.
   - 필수과목, 후보과목, 희망 학점, 공강과 시간대 조건으로 설명 가능한 시간표 후보를 자동 생성한다.
+  - 자동 생성 후보는 저장된 시간표를 바꾸기 전에 메인 격자에서 유지·추가·제외·분반 교체를 정확히 미리 보고 적용 또는 취소한다.
+  - 균형, 수업 몰아서, 공강일 우선, 오전 회피, 늦은 수업 회피처럼 학생 언어로 조건을 시작하고 세부 수치는 필요할 때만 펼친다.
+  - 신입학 입학연도와 현재 학년이 활성 학기 기준으로 이례적이면 예상 학년을 설명하고 명시적 확인 전에는 필수과목 자동 판정에 사용하지 않는다.
   - 수강신청 전에 여러 시간표 후보를 빠르게 비교하고 보존한다.
 - Non-goals:
   - 실제 수강신청 실행 또는 계정 연동
@@ -86,6 +89,8 @@
 - **점진적 공개:** 필수과목 상세는 기본 접힘이며 선택 수와 필수학점 진행, 다음 행동을 요약한다. 검색 결과는 최대 20개 과목 행만 먼저 보여주고 한 과목의 분반만 펼친다.
 - **명령 복구:** 모바일 상단 `더보기`는 실행 취소·다시 실행·공유·졸업요건·PNG/PDF를 두 탭 이내에 제공한다. 편집 입력 밖에서는 Ctrl/Cmd+Z와 Shift+Ctrl/Cmd+Z를 지원한다.
 - **상태를 행동과 함께 설명한다:** 검색 분반은 추천, 충돌, 시간 미정, 현재 분반, 추가/교체를 텍스트와 accessible name으로 함께 제공한다.
+- **후보는 적용 전에 캔버스에서 비교한다:** 후보 card의 미리보기 행동은 저장된 draft를 바꾸지 않는다. 캔버스와 비교 bar가 유지·추가·제외·교체 전·교체 후를 텍스트와 선/테두리로 구분하며 `적용`만 undo 가능한 변경을 만든다.
+- **데스크톱 drag는 고정 분반 교체의 보조 입력이다:** 1200px 이상에서 잠기지 않은 기존 블록만 끌 수 있고, 같은 과목의 충돌 없는 공식 대체 분반 위치만 drop slot으로 나타난다.
 
 ## Screen layout contract
 
@@ -98,6 +103,8 @@
 - `과목 추가`는 하단 내비게이션 위의 명확한 단일 기본 행동으로 유지한다. 자동 생성은 같은 중요도의 두 번째 고정 버튼으로 경쟁시키지 않는다.
 - 검색 시트는 최대 92dvh이며 검색창·필터 요약은 상단에 고정하고 결과만 스크롤한다.
 - 자동 생성/준비 도구는 닫혔을 때 접근성·focus 흐름에서 사라지는 이름 있는 modal dialog다. 열 때 닫기 버튼으로 focus를 옮기고 닫기·Escape·browser Back 모두 정확한 trigger로 focus를 돌린다.
+- 후보 미리보기를 선택하면 tools dialog를 닫고 메인 캔버스의 비교 bar로 focus를 이동한다. 취소는 저장된 draft를 유지하고 캔버스 제목으로 focus를 돌린다.
+- 모바일·태블릿의 분반 교체는 drag나 long press를 요구하지 않으며 블록 tap/Enter → 상세 sheet → 명시적 `교체`가 완전한 경로다.
 - 하단 고정 UI는 `env(safe-area-inset-bottom)`을 포함하며 콘텐츠와 키보드 포커스를 가리지 않는다.
 
 ### Tablet and desktop editor
@@ -106,6 +113,7 @@
 - 1200px 이상: 검색·필터 280px, 시간표 `minmax(560px, 1fr)`, 선택·추천 320px의 3영역을 기본으로 한다.
 - 전체 콘텐츠 최대 폭은 1440px이며 넓은 화면에서도 격자를 무한히 늘리지 않는다.
 - 데스크톱 패널은 모두 카드로 띄우지 않는다. 배경·얇은 구분선·간격으로 영역을 나누고 실제 독립 객체에만 surface를 사용한다.
+- 1200px 이상에서는 잠기지 않은 기존 시간표 블록을 공식 대체 분반으로 끌어 교체할 수 있다. drag 중에는 대체 분반의 모든 실제 session을 포함하도록 시간·요일 범위를 확장한다.
 
 ### Requirements screen
 
@@ -116,7 +124,7 @@
 ## Design principles
 
 - **편집기는 항상 접근 가능하다:** 첫 방문 학과 설정은 필수과목 연결을 위한 선택형 도움이며, 게스트 건너뛰기를 막거나 로그인부터 요구하지 않는다.
-- **드래그보다 탭을 우선한다:** 실제 강의시간은 고정이므로 모바일에서 불안정한 자유 드래그 대신 검색, 추가, 분반 교체를 명확한 탭 동작으로 제공한다.
+- **drag는 보조 입력이고 tap/keyboard가 기준이다:** 실제 강의시간은 고정한다. 모바일·태블릿은 검색, 추가, 상세 sheet의 분반 교체를 사용하고, 데스크톱 drag도 같은 공식 대체 분반만 선택한다.
 - **추천은 사용자의 선택을 존중한다:** 잠근 과목은 유지하고 변경 수를 최소화한다.
 - **자동 생성 후에도 편집권은 사용자에게 있다:** 생성 결과를 정답처럼 강요하지 않고 비교·부분 적용·되돌리기를 제공한다.
 - **학사 규칙에는 근거가 따라야 한다:** 적용 연도와 원문을 확인할 수 없는 규칙은 확정 판정에 사용하지 않는다.
@@ -212,9 +220,12 @@
   - `SuggestionTray`: 현재 안과 추천안 비교, 변경 이유, 적용·되돌리기
   - `AutoGeneratePanel`: 필수·후보 과목, 학점, 시간대, 공강 조건 입력
   - `CandidateComparison`: 자동 생성 후보의 차이와 점수 근거 비교
+  - `CandidatePreviewBar`: 비파괴 후보 비교와 적용·취소
+  - `PreferencesPanel`: 학생 언어 preset, 핵심 학점·공강일, 세부 조건 disclosure
+  - `Onboarding`: 활성 학기 기준 학년 일관성 설명과 override 확인
   - `RequirementNavigator`: 입학연도·학과별 졸업요건과 부족 영역
   - `SourceEvidence`: 규칙의 원문, 적용 대상, 기준일 표시
-- Variants and states: 기본, 선택, 잠금, 충돌, 시간 미정, 강의실 미상, 추천 변경 예정
+- Variants and states: 기본, 선택, 잠금, 충돌, 시간 미정, 강의실 미상, 미리보기 유지·추가·제외·교체 전·교체 후, drag source, official drop slot
 - Token/component ownership: 색상·간격·타이포 토큰은 앱 전역에서 정의하고 기능 컴포넌트가 임의 값을 추가하지 않는다.
 
 ### Component usage rules
@@ -235,6 +246,7 @@
 - Keyboard/focus behavior: 검색 결과와 분반 목록을 키보드로 이동·선택할 수 있고, 바텀시트 포커스를 관리하며 닫은 뒤 트리거로 복귀. focus는 최소 2px 외곽선과 2px offset을 사용하고 sticky UI 아래 가려지지 않는다.
 - Contrast/readability: 일반 텍스트 4.5:1, 큰 텍스트·UI 상태 경계 3:1 이상. 과목과 상태를 색상에만 의존하지 않는다.
 - Screen-reader semantics: 시간표는 시각 격자 외에 요일·시간·과목을 읽을 수 있는 구조화된 대체 목록 제공
+- Drag semantics: draggable block은 공식 분반에만 놓을 수 있다는 설명을 `aria-describedby`로 연결하고 시작·완료를 polite live region으로 알린다. 같은 동작의 tap, 명시적 button, Enter 경로를 항상 유지한다.
 - Reduced motion and sensory considerations: 모션 축소 설정 지원, 오류·추천 상태를 색상 외 텍스트로 설명
 
 ## Responsive behavior
@@ -244,7 +256,7 @@
   - 모바일: 시간표 중심 단일 화면 + 하단 고정 과목 추가 버튼 + 바텀시트
   - 태블릿: 시간표와 선택 과목 요약을 병렬 배치
   - 데스크톱: 검색 패널, 시간표, 선택·추천 요약의 3영역 구성
-- Touch/hover differences: 핵심 기능은 hover 없이 동작하며 길게 누르기나 정밀 드래그를 필수 동작으로 사용하지 않는다.
+- Touch/hover differences: 핵심 기능은 hover 없이 동작한다. guided drag는 1200px 이상 pointer 보조 기능이며 모바일·태블릿에서 `draggable=false`; 길게 누르기는 어떤 핵심 동작에도 필요하지 않다.
 - Mobile viewport rules: `100vh` 대신 동적 viewport 단위와 safe area를 고려한다. 키보드가 열린 상태에서도 검색 입력과 선택 결과가 동시에 보이도록 한다.
 
 ## Interaction states
@@ -253,6 +265,8 @@
 - Empty: 빈 격자 위에 간단한 한 문장과 `과목 추가` 기본 행동 제공
 - Error: 데이터 로딩 실패, 잘못된 시간 형식, 저장 복원 실패를 구분하고 재시도 제공
 - Success: 과목 추가·추천 적용 후 짧은 상태 메시지와 실행 취소 제공
+- Preview: 저장된 draft는 유지한 채 비교 bar와 격자가 변경 내용을 함께 표시한다. 적용·취소가 명시적이고 preview 중 수업 블록은 상세 sheet를 열지 않는다.
+- Dragging: source는 grabbing 상태, 공식 대체 session은 dashed ghost slot, hover target은 solid accent로 표시한다. drop 또는 drag 종료 시 모든 임시 상태를 제거하고 accidental click을 억제한다.
 - Disabled: 비활성 이유를 인접 텍스트로 설명
 - Offline/slow network: 정적 데이터 로딩 이후 편집은 네트워크 요청 없이 동작하도록 설계
 - Destructive: 삭제보다 실행 취소를 우선하며 확인 dialog는 되돌릴 수 없는 전체 초기화에만 사용
@@ -280,12 +294,13 @@
 - Compatibility constraints: 모바일 Safari와 Android Chrome을 우선 검증
 - Test/screenshot expectations: Playwright release gate는 390×844, 768×1024, 1440×900 실제 프로젝트를 사용한다. 360px/320px reflow는 추가 호환 점검으로 유지하며 empty, populated, conflict, search-open, generating, result-comparison, requirements-unknown 상태를 시각 회귀 대상으로 삼는다.
 
-### Next compatibility contract: fixed-section drag and drop
+### Shipped compatibility contract: fixed-section drag and drop
 
-- 현재 iteration에서는 drag-and-drop과 자유 이동을 구현하지 않는다.
-- 다음 호환 계약은 desktop에서만 search, 계획 큐, 기존 timetable block의 **고정된 분반**을 canonical valid alternative section으로 옮기는 동작이다.
-- 임의 시간대·요일·길이로 과목을 자유 이동하지 않는다. 실제 개설시간은 데이터가 정한 값으로 유지한다.
-- drag가 추가되더라도 동일 작업의 tap, 명시적 button, keyboard 대안을 항상 유지한다. drag-only, hover-only, long-press-only 핵심 행동은 허용하지 않는다.
+- drag source는 1200px 이상에서 보이는, 잠기지 않은 기존 timetable block이다. search 결과·계획 큐·candidate preview block은 drag source가 아니다.
+- drop target은 현재 선택을 제외했을 때 충돌 없는 같은 과목의 canonical catalog section이다. 그 section의 모든 session이 실제 요일·시간·길이로 함께 나타난다.
+- drop은 source item의 역할을 보존한 `SWAP`이며 history에 기록되어 toast, keyboard shortcut, header command로 undo할 수 있다.
+- 임의 시간대·요일·길이로 자유 이동하거나 resize하지 않는다. grid 빈 공간은 drop target이 아니며 실제 개설시간은 catalog가 정한다.
+- tap/click, 명시적 `교체` button, Enter 경로는 viewport와 pointer 종류에 관계없이 완전하게 유지한다. drag-only, hover-only, long-press-only 핵심 행동은 허용하지 않는다.
 
 ## Visual quality gate
 

@@ -2,6 +2,24 @@ import type { AcademicProfile } from '../types'
 
 export const PROFILE_STORAGE_KEY = 'pl-timetabler:profile:v1'
 export const ONBOARDING_STORAGE_KEY = 'pl-timetabler:onboarding:v1'
+export const ACTIVE_SEMESTER = '2026-1'
+export const ACTIVE_SEMESTER_YEAR = 2026
+
+type GradeProfile = Pick<AcademicProfile, 'admissionYear' | 'currentGrade' | 'entryType'>
+
+export function expectedFreshmanGrade(admissionYear: number, activeSemesterYear = ACTIVE_SEMESTER_YEAR): AcademicProfile['currentGrade'] | null {
+  const expected = activeSemesterYear - admissionYear + 1
+  return [1, 2, 3, 4].includes(expected) ? expected as AcademicProfile['currentGrade'] : null
+}
+
+export function isAcademicProfileConsistent(profile: GradeProfile): boolean {
+  if (profile.entryType === 'TRANSFER') return true
+  return expectedFreshmanGrade(profile.admissionYear) === profile.currentGrade
+}
+
+export function isAcademicProfileAuthoritative(profile: GradeProfile & Pick<AcademicProfile, 'gradeMismatchAcknowledged'>): boolean {
+  return isAcademicProfileConsistent(profile) || profile.gradeMismatchAcknowledged === true
+}
 
 function normalizeProfile(value: unknown): AcademicProfile | null {
   if (!value || typeof value !== 'object') return null
@@ -16,6 +34,7 @@ function normalizeProfile(value: unknown): AcademicProfile | null {
     && (profile.entryType === 'FRESHMAN' || profile.entryType === 'TRANSFER')
     && (profile.studentType === undefined || profile.studentType === 'DOMESTIC' || profile.studentType === 'INTERNATIONAL' || profile.studentType === 'UNKNOWN')
     && (profile.sectionGroup === 'ODD' || profile.sectionGroup === 'EVEN' || profile.sectionGroup === 'UNKNOWN')
+    && (profile.gradeMismatchAcknowledged === undefined || typeof profile.gradeMismatchAcknowledged === 'boolean')
     && typeof profile.updatedAt === 'string'
   if (!valid) return null
   return { ...profile, studentType: profile.studentType ?? 'UNKNOWN' } as AcademicProfile

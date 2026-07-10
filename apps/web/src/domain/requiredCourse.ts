@@ -1,8 +1,9 @@
 import { canPlace } from './conflicts'
+import { isAcademicProfileAuthoritative } from './profile'
 import type { AcademicProfile, MajorRequiredCourses, Section } from '../types'
 
 export function canApplyMajorRequirements(profile: AcademicProfile, requirements: MajorRequiredCourses): boolean {
-  return profile.entryType === 'FRESHMAN' && profile.admissionYear === requirements.cohortAdmissionYear
+  return profile.entryType === 'FRESHMAN' && profile.admissionYear === requirements.cohortAdmissionYear && isAcademicProfileAuthoritative(profile)
 }
 
 export function recommendedSection(sections: Section[], active: Section[], sectionGroup: AcademicProfile['sectionGroup'] = 'UNKNOWN'): Section | null {

@@ -154,6 +154,7 @@ export interface AcademicProfile {
   entryType: EntryType
   studentType: StudentClassification
   sectionGroup: SectionGroup
+  gradeMismatchAcknowledged?: boolean
   updatedAt: string
 }
 
