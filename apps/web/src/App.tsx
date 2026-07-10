@@ -23,6 +23,19 @@ import { SelectedCourseList } from './components/SelectedCourseList'
 import { TimetableGrid } from './components/TimetableGrid'
 import { Toast } from './components/Toast'
 
+function useMediaQuery(query: string): boolean {
+  const [matches, setMatches] = useState(() => typeof matchMedia === 'function' && matchMedia(query).matches)
+  useEffect(() => {
+    if (typeof matchMedia !== 'function') return
+    const media = matchMedia(query)
+    const update = () => setMatches(media.matches)
+    update()
+    media.addEventListener('change', update)
+    return () => media.removeEventListener('change', update)
+  }, [query])
+  return matches
+}
+
 export default function App() {
   const [state, dispatch] = useReducer(draftReducer, undefined, () => ({ past: [], present: loadSavedDraft(), future: [] }))
   const [catalog, setCatalog] = useState<Section[]>([])
@@ -33,6 +46,7 @@ export default function App() {
   const [showTools, setShowTools] = useState(false)
   const [route, setRoute] = useState(location.pathname)
   const [toast, setToast] = useState<string | null>(null)
+  const [toastUndoable, setToastUndoable] = useState(false)
   const [profile, setProfile] = useState<AcademicProfile | null>(() => loadAcademicProfile())
   const [onboardingOpen, setOnboardingOpen] = useState(() => !hasCompletedOnboarding() && !new URLSearchParams(location.search).has('plan'))
   const [profileEditorOpen, setProfileEditorOpen] = useState(false)
@@ -41,8 +55,15 @@ export default function App() {
   const [commonRules, setCommonRules] = useState<CommonRules | null>(null)
   const [departments, setDepartments] = useState<DepartmentSource[]>([])
   const [majorRequired, setMajorRequired] = useState<MajorRequiredCourses | null>(null)
+  const isDesktopTools = useMediaQuery('(min-width: 768px)')
   const presentRef = useRef(state.present)
+  const toolsDialogRef = useRef<HTMLDialogElement>(null)
+  const toolsCloseRef = useRef<HTMLButtonElement>(null)
+  const toolsTriggerRef = useRef<HTMLButtonElement>(null)
+  const showToolsRef = useRef(showTools)
+  const toolsHistoryRef = useRef(false)
   presentRef.current = state.present
+  showToolsRef.current = showTools
 
   const sectionById = useMemo(() => new Map(catalog.map((section) => [section.id, section])), [catalog])
   const activeSections = useMemo(() => state.present.items.filter((item) => item.role === 'must' || item.role === 'want').map((item) => sectionById.get(item.sectionId)).filter((section): section is Section => !!section), [sectionById, state.present.items])
@@ -51,6 +72,10 @@ export default function App() {
   const selectedSection = selectedId ? sectionById.get(selectedId) ?? null : null
   const selectedItem = selectedId ? state.present.items.find((item) => item.sectionId === selectedId) : undefined
   const alternatives = selectedSection ? findAlternatives(selectedSection, catalog, activeSections) : []
+  const showToast = useCallback((message: string, undoable = false) => {
+    setToast(message)
+    setToastUndoable(undoable)
+  }, [])
 
   const fetchCatalog = useCallback(() => {
     setCatalogError(null)
@@ -63,10 +88,10 @@ export default function App() {
       const removed = current.items.length - validItems.length
       if (removed || current.dataVersion !== loaded.dataVersion) {
         dispatch({ type: 'CATALOG', dataVersion: loaded.dataVersion, validIds })
-        if (removed) setToast(`현재 데이터에서 사라진 ${removed}개 분반을 제외했습니다.`)
+        if (removed) showToast(`현재 데이터에서 사라진 ${removed}개 분반을 제외했습니다.`)
       }
     }).catch((error: unknown) => setCatalogError(error instanceof Error ? error.message : '강의 데이터를 불러오지 못했습니다.'))
-  }, [])
+  }, [showToast])
 
   useEffect(() => { fetchCatalog() }, []) // initial catalog load only
   useEffect(() => {
@@ -76,20 +101,69 @@ export default function App() {
     loadMajorRequiredCourses().then(setMajorRequired).catch(() => { /* never guess major-required courses */ })
   }, [])
   useEffect(() => {
-    try { localStorage.setItem('pl-timetabler:draft:v1', JSON.stringify(state.present)) } catch { setToast('브라우저 저장 공간이 부족해 자동 저장하지 못했습니다.') }
-  }, [state.present])
+    try { localStorage.setItem('pl-timetabler:draft:v1', JSON.stringify(state.present)) } catch { showToast('브라우저 저장 공간이 부족해 자동 저장하지 못했습니다.') }
+  }, [showToast, state.present])
   useEffect(() => {
-    const handler = () => setRoute(location.pathname)
+    const handler = () => {
+      if (showToolsRef.current) {
+        setShowTools(false)
+        toolsHistoryRef.current = false
+        requestAnimationFrame(() => toolsTriggerRef.current?.focus())
+      }
+      setRoute(location.pathname)
+    }
     addEventListener('popstate', handler)
     return () => removeEventListener('popstate', handler)
   }, [])
+  useEffect(() => {
+    const dialog = toolsDialogRef.current
+    if (!dialog || isDesktopTools) return
+    if (showTools && !dialog.open) {
+      dialog.showModal()
+      requestAnimationFrame(() => toolsCloseRef.current?.focus())
+    } else if (!showTools && dialog.open) dialog.close()
+  }, [isDesktopTools, showTools])
+  useEffect(() => {
+    const handleShortcut = (event: KeyboardEvent) => {
+      if (!(event.ctrlKey || event.metaKey) || event.altKey || event.key.toLocaleLowerCase() !== 'z') return
+      const target = event.target
+      if (target instanceof HTMLElement && (target.matches('input, textarea, select') || target.isContentEditable || !!target.closest('[contenteditable="true"]'))) return
+      if (event.shiftKey) {
+        if (!state.future.length) return
+        event.preventDefault()
+        dispatch({ type: 'REDO' })
+      } else {
+        if (!state.past.length) return
+        event.preventDefault()
+        dispatch({ type: 'UNDO' })
+      }
+    }
+    addEventListener('keydown', handleShortcut)
+    return () => removeEventListener('keydown', handleShortcut)
+  }, [state.future.length, state.past.length])
 
   const navigate = (path: string) => { history.pushState({}, '', path); setRoute(path); scrollTo({ top: 0, behavior: 'instant' }) }
+  const openTools = (trigger: HTMLButtonElement) => {
+    toolsTriggerRef.current = trigger
+    if (!toolsHistoryRef.current) {
+      history.pushState({ ...history.state, plTimetablerOverlay: 'tools' }, '', location.href)
+      toolsHistoryRef.current = true
+    }
+    setShowTools(true)
+  }
+  const closeTools = () => {
+    if (toolsHistoryRef.current && history.state?.plTimetablerOverlay === 'tools') history.back()
+    else {
+      setShowTools(false)
+      toolsHistoryRef.current = false
+      requestAnimationFrame(() => toolsTriggerRef.current?.focus())
+    }
+  }
   const addSection = (section: Section, role: CourseRole = 'want') => {
     const excludedSameCourse = state.present.items.filter((item) => item.role === 'exclude' && sectionById.get(item.sectionId)?.courseCode === section.courseCode)
     if (excludedSameCourse.length) {
       dispatch({ type: 'ITEMS', items: [...state.present.items.filter((item) => !excludedSameCourse.includes(item)), { sectionId: section.id, role, locked: false }] })
-      setToast(`${section.name} ${section.sectionCode}분반을 추가했습니다.`)
+      showToast(`${section.name} ${section.sectionCode}분반을 추가했습니다.`, true)
       return
     }
     const sameCourse = state.present.items.find((item) => sectionById.get(item.sectionId)?.courseCode === section.courseCode && item.role !== 'backup' && item.role !== 'exclude')
@@ -98,32 +172,32 @@ export default function App() {
     } else if (state.present.items.some((item) => item.sectionId === section.id)) {
       dispatch({ type: 'ITEMS', items: itemsWithCourseRole(section.id, role, state.present.items, sectionById) })
     } else dispatch({ type: 'ADD', item: { sectionId: section.id, role, locked: false } })
-    setToast(`${section.name} ${section.sectionCode}분반을 추가했습니다.`)
+    showToast(`${section.name} ${section.sectionCode}분반을 추가했습니다.`, true)
   }
   const removeSection = () => {
     if (!selectedSection) return
-    dispatch({ type: 'REMOVE', sectionId: selectedSection.id }); setSelectedId(null); setToast(`${selectedSection.name}을 삭제했습니다.`)
+    dispatch({ type: 'REMOVE', sectionId: selectedSection.id }); setSelectedId(null); showToast(`${selectedSection.name}을 삭제했습니다.`, true)
   }
   const swapSection = (section: Section) => {
     if (!selectedSection) return
-    dispatch({ type: 'SWAP', fromId: selectedSection.id, toId: section.id }); setSelectedId(section.id); setToast(`${section.sectionCode}분반으로 교체했습니다.`)
+    dispatch({ type: 'SWAP', fromId: selectedSection.id, toId: section.id }); setSelectedId(section.id); showToast(`${section.sectionCode}분반으로 교체했습니다.`, true)
   }
-  const applyCandidate = (candidate: Candidate) => { dispatch({ type: 'APPLY', items: planItemsForCandidate(candidate.sectionIds, state.present.items, sectionById) }); setToast('자동 생성 후보를 적용했습니다.'); setShowTools(false) }
-  const applyBackup = (section: Section) => { dispatch({ type: 'ITEMS', items: itemsWithAppliedBackup(section.id, state.present.items, sectionById) }); setToast(`${section.name}을 현재 시간표에 적용했습니다.`) }
+  const applyCandidate = (candidate: Candidate) => { dispatch({ type: 'APPLY', items: planItemsForCandidate(candidate.sectionIds, state.present.items, sectionById) }); showToast('자동 생성 후보를 적용했습니다.', true); closeTools() }
+  const applyBackup = (section: Section) => { dispatch({ type: 'ITEMS', items: itemsWithAppliedBackup(section.id, state.present.items, sectionById) }); showToast(`${section.name}을 현재 시간표에 적용했습니다.`, true) }
 
   const share = async () => {
     const url = new URL(location.origin)
     url.searchParams.set('plan', encodeDraft(state.present))
     try {
       if (navigator.share) await navigator.share({ title: 'PL 시간표', text: '내 시간표를 확인해 보세요.', url: url.toString() })
-      else { await navigator.clipboard.writeText(url.toString()); setToast('개인 이수내역 없이 시간표 링크를 복사했습니다.') }
-    } catch (error) { if (error instanceof DOMException && error.name === 'AbortError') return; setToast('공유 링크를 만들지 못했습니다.') }
+      else { await navigator.clipboard.writeText(url.toString()); showToast('개인 이수내역 없이 시간표 링크를 복사했습니다.') }
+    } catch (error) { if (error instanceof DOMException && error.name === 'AbortError') return; showToast('공유 링크를 만들지 못했습니다.') }
   }
   const exportImage = () => exportTimetablePng(activeSections, state.present.semester)
 
   const completeProfile = (next: AcademicProfile) => {
-    try { saveAcademicProfile(next) } catch { setToast('학적 정보를 브라우저에 저장하지 못했습니다.') }
-    setProfile(next); setOnboardingOpen(false); setProfileEditorOpen(false); setToast(`${next.department} 기준을 적용했습니다.`)
+    try { saveAcademicProfile(next) } catch { showToast('학적 정보를 브라우저에 저장하지 못했습니다.') }
+    setProfile(next); setOnboardingOpen(false); setProfileEditorOpen(false); showToast(`${next.department} 기준을 적용했습니다.`)
   }
   const skipOnboarding = () => {
     try { completeOnboardingWithoutProfile() } catch { /* the current visit can still continue */ }
@@ -132,22 +206,24 @@ export default function App() {
 
   if (route === '/requirements') return <><RequirementsPage catalog={catalog} profile={profile} onBack={() => navigate('/')} onAddCourse={(section) => { addSection(section, 'must'); navigate('/') }} /><Toast message={toast} onClose={() => setToast(null)} /></>
 
+  const toolsContent = <><PreferencesPanel preferences={state.present.preferences} onChange={(preferences) => dispatch({ type: 'PREFERENCES', preferences })} /><OptimizerPanel draft={state.present} sections={catalog} onApply={applyCandidate} /><RegistrationChecklist items={state.present.items} sectionById={sectionById} onApplyBackup={applyBackup} onMessage={(message) => showToast(message)} /><section className="export-panel"><h2>내보내기</h2><div><button type="button" className="secondary-button" onClick={exportImage}>PNG 저장</button><button type="button" className="secondary-button" onClick={() => print()}>인쇄·PDF</button></div></section><p className="source-copy">대진대학교 공개 개설과목 · 데이터 {catalogMeta?.version.slice(0, 12) ?? '확인 중'}</p></>
+
   return <div className="app-shell">
-    <AppHeader credits={metrics.credits} profile={profile} authSession={authSession} canUndo={!!state.past.length} canRedo={!!state.future.length} onUndo={() => dispatch({ type: 'UNDO' })} onRedo={() => dispatch({ type: 'REDO' })} onShare={share} onNavigate={navigate} onProfile={() => setProfileEditorOpen(true)} onAccount={() => setAuthOpen(true)} />
+    <AppHeader credits={metrics.credits} profile={profile} authSession={authSession} canUndo={!!state.past.length} canRedo={!!state.future.length} onUndo={() => dispatch({ type: 'UNDO' })} onRedo={() => dispatch({ type: 'REDO' })} onShare={share} onExportPng={exportImage} onExportPdf={() => print()} onNavigate={navigate} onProfile={() => setProfileEditorOpen(true)} onAccount={() => setAuthOpen(true)} />
     {catalogError && <div className="global-error" role="alert"><span>{catalogError}</span><button type="button" onClick={fetchCatalog}>다시 시도</button></div>}
     {catalogMeta && <div className="data-status"><span>{catalogMeta.offline ? '저장된 데이터 사용 중' : '최신 데이터 연결됨'}</span><span>2026-1 · {catalogMeta.updatedAt} 기준</span></div>}
     <main className="editor-layout">
       <aside className="desktop-search"><button type="button" className="primary-button full-button" onClick={() => setSearchOpen(true)}><PlusIcon />과목 추가</button><SelectedCourseList items={state.present.items} sectionById={sectionById} onSelect={(section) => setSelectedId(section.id)} /></aside>
-      <div className="editor-main"><RequiredCoursePanel profile={profile} rules={commonRules} majorRequired={majorRequired} catalog={catalog} items={state.present.items} sectionById={sectionById} onEditProfile={() => setProfileEditorOpen(true)} onAddRequired={(section) => addSection(section, 'must')} /><ConflictNotice conflicts={conflicts} onOpen={setSelectedId} /><TimetableGrid sections={activeSections} conflicts={conflicts} lockedIds={new Set(state.present.items.filter((item) => item.locked).map((item) => item.sectionId))} onSelect={(section) => setSelectedId(section.id)} />
+      <div className="editor-main"><div className="tablet-editor-actions"><button type="button" className="primary-button" onClick={() => setSearchOpen(true)}><PlusIcon />과목 추가</button></div><RequiredCoursePanel profile={profile} rules={commonRules} majorRequired={majorRequired} catalog={catalog} items={state.present.items} sectionById={sectionById} onEditProfile={() => setProfileEditorOpen(true)} onAddRequired={(section) => addSection(section, 'must')} /><ConflictNotice conflicts={conflicts} onOpen={setSelectedId} /><TimetableGrid sections={activeSections} conflicts={conflicts} lockedIds={new Set(state.present.items.filter((item) => item.locked).map((item) => item.sectionId))} onSelect={(section) => setSelectedId(section.id)} />
         <div className="mobile-summary"><SelectedCourseList items={state.present.items} sectionById={sectionById} onSelect={(section) => setSelectedId(section.id)} /></div>
       </div>
-      <aside className={`tools-panel ${showTools ? 'mobile-open' : ''}`}><div className="mobile-tools-header"><h2>자동 생성과 준비</h2><button type="button" onClick={() => setShowTools(false)}>닫기</button></div><PreferencesPanel preferences={state.present.preferences} onChange={(preferences) => dispatch({ type: 'PREFERENCES', preferences })} /><OptimizerPanel draft={state.present} sections={catalog} onApply={applyCandidate} /><RegistrationChecklist items={state.present.items} sectionById={sectionById} onApplyBackup={applyBackup} onMessage={setToast} /><section className="export-panel"><h2>내보내기</h2><div><button type="button" className="secondary-button" onClick={exportImage}>PNG 저장</button><button type="button" className="secondary-button" onClick={() => print()}>인쇄·PDF</button></div></section><p className="source-copy">대진대학교 공개 개설과목 · 데이터 {catalogMeta?.version.slice(0, 12) ?? '확인 중'}</p></aside>
+      {isDesktopTools ? <aside className="tools-panel" aria-label="자동 생성과 준비">{toolsContent}</aside> : <dialog className="tools-dialog" ref={toolsDialogRef} aria-labelledby="tools-dialog-title" onCancel={(event) => { event.preventDefault(); closeTools() }}><div className="mobile-tools-header"><h2 id="tools-dialog-title">자동 생성과 준비</h2><button ref={toolsCloseRef} type="button" onClick={closeTools}>닫기</button></div>{toolsContent}</dialog>}
     </main>
-    <div className="mobile-action-bar"><button type="button" className="secondary-button" onClick={() => setShowTools(true)}><SlidersIcon />자동 생성</button><button type="button" className="primary-button" onClick={() => setSearchOpen(true)}><PlusIcon />과목 추가</button></div>
+    <div className="mobile-action-bar"><button type="button" className="secondary-button" onClick={(event) => openTools(event.currentTarget)}><SlidersIcon />자동 생성</button><button type="button" className="primary-button" onClick={() => setSearchOpen(true)}><PlusIcon />과목 추가</button></div>
     <CourseSearchSheet open={searchOpen} sections={catalog} items={state.present.items} onClose={() => setSearchOpen(false)} onAdd={addSection} />
     <SectionDetailSheet section={selectedSection} role={selectedItem?.role ?? 'want'} locked={selectedItem?.locked ?? false} alternatives={alternatives} onClose={() => setSelectedId(null)} onRole={(role) => selectedSection && dispatch({ type: 'ITEMS', items: itemsWithCourseRole(selectedSection.id, role, state.present.items, sectionById) })} onLock={() => selectedSection && dispatch({ type: 'PATCH_ITEM', sectionId: selectedSection.id, patch: { locked: !selectedItem?.locked } })} onRemove={removeSection} onSwap={swapSection} />
     {(onboardingOpen || profileEditorOpen) && <Onboarding departments={departments} initialProfile={profile} mode={profileEditorOpen ? 'EDIT' : 'FIRST_RUN'} authAvailable={authSession.available} onComplete={completeProfile} onSkip={profileEditorOpen ? () => setProfileEditorOpen(false) : skipOnboarding} onLogin={() => setAuthOpen(true)} />}
     <AuthSheet open={authOpen} session={authSession} onSession={setAuthSession} onClose={() => setAuthOpen(false)} />
-    <Toast message={toast} onClose={() => setToast(null)} onUndo={state.past.length ? () => dispatch({ type: 'UNDO' }) : undefined} />
+    <Toast message={toast} onClose={() => setToast(null)} onUndo={toastUndoable && state.past.length ? () => { dispatch({ type: 'UNDO' }); setToast(null); setToastUndoable(false) } : undefined} />
   </div>
 }

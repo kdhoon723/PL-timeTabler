@@ -3,10 +3,10 @@
 ## Source of truth
 
 - Status: Active for product build
-- Last refreshed: 2026-07-10
+- Last refreshed: 2026-07-11
 - Primary product surfaces: 모바일 우선 시간표 편집기, 과목 검색 시트, 자동 생성 후보 비교, 졸업요건 안내
-- Evidence reviewed: `README.md`, `docs/PRODUCT_PLAN.md`, `docs/ARCHITECTURE.md`, `data/README.md`, `data/manifest.json`
-- UI evidence: 구현된 화면·컴포넌트·브랜드 자산·승인된 시각 레퍼런스는 아직 없음. 이 문서가 최초 구현의 디자인 계약이다.
+- Evidence reviewed: `README.md`, `docs/PRODUCT_PLAN.md`, `docs/ARCHITECTURE.md`, `.omx/context/ux-product-iteration-20260710T160409Z.md`, `apps/web/src/App.tsx`, `apps/web/src/components/*`, `apps/web/src/styles.css`, component tests, `e2e/playwright.config.ts`, `e2e/timetable.spec.ts`
+- UI evidence: 2026-07-11 구현은 실제 390×844, 768×1024, 1440×900 Playwright 프로젝트와 컴포넌트 회귀 테스트로 검증한다. 승인된 외부 시각 레퍼런스는 없으며 이 문서와 구현된 semantic token/component가 현재 기준이다.
 - Confirmed product decisions: 대진대 전용, 수동 편집 우선, 완전 자동 생성 포함, 게스트 즉시 사용, 선택형 학교 이메일 OTP 로그인, 첫 방문 학과 설정 유도와 명확한 건너뛰기, 출시 수준 품질을 처음부터 적용
 
 ## Brand
@@ -71,29 +71,38 @@
   - `/requirements`: 입학연도·학과별 졸업요건과 이수 현황
   - `/share/:id`: 공유 시간표의 읽기·복사 화면
 - Content hierarchy:
-  1. 설정한 학과의 이번 학기 필수과목 선택(프로필이 있을 때만)
-  2. 현재 시간표와 충돌 상태
-  3. 과목 추가 버튼과 검색
+  1. 현재 시간표 캔버스와 충돌 상태
+  2. 접힌 필수과목 진행 요약과 다음 행동(프로필이 있을 때만)
+  3. 과목 추가와 course-first 검색
   4. 총 학점·공강일·빈 시간 요약
-  5. 선택 과목 목록과 잠금 상태
+  5. 계획 큐의 선택·잠금·후보 상태
   6. 수동 개선·자동 생성과 변경 이유
   7. 졸업요건 충족·부족 상태와 공식 근거
+
+## Core editor model: 시간표 캔버스 + 계획 큐
+
+- **시간표 캔버스가 중심이다:** 격자는 선택 결과와 충돌을 즉시 보여주는 편집기의 주 작업면이다. 정상 프로필의 390px 화면에서 격자 시작점은 초기 viewport의 `y ≤ 360`을 유지한다.
+- **계획 큐는 캔버스를 보조한다:** 필수과목 진행, 선택 과목, 예비·제외 과목, 자동 생성 조건과 후보는 모두 캔버스에 넣기 전후의 계획 상태다. 모바일에서는 필요할 때 dialog/sheet로, 768px 이상에서는 정적 aside로 제공한다.
+- **점진적 공개:** 필수과목 상세는 기본 접힘이며 선택 수와 필수학점 진행, 다음 행동을 요약한다. 검색 결과는 최대 20개 과목 행만 먼저 보여주고 한 과목의 분반만 펼친다.
+- **명령 복구:** 모바일 상단 `더보기`는 실행 취소·다시 실행·공유·졸업요건·PNG/PDF를 두 탭 이내에 제공한다. 편집 입력 밖에서는 Ctrl/Cmd+Z와 Shift+Ctrl/Cmd+Z를 지원한다.
+- **상태를 행동과 함께 설명한다:** 검색 분반은 추천, 충돌, 시간 미정, 현재 분반, 추가/교체를 텍스트와 accessible name으로 함께 제공한다.
 
 ## Screen layout contract
 
 ### Mobile editor
 
-- 필수과목 패널은 시간표 위에서 접고 펼칠 수 있으며 `필수 → 전공선택 → 교양선택` 순서를 안내한다. 과목은 자동으로 넣지 않고 사용자가 분반을 확인한 뒤 배치한다.
+- 필수과목 패널은 기본 접힘이며 선택 과목 수·필수학점 진행·다음 행동을 먼저 보여준다. 펼치면 `필수 → 전공선택 → 교양선택` 순서를 안내하며 사용자가 분반을 확인한 뒤 배치한다.
 - 상단 앱바는 52px 높이로 학기 선택, 총 학점, 더보기만 배치한다. 로고나 큰 제목으로 세로 공간을 소비하지 않는다.
 - 시간표 격자는 화면 본문을 차지하며 시간 축 36px와 월~금 5개 열이 한 화면 폭에 들어와야 한다.
 - 과목 블록을 탭하면 상세·분반 교체·잠금·삭제가 바텀시트로 열린다. 블록 안에 작은 조작 버튼을 여러 개 넣지 않는다.
 - `과목 추가`는 하단 내비게이션 위의 명확한 단일 기본 행동으로 유지한다. 자동 생성은 같은 중요도의 두 번째 고정 버튼으로 경쟁시키지 않는다.
 - 검색 시트는 최대 92dvh이며 검색창·필터 요약은 상단에 고정하고 결과만 스크롤한다.
+- 자동 생성/준비 도구는 닫혔을 때 접근성·focus 흐름에서 사라지는 이름 있는 modal dialog다. 열 때 닫기 버튼으로 focus를 옮기고 닫기·Escape·browser Back 모두 정확한 trigger로 focus를 돌린다.
 - 하단 고정 UI는 `env(safe-area-inset-bottom)`을 포함하며 콘텐츠와 키보드 포커스를 가리지 않는다.
 
 ### Tablet and desktop editor
 
-- 768~1199px: 시간표와 선택 과목/추천 패널을 2열로 배치한다.
+- 768~1199px: 시간표와 선택 과목/추천 패널을 2열로 배치하며 시간표 영역에 독립적인 `과목 추가` 행동을 유지한다.
 - 1200px 이상: 검색·필터 280px, 시간표 `minmax(560px, 1fr)`, 선택·추천 320px의 3영역을 기본으로 한다.
 - 전체 콘텐츠 최대 폭은 1440px이며 넓은 화면에서도 격자를 무한히 늘리지 않는다.
 - 데스크톱 패널은 모두 카드로 띄우지 않는다. 배경·얇은 구분선·간격으로 영역을 나누고 실제 독립 객체에만 surface를 사용한다.
@@ -269,7 +278,14 @@
 - Design-token constraints: semantic CSS custom property를 단일 원천으로 사용하고 컴포넌트 내부 raw color·임의 spacing·임의 z-index를 금지한다. light theme token만 우선 구현한다.
 - Performance constraints: 과목 검색은 로컬 인덱스로 처리하고 강의실 상세는 필요할 때 로드
 - Compatibility constraints: 모바일 Safari와 Android Chrome을 우선 검증
-- Test/screenshot expectations: 360px, 390px, 768px, 1440px에서 empty, populated, conflict, search-open, generating, result-comparison, requirements-unknown 상태를 시각 회귀 대상으로 유지
+- Test/screenshot expectations: Playwright release gate는 390×844, 768×1024, 1440×900 실제 프로젝트를 사용한다. 360px/320px reflow는 추가 호환 점검으로 유지하며 empty, populated, conflict, search-open, generating, result-comparison, requirements-unknown 상태를 시각 회귀 대상으로 삼는다.
+
+### Next compatibility contract: fixed-section drag and drop
+
+- 현재 iteration에서는 drag-and-drop과 자유 이동을 구현하지 않는다.
+- 다음 호환 계약은 desktop에서만 search, 계획 큐, 기존 timetable block의 **고정된 분반**을 canonical valid alternative section으로 옮기는 동작이다.
+- 임의 시간대·요일·길이로 과목을 자유 이동하지 않는다. 실제 개설시간은 데이터가 정한 값으로 유지한다.
+- drag가 추가되더라도 동일 작업의 tap, 명시적 button, keyboard 대안을 항상 유지한다. drag-only, hover-only, long-press-only 핵심 행동은 허용하지 않는다.
 
 ## Visual quality gate
 

@@ -9,8 +9,15 @@ async function openEditor(page: Page) {
   await expect(page.getByRole('heading', { name: '내 시간표' })).toBeVisible()
 }
 
-test.describe('mobile timetable editor', () => {
-  test.use({ viewport: { width: 360, height: 800 } })
+async function addCourse(page: Page, query: string, courseName: RegExp, sectionName = /01분반.*추가/) {
+  await page.getByRole('button', { name: /과목 추가/ }).last().click()
+  await page.getByRole('textbox', { name: /과목명/ }).fill(query)
+  await page.getByRole('button', { name: courseName }).click()
+  await page.getByRole('button', { name: sectionName }).click()
+  await page.getByRole('button', { name: '과목 검색 닫기' }).click()
+}
+
+test.describe('responsive timetable editor', () => {
 
   test('keeps first-run focus inside the accessible setup dialog', async ({ page }) => {
     await page.goto('/')
@@ -35,7 +42,8 @@ test.describe('mobile timetable editor', () => {
     await openEditor(page)
     await page.getByRole('button', { name: /과목 추가/ }).last().click()
     await page.getByRole('textbox', { name: /과목명/ }).fill('AI시대의컴퓨팅사고')
-    await page.getByRole('button', { name: /01분반/ }).click()
+    await page.getByRole('button', { name: /AI시대의컴퓨팅사고.*분반 보기/ }).click()
+    await page.getByRole('button', { name: /01분반.*추가/ }).click()
     await page.getByRole('button', { name: '과목 검색 닫기' }).click()
     await expect(page.getByRole('button', { name: /AI시대의컴퓨팅사고 화/ })).toBeVisible()
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true)
@@ -54,6 +62,7 @@ test.describe('mobile timetable editor', () => {
     await page.getByRole('button', { name: '시간표 만들기' }).click()
 
     await expect(page.getByText('컴퓨터공학전공 · 3학년')).toBeVisible()
+    await page.getByRole('button', { name: /필수 과목 먼저/ }).click()
     const required = page.locator('.required-option').filter({ hasText: '운영체제론' })
     await expect(required).toBeVisible()
     await required.getByRole('combobox', { name: '운영체제론 분반' }).selectOption({ index: 1 })
@@ -83,6 +92,73 @@ test.describe('mobile timetable editor', () => {
     await expect(page.getByRole('heading', { name: '예상 졸업요건 점검' })).toBeVisible()
     const requirements = await new AxeBuilder({ page }).analyze()
     expect(requirements.violations.filter((violation) => violation.impact === 'serious' || violation.impact === 'critical')).toEqual([])
+  })
+
+  test('uses a real mobile tools dialog with close, Escape, Back, and exact trigger focus return', async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== 'mobile-390', 'mobile dialog contract')
+    await openEditor(page)
+    const trigger = page.getByRole('button', { name: /자동 생성/ })
+    await expect(page.getByRole('dialog', { name: '자동 생성과 준비' })).toHaveCount(0)
+
+    await trigger.click()
+    const dialog = page.getByRole('dialog', { name: '자동 생성과 준비' })
+    await expect(dialog).toBeVisible()
+    await expect(page.getByRole('button', { name: '닫기' })).toBeFocused()
+    const dialogA11y = await new AxeBuilder({ page }).include('.tools-dialog').analyze()
+    expect(dialogA11y.violations.filter((violation) => violation.impact === 'serious' || violation.impact === 'critical')).toEqual([])
+    await page.getByRole('button', { name: '닫기' }).click()
+    await expect(dialog).toHaveCount(0)
+    await expect(trigger).toBeFocused()
+
+    await trigger.click()
+    await page.keyboard.press('Escape')
+    await expect(dialog).toHaveCount(0)
+    await expect(trigger).toBeFocused()
+
+    await trigger.click()
+    await page.evaluate(() => history.back())
+    await expect(dialog).toHaveCount(0)
+    await expect(trigger).toBeFocused()
+  })
+
+  test('keeps the tools as a static reachable aside on tablet and desktop', async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name === 'mobile-390', 'desktop/tablet aside contract')
+    await openEditor(page)
+    await expect(page.getByRole('complementary', { name: '자동 생성과 준비' })).toBeVisible()
+    await expect(page.getByRole('dialog', { name: '자동 생성과 준비' })).toHaveCount(0)
+  })
+
+  test('exposes mobile recovery commands through the compact overflow', async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== 'mobile-390', 'mobile command contract')
+    await openEditor(page)
+    await page.getByRole('button', { name: '더보기' }).click()
+    const menu = page.getByRole('menu', { name: '시간표 명령' })
+    for (const name of ['실행 취소', '다시 실행', '시간표 공유', '졸업요건', 'PNG 저장', 'PDF 저장']) {
+      await expect(menu.getByRole('menuitem', { name })).toBeVisible()
+    }
+  })
+
+  test('supports undo and redo keyboard shortcuts outside editable controls', async ({ page }) => {
+    await openEditor(page)
+    await addCourse(page, 'AI시대의컴퓨팅사고', /AI시대의컴퓨팅사고.*분반 보기/)
+    const block = page.getByRole('button', { name: /AI시대의컴퓨팅사고 화/ })
+    await expect(block).toBeVisible()
+    await page.keyboard.press('Control+z')
+    await expect(block).toHaveCount(0)
+    await page.keyboard.press('Control+Shift+z')
+    await expect(block).toBeVisible()
+  })
+
+  test('starts the timetable grid within the initial 390px mobile viewport budget', async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== 'mobile-390', '390px layout contract')
+    await page.addInitScript(() => {
+      localStorage.setItem('pl-timetabler:onboarding:v1', 'complete')
+      localStorage.setItem('pl-timetabler:profile:v1', JSON.stringify({ schemaVersion: 1, department: '컴퓨터공학전공', admissionYear: 2026, currentGrade: 3, entryType: 'FRESHMAN', studentType: 'DOMESTIC', sectionGroup: 'UNKNOWN', updatedAt: '2026-07-11T00:00:00Z' }))
+    })
+    await page.goto('/')
+    await expect(page.getByRole('button', { name: /필수 과목 먼저/ })).toHaveAttribute('aria-expanded', 'false')
+    const box = await page.locator('.timetable-grid').boundingBox()
+    expect(box?.y).toBeLessThanOrEqual(360)
   })
 })
 
@@ -137,7 +213,8 @@ test.describe('production optimizer integration', () => {
       await search.fill(courseCode)
       const course = page.locator('.course-group').filter({ hasText: courseCode })
       await expect(course).toHaveCount(1)
-      await course.getByRole('button', { name: /01분반/ }).click()
+      await course.getByRole('button', { name: /분반 보기/ }).click()
+      await course.getByRole('button', { name: /01분반.*추가/ }).click()
     }
     await page.getByRole('button', { name: '과목 검색 닫기' }).click()
     const mobileTools = page.getByRole('button', { name: /자동 생성/ }).first()
