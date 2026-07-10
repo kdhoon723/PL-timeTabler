@@ -52,37 +52,9 @@ class OptimizationCreate(APIModel):
     candidate_count: int = Field(default=3, ge=1, le=5)
     seed: int = Field(default=0, ge=0, le=2_147_483_647)
     time_limit_seconds: float = Field(default=3, gt=0, le=8)
-    # Browser draft compatibility. The web client sends role-oriented items;
-    # the API normalizes them to course/section intents before persistence.
-    items: tuple[dict, ...] = ()
-
-    @model_validator(mode="before")
-    @classmethod
-    def accept_web_data_version(cls, value: object) -> object:
-        if isinstance(value, dict) and "datasetVersion" not in value and "dataVersion" in value:
-            value = dict(value)
-            value["datasetVersion"] = value["dataVersion"]
-            value.pop("dataVersion", None)
-        return value
 
     @model_validator(mode="after")
     def validate_intents(self) -> OptimizationCreate:
-        if self.items:
-            must = tuple(
-                str(item.get("sectionId")) for item in self.items if item.get("role") == "must"
-            )
-            want = tuple(
-                str(item.get("sectionId"))
-                for item in self.items
-                if item.get("role") in {"want", "backup"}
-            )
-            excluded = tuple(
-                str(item.get("sectionId")) for item in self.items if item.get("role") == "exclude"
-            )
-            locked = tuple(str(item.get("sectionId")) for item in self.items if item.get("locked"))
-            object.__setattr__(self, "selected_section_ids", tuple(dict.fromkeys(must + want)))
-            object.__setattr__(self, "locked_section_ids", tuple(dict.fromkeys(locked)))
-            object.__setattr__(self, "excluded_course_codes", tuple(dict.fromkeys(excluded)))
         required = set(self.required_course_codes)
         candidates = set(self.candidate_course_codes)
         excluded = set(self.excluded_course_codes)

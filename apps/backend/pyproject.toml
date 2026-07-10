@@ -33,7 +33,6 @@ dev = [
 timetabler-api = "timetabler.api.main:run"
 timetabler-validate-data = "timetabler.catalog.validate:run"
 timetabler-openapi = "timetabler.api.openapi:run"
-timetabler-optimizer = "timetabler.optimizer.worker:run"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/timetabler"]
