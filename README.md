@@ -25,6 +25,7 @@
 ## 문서
 
 - [`DESIGN.md`](DESIGN.md) — 모바일 우선 제품·UI/UX 설계 계약
+- [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — React·Fastify·PostgreSQL·Docker Compose 아키텍처
 - [`docs/MVP_PLAN.md`](docs/MVP_PLAN.md) — MVP 구현 단계와 수용 기준
 
 ## 다음 단계

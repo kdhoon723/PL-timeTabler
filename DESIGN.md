@@ -127,7 +127,9 @@
 
 ## Implementation constraints
 
-- Framework/styling system: 초기 구현은 TypeScript 기반 정적 SPA를 기본안으로 하며 최종 프레임워크 선택은 스캐폴드 단계에서 확정
+- Framework/styling system: React + TypeScript 프론트엔드, Node.js LTS + Fastify 백엔드, 공유 타입 패키지
+- Data/storage: PostgreSQL + 버전 관리되는 SQL migration, 개인 편집 상태는 브라우저 저장 우선
+- Deployment: web/API/DB/migration을 Docker Compose로 실행하며 개발 전용 차이는 별도 Compose 파일로 관리
 - Design-token constraints: 단일 토큰 집합을 사용하고 기능별 별도 테마를 만들지 않음
 - Performance constraints: 과목 검색은 로컬 인덱스로 처리하고 강의실 상세는 필요할 때 로드
 - Compatibility constraints: 모바일 Safari와 Android Chrome을 우선 검증

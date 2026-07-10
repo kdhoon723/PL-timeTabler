@@ -56,9 +56,13 @@
 
 ### 앱 형태
 
-- 초기 구현 기본안: TypeScript 기반 정적 SPA, 백엔드와 계정 시스템 없음
-- 이유: 현재 데이터는 학기별 정적 fixture이고 검색·충돌·보조 추천은 1,576개 규모에서 클라이언트 계산으로 충분하다.
-- 과목 검색 데이터는 초기 로드하고, 강의실·이동 데이터는 추천 또는 상세 화면이 필요할 때 지연 로드한다.
+- 프론트엔드: React + TypeScript
+- 백엔드: Node.js 24 LTS + Fastify 5
+- 데이터베이스: PostgreSQL 18 + Drizzle SQL migration
+- 실행 환경: web, api, db, migration을 Docker Compose로 구성
+- 과목 검색과 추천 계산은 브라우저에서 실행하고, API는 학기별 카탈로그·공유 링크·데이터 가져오기 이력을 담당한다.
+- 사용자 계정은 만들지 않고 개인 편집 상태는 브라우저에 저장한다.
+- 세부 근거와 서버 이동 계약은 `docs/ARCHITECTURE.md`를 따른다.
 
 ### 상태 모델
 
@@ -96,26 +100,38 @@ DraftTimetable
 
 ## 4. 구현 단계
 
-### 단계 A — 프론트엔드 스캐폴드와 품질 기준
+### 단계 A — 모노레포·React/Fastify·Docker 스캐폴드
 
 예정 파일:
 
 - `package.json`
-- `src/main.tsx`
-- `src/styles/tokens.css`
-- `src/app/App.tsx`
+- `apps/web/src/main.tsx`
+- `apps/web/src/styles/tokens.css`
+- `apps/web/src/app/App.tsx`
+- `apps/web/Dockerfile`
+- `apps/api/src/server.ts`
+- `apps/api/Dockerfile`
+- `packages/contracts/`
+- `packages/timetable-core/`
+- `compose.yaml`
+- `compose.dev.yaml`
+- `.env.example`
 - 테스트·린트·타입 검사 설정 파일
 
 작업:
 
-1. TypeScript 프론트엔드와 단위·컴포넌트·E2E 테스트 기반을 만든다.
-2. 색상, 간격, 타이포, 레이어 토큰을 먼저 정의한다.
-3. 360px 모바일을 기본 뷰포트로 앱 셸과 오류 경계를 만든다.
-4. `DESIGN.md`의 접근성·반응형 계약을 테스트 기준으로 연결한다.
+1. npm workspaces 기반으로 React 앱, Fastify API, 공유 타입, 핵심 도메인 패키지를 구성한다.
+2. web, api, PostgreSQL, one-off migration 서비스를 Compose로 연결한다.
+3. API healthcheck와 DB readiness를 정의한다.
+4. 색상, 간격, 타이포, 레이어 토큰을 먼저 정의한다.
+5. 360px 모바일을 기본 뷰포트로 앱 셸과 오류 경계를 만든다.
+6. `DESIGN.md`의 접근성·반응형 계약을 테스트 기준으로 연결한다.
 
 완료 조건:
 
 - `dev`, `build`, `test`, `lint`, `typecheck` 명령이 독립적으로 성공한다.
+- `docker compose up --build` 후 web, api, db healthcheck가 통과한다.
+- `GET /api/health`가 DB 연결 상태를 포함해 성공한다.
 - 360px에서 페이지 자체의 불필요한 가로 스크롤이 없다.
 - 빈 상태에서 `과목 추가`가 첫 화면에 노출된다.
 
@@ -123,12 +139,14 @@ DraftTimetable
 
 예정 파일:
 
-- `scripts/prepare-data.ts`
-- `src/domain/course.ts`
-- `src/domain/time.ts`
-- `src/data/course-repository.ts`
-- `src/domain/__tests__/time.test.ts`
-- `public/data/sections-2026-1.json`
+- `packages/data-pipeline/src/prepare-data.ts`
+- `packages/timetable-core/src/course.ts`
+- `packages/timetable-core/src/time.ts`
+- `packages/timetable-core/src/__tests__/time.test.ts`
+- `packages/contracts/src/catalog.ts`
+- `apps/api/src/db/schema.ts`
+- `apps/api/src/jobs/import-catalog.ts`
+- `drizzle/`
 
 작업:
 
@@ -136,7 +154,9 @@ DraftTimetable
 2. `월11:30-13:30,수15:30-17:30` 같은 복수 시간 문자열을 `Session[]`으로 변환한다.
 3. 카테고리를 교양필수·교양선택 영역·전공 학과 등 검색 가능한 구조로 정규화한다.
 4. 레코드 수, 중복키, 잘못된 시간 범위, 학점 이상치를 검증하는 데이터 준비 명령을 만든다.
-5. `data/manifest.json:4-43`의 레코드 수와 체크섬을 입력 검증 근거로 사용한다.
+5. 정규화 결과를 PostgreSQL에 멱등하게 가져오고 import 이력과 입력 체크섬을 남긴다.
+6. `GET /api/v1/catalog/:semester`가 브라우저 검색용 전체 카탈로그를 반환하도록 한다.
+7. `data/manifest.json:4-43`의 레코드 수와 체크섬을 입력 검증 근거로 사용한다.
 
 완료 조건:
 
@@ -144,16 +164,18 @@ DraftTimetable
 - 강의실이 연결된 분반 수가 1,336개와 일치한다.
 - 빈 시간 13개를 포함해 모든 레코드가 성공 또는 명시적 `시간 미정` 상태로 분류된다.
 - 지원하는 모든 시간 문자열 fixture가 분 단위 범위로 변환된다.
+- 동일 파일을 두 번 가져와도 과목·분반·세션이 중복되지 않는다.
+- DB에서 조회한 레코드 수가 입력 manifest와 일치한다.
 
 ### 단계 C — 모바일 우선 수동 편집기
 
 예정 파일:
 
-- `src/features/timetable/TimetableGrid.tsx`
-- `src/features/search/CourseSearchSheet.tsx`
-- `src/features/search/CourseResultGroup.tsx`
-- `src/features/selection/SelectedCourseList.tsx`
-- `src/features/timetable/editor-store.ts`
+- `apps/web/src/features/timetable/TimetableGrid.tsx`
+- `apps/web/src/features/search/CourseSearchSheet.tsx`
+- `apps/web/src/features/search/CourseResultGroup.tsx`
+- `apps/web/src/features/selection/SelectedCourseList.tsx`
+- `apps/web/src/features/timetable/editor-store.ts`
 
 작업:
 
@@ -175,11 +197,11 @@ DraftTimetable
 
 예정 파일:
 
-- `src/domain/conflicts.ts`
-- `src/domain/recommender.ts`
-- `src/features/recommendation/PreferenceChips.tsx`
-- `src/features/recommendation/SuggestionTray.tsx`
-- `src/domain/__tests__/recommender.test.ts`
+- `packages/timetable-core/src/conflicts.ts`
+- `packages/timetable-core/src/recommender.ts`
+- `apps/web/src/features/recommendation/PreferenceChips.tsx`
+- `apps/web/src/features/recommendation/SuggestionTray.tsx`
+- `packages/timetable-core/src/__tests__/recommender.test.ts`
 
 작업:
 
@@ -201,22 +223,26 @@ DraftTimetable
 
 예정 파일:
 
-- `src/features/persistence/draft-storage.ts`
-- `src/features/share/share-codec.ts`
-- `src/features/persistence/__tests__/draft-storage.test.ts`
+- `apps/web/src/features/persistence/draft-storage.ts`
+- `apps/web/src/features/share/share-api.ts`
+- `apps/web/src/features/persistence/__tests__/draft-storage.test.ts`
+- `apps/api/src/routes/shares.ts`
+- `apps/api/src/db/schema/shared-timetables.ts`
 
 작업:
 
 1. 편집 상태를 버전이 있는 로컬 스키마로 자동 저장한다.
 2. 데이터 학기가 바뀌거나 분반이 사라진 경우 안전하게 부분 복원한다.
-3. 공유 링크에는 학기와 과목코드·분반·잠금만 포함한다.
+3. 공유 API에는 학기와 과목코드·분반·잠금만 전달하고 무작위 공유 ID를 반환한다.
 4. 잘못되거나 오래된 공유 링크는 적용 가능한 과목과 누락 과목을 구분해 보여준다.
+5. `scripts/backup.sh`와 `scripts/restore.sh`로 PostgreSQL 덤프·복원 절차를 자동화한다.
 
 완료 조건:
 
 - 새로고침 후 선택 과목, 잠금, 조건이 복원된다.
 - 손상된 저장값이 있어도 앱이 빈 상태로 안전하게 실행된다.
 - 공유 데이터에 교수명, 계정, 사용자 식별정보가 포함되지 않는다.
+- 새 PostgreSQL 컨테이너에 덤프를 복원한 뒤 공유 시간표와 카탈로그 수가 일치한다.
 
 ### 단계 F — 모바일 QA와 사용자 검증
 
