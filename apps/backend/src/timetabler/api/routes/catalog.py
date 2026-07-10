@@ -36,3 +36,16 @@ async def catalog_page(
         )
     except KeyError as exc:
         raise HTTPException(status_code=404, detail="semester not found") from exc
+
+
+@router.get("/catalog", response_model=CatalogPage, include_in_schema=False)
+async def catalog_query(
+    semester: str,
+    catalog: CatalogDependency,
+    q: Annotated[str | None, Query(max_length=120)] = None,
+    category: Annotated[str | None, Query(max_length=200)] = None,
+    course_code: Annotated[str | None, Query(max_length=40)] = None,
+    professor: Annotated[str | None, Query(max_length=100)] = None,
+) -> CatalogPage:
+    """Compatibility form used by the browser client."""
+    return await catalog_page(semester, catalog, q, category, course_code, professor)

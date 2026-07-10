@@ -5,6 +5,7 @@ from timetabler.api.schemas import OptimizationCreate, OptimizationJobRead
 from timetabler.jobs.store import JobNotFoundError
 
 router = APIRouter(prefix="/optimizations", tags=["optimizations"])
+alias_router = APIRouter(prefix="/optimization-jobs", tags=["optimizations"], include_in_schema=False)
 
 
 @router.post("", response_model=OptimizationJobRead, status_code=status.HTTP_202_ACCEPTED)
@@ -49,3 +50,8 @@ async def cancel_optimization(job_id: str, store: JobStoreDependency) -> Optimiz
         return await store.cancel(job_id)
     except JobNotFoundError as exc:
         raise HTTPException(status_code=404, detail="optimization job not found") from exc
+
+# Stable compatibility surface used by the mobile/web draft client.
+alias_router.add_api_route("", create_optimization, methods=["POST"], status_code=status.HTTP_202_ACCEPTED)
+alias_router.add_api_route("/{job_id}", get_optimization, methods=["GET"])
+alias_router.add_api_route("/{job_id}", cancel_optimization, methods=["DELETE"])

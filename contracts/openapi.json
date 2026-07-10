@@ -1,0 +1,1079 @@
+{
+  "components": {
+    "schemas": {
+      "CandidateMetrics": {
+        "additionalProperties": false,
+        "properties": {
+          "campusDays": {
+            "title": "Campusdays",
+            "type": "integer"
+          },
+          "firstClassMinute": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Firstclassminute"
+          },
+          "gapMinutes": {
+            "title": "Gapminutes",
+            "type": "integer"
+          },
+          "lastClassMinute": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lastclassminute"
+          },
+          "totalCredits": {
+            "title": "Totalcredits",
+            "type": "number"
+          }
+        },
+        "required": [
+          "totalCredits",
+          "campusDays",
+          "gapMinutes",
+          "firstClassMinute",
+          "lastClassMinute"
+        ],
+        "title": "CandidateMetrics",
+        "type": "object"
+      },
+      "CatalogPage": {
+        "additionalProperties": false,
+        "properties": {
+          "datasetVersion": {
+            "title": "Datasetversion",
+            "type": "string"
+          },
+          "limit": {
+            "title": "Limit",
+            "type": "integer"
+          },
+          "offset": {
+            "title": "Offset",
+            "type": "integer"
+          },
+          "preparedAt": {
+            "title": "Preparedat",
+            "type": "string"
+          },
+          "sections": {
+            "items": {
+              "$ref": "#/components/schemas/Section"
+            },
+            "title": "Sections",
+            "type": "array"
+          },
+          "semester": {
+            "title": "Semester",
+            "type": "string"
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "semester",
+          "preparedAt",
+          "datasetVersion",
+          "total",
+          "offset",
+          "limit",
+          "sections"
+        ],
+        "title": "CatalogPage",
+        "type": "object"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "title": "Detail",
+            "type": "array"
+          }
+        },
+        "title": "HTTPValidationError",
+        "type": "object"
+      },
+      "HealthStatus": {
+        "additionalProperties": false,
+        "properties": {
+          "status": {
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status"
+        ],
+        "title": "HealthStatus",
+        "type": "object"
+      },
+      "OptimizationCandidate": {
+        "additionalProperties": false,
+        "properties": {
+          "changes": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Changes",
+            "type": "array"
+          },
+          "explanation": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Explanation",
+            "type": "array"
+          },
+          "metrics": {
+            "$ref": "#/components/schemas/CandidateMetrics"
+          },
+          "rank": {
+            "minimum": 1.0,
+            "title": "Rank",
+            "type": "integer"
+          },
+          "scoreComponents": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "title": "Scorecomponents",
+            "type": "object"
+          },
+          "sectionIds": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Sectionids",
+            "type": "array"
+          },
+          "unmetPreferences": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Unmetpreferences",
+            "type": "array"
+          }
+        },
+        "required": [
+          "rank",
+          "sectionIds",
+          "metrics",
+          "scoreComponents"
+        ],
+        "title": "OptimizationCandidate",
+        "type": "object"
+      },
+      "OptimizationCreate": {
+        "additionalProperties": false,
+        "properties": {
+          "candidateCount": {
+            "default": 3,
+            "maximum": 5.0,
+            "minimum": 1.0,
+            "title": "Candidatecount",
+            "type": "integer"
+          },
+          "candidateCourseCodes": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Candidatecoursecodes",
+            "type": "array"
+          },
+          "datasetVersion": {
+            "title": "Datasetversion",
+            "type": "string"
+          },
+          "excludedCourseCodes": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Excludedcoursecodes",
+            "type": "array"
+          },
+          "items": {
+            "default": [],
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "lockedSectionIds": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Lockedsectionids",
+            "type": "array"
+          },
+          "maxCredits": {
+            "default": 18,
+            "maximum": 30.0,
+            "minimum": 0.0,
+            "title": "Maxcredits",
+            "type": "number"
+          },
+          "minCredits": {
+            "default": 12,
+            "maximum": 30.0,
+            "minimum": 0.0,
+            "title": "Mincredits",
+            "type": "number"
+          },
+          "preferences": {
+            "$ref": "#/components/schemas/OptimizationPreferences"
+          },
+          "requiredCourseCodes": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Requiredcoursecodes",
+            "type": "array"
+          },
+          "seed": {
+            "default": 0,
+            "maximum": 2147483647.0,
+            "minimum": 0.0,
+            "title": "Seed",
+            "type": "integer"
+          },
+          "selectedSectionIds": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Selectedsectionids",
+            "type": "array"
+          },
+          "semester": {
+            "default": "2026-1",
+            "title": "Semester",
+            "type": "string"
+          },
+          "timeLimitSeconds": {
+            "default": 3,
+            "exclusiveMinimum": 0.0,
+            "maximum": 8.0,
+            "title": "Timelimitseconds",
+            "type": "number"
+          }
+        },
+        "required": [
+          "datasetVersion"
+        ],
+        "title": "OptimizationCreate",
+        "type": "object"
+      },
+      "OptimizationJobRead": {
+        "additionalProperties": false,
+        "properties": {
+          "attempts": {
+            "title": "Attempts",
+            "type": "integer"
+          },
+          "cancelRequested": {
+            "title": "Cancelrequested",
+            "type": "boolean"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "title": "Createdat",
+            "type": "string"
+          },
+          "errorCode": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Errorcode"
+          },
+          "errorMessage": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Errormessage"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "request": {
+            "$ref": "#/components/schemas/OptimizationCreate"
+          },
+          "result": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/OptimizationResult"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "status": {
+            "$ref": "#/components/schemas/OptimizationJobStatus"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "title": "Updatedat",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "status",
+          "request",
+          "cancelRequested",
+          "attempts",
+          "createdAt",
+          "updatedAt"
+        ],
+        "title": "OptimizationJobRead",
+        "type": "object"
+      },
+      "OptimizationJobStatus": {
+        "enum": [
+          "QUEUED",
+          "RUNNING",
+          "OPTIMAL",
+          "FEASIBLE",
+          "INFEASIBLE",
+          "TIME_LIMIT",
+          "FAILED",
+          "CANCELLED"
+        ],
+        "title": "OptimizationJobStatus",
+        "type": "string"
+      },
+      "OptimizationPreferences": {
+        "additionalProperties": false,
+        "properties": {
+          "avoidAfterMinute": {
+            "anyOf": [
+              {
+                "exclusiveMinimum": 0.0,
+                "maximum": 1440.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Avoidafterminute"
+          },
+          "avoidBeforeMinute": {
+            "anyOf": [
+              {
+                "exclusiveMaximum": 1440.0,
+                "minimum": 0.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Avoidbeforeminute"
+          },
+          "maxDailyMinutes": {
+            "anyOf": [
+              {
+                "exclusiveMinimum": 0.0,
+                "maximum": 1440.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Maxdailyminutes"
+          },
+          "minimizeCampusDays": {
+            "default": true,
+            "title": "Minimizecampusdays",
+            "type": "boolean"
+          },
+          "minimizeGapMinutes": {
+            "default": true,
+            "title": "Minimizegapminutes",
+            "type": "boolean"
+          },
+          "preferredDaysOff": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Preferreddaysoff",
+            "type": "array"
+          }
+        },
+        "title": "OptimizationPreferences",
+        "type": "object"
+      },
+      "OptimizationResult": {
+        "additionalProperties": false,
+        "properties": {
+          "candidates": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/OptimizationCandidate"
+            },
+            "title": "Candidates",
+            "type": "array"
+          },
+          "reasons": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Reasons",
+            "type": "array"
+          },
+          "solverVersion": {
+            "title": "Solverversion",
+            "type": "string"
+          }
+        },
+        "required": [
+          "solverVersion"
+        ],
+        "title": "OptimizationResult",
+        "type": "object"
+      },
+      "ReadinessStatus": {
+        "additionalProperties": false,
+        "properties": {
+          "catalog": {
+            "title": "Catalog",
+            "type": "string"
+          },
+          "database": {
+            "title": "Database",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "catalog",
+          "database"
+        ],
+        "title": "ReadinessStatus",
+        "type": "object"
+      },
+      "Section": {
+        "additionalProperties": false,
+        "properties": {
+          "category": {
+            "title": "Category",
+            "type": "string"
+          },
+          "courseCode": {
+            "title": "Coursecode",
+            "type": "string"
+          },
+          "credits": {
+            "exclusiveMinimum": 0.0,
+            "title": "Credits",
+            "type": "number"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "professor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Professor"
+          },
+          "rawLectureTime": {
+            "title": "Rawlecturetime",
+            "type": "string"
+          },
+          "roomToBeAnnounced": {
+            "title": "Roomtobeannounced",
+            "type": "boolean"
+          },
+          "sectionCode": {
+            "title": "Sectioncode",
+            "type": "string"
+          },
+          "sessions": {
+            "items": {
+              "$ref": "#/components/schemas/Session"
+            },
+            "title": "Sessions",
+            "type": "array"
+          },
+          "timeToBeAnnounced": {
+            "title": "Timetobeannounced",
+            "type": "boolean"
+          },
+          "warningCodes": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Warningcodes",
+            "type": "array"
+          }
+        },
+        "required": [
+          "id",
+          "courseCode",
+          "sectionCode",
+          "name",
+          "professor",
+          "category",
+          "credits",
+          "rawLectureTime",
+          "sessions",
+          "timeToBeAnnounced",
+          "roomToBeAnnounced"
+        ],
+        "title": "Section",
+        "type": "object"
+      },
+      "Semester": {
+        "additionalProperties": false,
+        "properties": {
+          "datasetVersion": {
+            "title": "Datasetversion",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "isActive": {
+            "default": true,
+            "title": "Isactive",
+            "type": "boolean"
+          },
+          "preparedAt": {
+            "title": "Preparedat",
+            "type": "string"
+          },
+          "sectionCount": {
+            "title": "Sectioncount",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "preparedAt",
+          "datasetVersion",
+          "sectionCount"
+        ],
+        "title": "Semester",
+        "type": "object"
+      },
+      "Session": {
+        "additionalProperties": false,
+        "properties": {
+          "buildingCode": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Buildingcode"
+          },
+          "buildingName": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Buildingname"
+          },
+          "day": {
+            "enum": [
+              "월",
+              "화",
+              "수",
+              "목",
+              "금",
+              "토",
+              "일"
+            ],
+            "title": "Day",
+            "type": "string"
+          },
+          "endMinute": {
+            "exclusiveMinimum": 0.0,
+            "maximum": 1440.0,
+            "title": "Endminute",
+            "type": "integer"
+          },
+          "roomCode": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Roomcode"
+          },
+          "roomName": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Roomname"
+          },
+          "startMinute": {
+            "exclusiveMaximum": 1440.0,
+            "minimum": 0.0,
+            "title": "Startminute",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "day",
+          "startMinute",
+          "endMinute"
+        ],
+        "title": "Session",
+        "type": "object"
+      },
+      "ValidationError": {
+        "properties": {
+          "ctx": {
+            "title": "Context",
+            "type": "object"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "title": "Location",
+            "type": "array"
+          },
+          "msg": {
+            "title": "Message",
+            "type": "string"
+          },
+          "type": {
+            "title": "Error Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError",
+        "type": "object"
+      }
+    }
+  },
+  "info": {
+    "title": "PL-timeTabler API",
+    "version": "0.1.0"
+  },
+  "openapi": "3.1.0",
+  "paths": {
+    "/api/v1/catalog/{semester}": {
+      "get": {
+        "operationId": "catalog_page_api_v1_catalog__semester__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "semester",
+            "required": true,
+            "schema": {
+              "title": "Semester",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "q",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 120,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Q"
+            }
+          },
+          {
+            "in": "query",
+            "name": "category",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 200,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Category"
+            }
+          },
+          {
+            "in": "query",
+            "name": "course_code",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 40,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Course Code"
+            }
+          },
+          {
+            "in": "query",
+            "name": "professor",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 100,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Professor"
+            }
+          },
+          {
+            "in": "query",
+            "name": "offset",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "minimum": 0,
+              "title": "Offset",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 2000,
+              "maximum": 2000,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CatalogPage"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Catalog Page",
+        "tags": [
+          "catalog"
+        ]
+      }
+    },
+    "/api/v1/health/live": {
+      "get": {
+        "operationId": "live_api_v1_health_live_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthStatus"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Live",
+        "tags": [
+          "health"
+        ]
+      }
+    },
+    "/api/v1/health/ready": {
+      "get": {
+        "operationId": "ready_api_v1_health_ready_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReadinessStatus"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReadinessStatus"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Ready",
+        "tags": [
+          "health"
+        ]
+      }
+    },
+    "/api/v1/optimizations": {
+      "post": {
+        "operationId": "create_optimization_api_v1_optimizations_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OptimizationCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OptimizationJobRead"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create Optimization",
+        "tags": [
+          "optimizations"
+        ]
+      }
+    },
+    "/api/v1/optimizations/{job_id}": {
+      "delete": {
+        "operationId": "cancel_optimization_api_v1_optimizations__job_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "job_id",
+            "required": true,
+            "schema": {
+              "title": "Job Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OptimizationJobRead"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Cancel Optimization",
+        "tags": [
+          "optimizations"
+        ]
+      },
+      "get": {
+        "operationId": "get_optimization_api_v1_optimizations__job_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "job_id",
+            "required": true,
+            "schema": {
+              "title": "Job Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OptimizationJobRead"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Optimization",
+        "tags": [
+          "optimizations"
+        ]
+      }
+    },
+    "/api/v1/semesters": {
+      "get": {
+        "operationId": "semesters_api_v1_semesters_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/Semester"
+                  },
+                  "title": "Response Semesters Api V1 Semesters Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Semesters",
+        "tags": [
+          "catalog"
+        ]
+      }
+    }
+  }
+}

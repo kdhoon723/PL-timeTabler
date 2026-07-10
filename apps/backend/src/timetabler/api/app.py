@@ -1,12 +1,13 @@
 from __future__ import annotations
 
+import json
 import logging
 import time
 from collections.abc import AsyncIterator, Awaitable, Callable
 from contextlib import asynccontextmanager
 from uuid import uuid4
 
-from fastapi import FastAPI, Request, Response
+from fastapi import FastAPI, HTTPException, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import ORJSONResponse
 
@@ -78,6 +79,15 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.include_router(health.router, prefix="/api/v1")
     app.include_router(catalog.router, prefix="/api/v1")
     app.include_router(optimizations.router, prefix="/api/v1")
+    app.include_router(optimizations.alias_router, prefix="/api/v1")
+
+    @app.get("/api/v1/requirements/common", include_in_schema=False)
+    async def common_requirements() -> dict:
+        path = resolved.data_root / "requirements" / "normalized" / "common-graduation-rules.json"
+        if not path.exists():
+            raise HTTPException(status_code=404, detail="requirements data not found")
+        return json.loads(path.read_text(encoding="utf-8"))
+
     return app
 
 

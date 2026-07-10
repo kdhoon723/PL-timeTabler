@@ -1,0 +1,8 @@
+services:
+  web:
+    build: { context: ., dockerfile: apps/web/Dockerfile }
+    ports: ["127.0.0.1:5173:80"]
+  api:
+    environment:
+      TIMETABLER_ENVIRONMENT: development
+      TIMETABLER_CORS_ORIGINS: '["http://localhost:5173"]'

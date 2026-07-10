@@ -1,0 +1,72 @@
+name: pl-timetabler
+services:
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    ports: ["127.0.0.1:${WEB_PORT:-8090}:80"]
+    depends_on:
+      api: { condition: service_healthy }
+    restart: unless-stopped
+  api:
+    build:
+      context: .
+      dockerfile: apps/backend/Dockerfile
+    command: ["uvicorn", "timetabler.api.app:app", "--host", "0.0.0.0", "--port", "8000", "--proxy-headers"]
+    environment:
+      TIMETABLER_ENVIRONMENT: production
+      TIMETABLER_DATABASE_URL: postgresql+asyncpg://timetabler:${POSTGRES_PASSWORD:-change-me}@db:5432/timetabler
+      TIMETABLER_CORS_ORIGINS: '["http://localhost:8090"]'
+    expose: ["8000"]
+    depends_on:
+      db: { condition: service_healthy }
+      migrate: { condition: service_completed_successfully }
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/v1/health/live', timeout=2)"]
+      interval: 15s
+      timeout: 3s
+      retries: 5
+      start_period: 10s
+  optimizer:
+    build: { context: ., dockerfile: apps/backend/Dockerfile }
+    command: ["timetabler-optimizer"]
+    environment:
+      TIMETABLER_ENVIRONMENT: production
+      TIMETABLER_DATABASE_URL: postgresql+asyncpg://timetabler:${POSTGRES_PASSWORD:-change-me}@db:5432/timetabler
+    depends_on:
+      db: { condition: service_healthy }
+      migrate: { condition: service_completed_successfully }
+    restart: unless-stopped
+  migrate:
+    build: { context: ., dockerfile: apps/backend/Dockerfile }
+    command: ["alembic", "upgrade", "head"]
+    environment:
+      TIMETABLER_DATABASE_URL: postgresql+asyncpg://timetabler:${POSTGRES_PASSWORD:-change-me}@db:5432/timetabler
+    depends_on: { db: { condition: service_healthy } }
+    restart: "no"
+  ingest:
+    build: { context: ., dockerfile: apps/backend/Dockerfile }
+    command: ["timetabler-ingest"]
+    profiles: ["ingest"]
+    environment:
+      TIMETABLER_DATABASE_URL: postgresql+asyncpg://timetabler:${POSTGRES_PASSWORD:-change-me}@db:5432/timetabler
+      TIMETABLER_DATA_DIR: /data
+    volumes: ["./data:/data:ro"]
+    depends_on: { migrate: { condition: service_completed_successfully } }
+  db:
+    image: postgres:18-alpine
+    environment:
+      POSTGRES_DB: timetabler
+      POSTGRES_USER: timetabler
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-change-me}
+    # PostgreSQL 18 stores cluster data below a versioned subdirectory.
+    volumes: ["postgres_data:/var/lib/postgresql"]
+    expose: ["5432"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U timetabler -d timetabler"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+volumes: { postgres_data: }
