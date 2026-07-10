@@ -1,8 +1,9 @@
 from __future__ import annotations
 
 import re
+from typing import cast
 
-from timetabler.catalog.models import Session
+from timetabler.catalog.models import Day, Session
 
 _SESSION_PATTERN = re.compile(
     r"^(?P<day>[월화수목금토일])"
@@ -37,7 +38,7 @@ def parse_lecture_time(value: str | None) -> tuple[Session, ...]:
             raise LectureTimeParseError(f"invalid lecture time segment: {part!r}")
         parsed.append(
             Session(
-                day=match.group("day"),  # type: ignore[arg-type]
+                day=cast(Day, match.group("day")),
                 start_minute=time_to_minute(match.group("start")),
                 end_minute=time_to_minute(match.group("end")),
             )

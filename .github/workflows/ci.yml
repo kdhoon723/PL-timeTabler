@@ -1,0 +1,92 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: "0.8.x"
+          enable-cache: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: uv --directory apps/backend sync --frozen
+      - run: uv --directory apps/backend run ruff format --check src tests
+      - run: uv --directory apps/backend run ruff check src tests
+      - run: uv --directory apps/backend run mypy src
+      - run: uv --directory apps/backend run pytest -q
+      - run: uv --directory apps/backend run timetabler-validate-data
+      - run: uv --directory apps/backend run timetabler-export-static-catalog
+      - run: git diff --exit-code apps/web/public/data/catalog-2026-1.json
+      - run: uv --directory apps/backend run timetabler-openapi
+      - run: git diff --exit-code contracts/openapi.json
+
+  web:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: apps/web/package-lock.json
+      - run: npm ci --prefix apps/web
+      - run: npm run api:generate --prefix apps/web
+      - run: git diff --exit-code apps/web/src/api/schema.d.ts
+      - run: npm run typecheck --prefix apps/web
+      - run: npm run lint --prefix apps/web
+      - run: npm test --prefix apps/web
+      - run: npm run build --prefix apps/web
+
+  e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: |
+            apps/web/package-lock.json
+            e2e/package-lock.json
+      - run: npm ci --prefix apps/web
+      - run: npm ci --prefix e2e
+      - run: npx --prefix e2e playwright install --with-deps chromium
+      - run: npm test --prefix e2e
+
+  containers:
+    runs-on: ubuntu-latest
+    env:
+      POSTGRES_PASSWORD: ci-only-not-for-production
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: e2e/package-lock.json
+      - run: docker network create kdhoon-public
+      - run: docker compose config --quiet
+      - run: docker compose build
+      - run: npm ci --prefix e2e
+      - run: npx --prefix e2e playwright install --with-deps chromium
+      - run: docker compose up -d --wait --wait-timeout 120
+      - name: Production service-worker and optimizer E2E
+        run: npm test --prefix e2e -- --project=desktop-chromium
+        env:
+          E2E_LIVE: "1"
+          E2E_BASE_URL: http://127.0.0.1:18080
+      - if: failure()
+        run: docker compose logs --no-color
+      - if: always()
+        run: docker compose down --volumes

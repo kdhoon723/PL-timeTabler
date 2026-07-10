@@ -86,6 +86,10 @@ class Preferences:
     earliest_start_minute: int | None = None
     latest_end_minute: int | None = None
     max_campus_days: int | None = None
+    max_daily_minutes: int | None = None
+    min_lunch_minutes: int = 0
+    gap_weight_percent: int = 50
+    minimize_changes: bool = True
 
     def __post_init__(self) -> None:
         for day in self.preferred_days_off | self.avoided_days:
@@ -100,6 +104,12 @@ class Preferences:
             raise ValueError("latest_end_minute must be within a day")
         if self.max_campus_days is not None and not 0 <= self.max_campus_days <= 7:
             raise ValueError("max_campus_days must be between 0 and 7")
+        if self.max_daily_minutes is not None and not 0 < self.max_daily_minutes <= 24 * 60:
+            raise ValueError("max_daily_minutes must be greater than 0 and within a day")
+        if not 0 <= self.min_lunch_minutes <= 150:
+            raise ValueError("min_lunch_minutes must be between 0 and 150")
+        if not 0 <= self.gap_weight_percent <= 100:
+            raise ValueError("gap_weight_percent must be between 0 and 100")
 
 
 @dataclass(frozen=True, slots=True)
@@ -115,6 +125,9 @@ class ObjectiveWeights:
     section_change: int = 300
     unknown_time: int = 250
     movement_transition: int = 60
+    daily_overflow_minute: int = 4
+    lunch_shortage_minute: int = 3
+    target_credit: int = 200
 
     def __post_init__(self) -> None:
         if any(value < 0 for value in self.as_tuple()):
@@ -131,6 +144,9 @@ class ObjectiveWeights:
             self.section_change,
             self.unknown_time,
             self.movement_transition,
+            self.daily_overflow_minute,
+            self.lunch_shortage_minute,
+            self.target_credit,
         )
 
 
@@ -141,6 +157,7 @@ class OptimizationRequest:
     sections: tuple[Section, ...]
     min_credits: int = 0
     max_credits: int = 30
+    target_credits: int | None = None
     locked_section_ids: frozenset[str] = frozenset()
     required_course_ids: frozenset[str] = frozenset()
     required_groups: tuple[RequiredGroup, ...] = ()
@@ -158,6 +175,10 @@ class OptimizationRequest:
         object.__setattr__(self, "required_groups", tuple(self.required_groups))
         if self.min_credits < 0 or self.max_credits < self.min_credits:
             raise ValueError("credit bounds are invalid")
+        if self.target_credits is not None and not (
+            self.min_credits <= self.target_credits <= self.max_credits
+        ):
+            raise ValueError("target_credits must be within credit bounds")
         if self.max_candidates < 1:
             raise ValueError("max_candidates must be positive")
         if self.minimum_candidate_difference < 1:
@@ -181,6 +202,9 @@ class ScoreBreakdown:
     changed_courses: int
     unknown_time_sections: int
     movement_transitions: int
+    daily_overflow_minutes: int
+    lunch_shortage_minutes: int
+    target_credit_deviation: int
     weighted_score: int
 
 

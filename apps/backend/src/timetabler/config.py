@@ -29,6 +29,10 @@ class Settings(BaseSettings):
     catalog_validate_checksums: bool = True
     auto_create_schema: bool = False
     cors_origins: list[str] = Field(default_factory=lambda: ["http://localhost:5173"])
+    optimization_rate_limit_requests: int = Field(default=12, ge=1, le=1_000)
+    optimization_rate_limit_window_seconds: int = Field(default=60, ge=1, le=3_600)
+    optimization_active_job_limit: int = Field(default=100, ge=1, le=100_000)
+    optimization_job_retention_hours: int = Field(default=24, ge=1, le=24 * 365)
 
 
 @lru_cache

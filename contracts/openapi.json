@@ -34,9 +34,19 @@
             ],
             "title": "Lastclassminute"
           },
+          "targetCreditDeviation": {
+            "default": 0,
+            "title": "Targetcreditdeviation",
+            "type": "number"
+          },
           "totalCredits": {
             "title": "Totalcredits",
             "type": "number"
+          },
+          "unknownTimeSections": {
+            "default": 0,
+            "title": "Unknowntimesections",
+            "type": "integer"
           }
         },
         "required": [
@@ -225,14 +235,14 @@
             "maximum": 30.0,
             "minimum": 0.0,
             "title": "Maxcredits",
-            "type": "number"
+            "type": "integer"
           },
           "minCredits": {
             "default": 12,
             "maximum": 30.0,
             "minimum": 0.0,
             "title": "Mincredits",
-            "type": "number"
+            "type": "integer"
           },
           "preferences": {
             "$ref": "#/components/schemas/OptimizationPreferences"
@@ -264,6 +274,19 @@
             "default": "2026-1",
             "title": "Semester",
             "type": "string"
+          },
+          "targetCredits": {
+            "anyOf": [
+              {
+                "maximum": 30.0,
+                "minimum": 0.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Targetcredits"
           },
           "timeLimitSeconds": {
             "default": 3,
@@ -398,6 +421,13 @@
             ],
             "title": "Avoidbeforeminute"
           },
+          "gapWeightPercent": {
+            "default": 50,
+            "maximum": 100.0,
+            "minimum": 0.0,
+            "title": "Gapweightpercent",
+            "type": "integer"
+          },
           "maxDailyMinutes": {
             "anyOf": [
               {
@@ -411,9 +441,21 @@
             ],
             "title": "Maxdailyminutes"
           },
+          "minLunchMinutes": {
+            "default": 0,
+            "maximum": 150.0,
+            "minimum": 0.0,
+            "title": "Minlunchminutes",
+            "type": "integer"
+          },
           "minimizeCampusDays": {
             "default": true,
             "title": "Minimizecampusdays",
+            "type": "boolean"
+          },
+          "minimizeChanges": {
+            "default": true,
+            "title": "Minimizechanges",
             "type": "boolean"
           },
           "minimizeGapMinutes": {
@@ -424,6 +466,15 @@
           "preferredDaysOff": {
             "default": [],
             "items": {
+              "enum": [
+                "월",
+                "화",
+                "수",
+                "목",
+                "금",
+                "토",
+                "일"
+              ],
               "type": "string"
             },
             "title": "Preferreddaysoff",

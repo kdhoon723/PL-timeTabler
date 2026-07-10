@@ -68,4 +68,5 @@ data/
 - 현재 파일은 자동 생성기, 졸업요건 파서, 제품 UI의 고정 fixture다.
 - 실제 서비스 데이터는 학기별 디렉터리 또는 버전 필드를 사용해 교체한다.
 - 수집 원본을 갱신할 때는 `manifest.json`의 레코드 수와 체크섬도 함께 갱신한다.
+- 브라우저 fallback은 수동으로 편집하지 않고 `uv --directory apps/backend run timetabler-export-static-catalog`로 canonical API snapshot에서 생성한다.
 - 내부 식별자, 계정 정보, 쿠키 등 시간표 생성에 필요하지 않은 값은 이 프로젝트에 복사하지 않는다.

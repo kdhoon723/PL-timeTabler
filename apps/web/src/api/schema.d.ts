@@ -121,8 +121,18 @@ export interface components {
             gapMinutes: number;
             /** Lastclassminute */
             lastClassMinute: number | null;
+            /**
+             * Targetcreditdeviation
+             * @default 0
+             */
+            targetCreditDeviation: number;
             /** Totalcredits */
             totalCredits: number;
+            /**
+             * Unknowntimesections
+             * @default 0
+             */
+            unknownTimeSections: number;
         };
         /** CatalogPage */
         CatalogPage: {
@@ -233,6 +243,8 @@ export interface components {
              * @default 2026-1
              */
             semester: string;
+            /** Targetcredits */
+            targetCredits?: number | null;
             /**
              * Timelimitseconds
              * @default 3
@@ -276,13 +288,28 @@ export interface components {
             avoidAfterMinute?: number | null;
             /** Avoidbeforeminute */
             avoidBeforeMinute?: number | null;
+            /**
+             * Gapweightpercent
+             * @default 50
+             */
+            gapWeightPercent: number;
             /** Maxdailyminutes */
             maxDailyMinutes?: number | null;
+            /**
+             * Minlunchminutes
+             * @default 0
+             */
+            minLunchMinutes: number;
             /**
              * Minimizecampusdays
              * @default true
              */
             minimizeCampusDays: boolean;
+            /**
+             * Minimizechanges
+             * @default true
+             */
+            minimizeChanges: boolean;
             /**
              * Minimizegapminutes
              * @default true
@@ -292,7 +319,7 @@ export interface components {
              * Preferreddaysoff
              * @default []
              */
-            preferredDaysOff: string[];
+            preferredDaysOff: ("월" | "화" | "수" | "목" | "금" | "토" | "일")[];
         };
         /** OptimizationResult */
         OptimizationResult: {

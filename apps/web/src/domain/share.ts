@@ -1,4 +1,5 @@
 import type { DraftSnapshot } from '../types'
+import { normalizeDraftSnapshot } from './draftSchema'
 
 export function encodeDraft(snapshot: DraftSnapshot): string {
   const bytes = new TextEncoder().encode(JSON.stringify(snapshot))
@@ -13,8 +14,7 @@ export function decodeDraft(encoded: string): DraftSnapshot | null {
     const binary = atob(padded)
     const bytes = Uint8Array.from(binary, (char) => char.charCodeAt(0))
     const parsed: unknown = JSON.parse(new TextDecoder().decode(bytes))
-    if (!parsed || typeof parsed !== 'object' || !('schemaVersion' in parsed) || parsed.schemaVersion !== 1) return null
-    return parsed as DraftSnapshot
+    return normalizeDraftSnapshot(parsed)
   } catch {
     return null
   }

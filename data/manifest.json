@@ -31,6 +31,13 @@
       "uniqueSections": 1342,
       "sha256": "631a114ce852f7c027990b156620766d2a816b6ece177e55f895af021af96bc2",
       "transform": "Copied without modification."
+    },
+    {
+      "path": "data/requirements/normalized/department-sources-2026.json",
+      "source": "data/requirements/normalized/department-source-coverage-2026.csv",
+      "records": 46,
+      "sha256": "41ff95dea0302bcccf63fa8c556f71caf7959fce45df4395b9e8ebcaf828904d",
+      "transform": "Normalized official curriculum and graduation source coverage for the web requirements guide."
     }
   ],
   "join": {
@@ -46,7 +53,12 @@
     "curriculumHandbooks": {
       "continuousYears": "2016-2026",
       "files": 11,
-      "missingPublicYears": [2012, 2013, 2014, 2015]
+      "missingPublicYears": [
+        2012,
+        2013,
+        2014,
+        2015
+      ]
     },
     "currentCurriculumUnits": {
       "covered": 46,

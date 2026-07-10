@@ -73,6 +73,59 @@ class IntervalAndScoringTests(unittest.TestCase):
         self.assertEqual(candidate.score.movement_transitions, 1)
         self.assertTrue(candidate.unmet_preferences)
 
+    def test_score_exposes_daily_limit_and_lunch_shortage(self) -> None:
+        morning = section("A-1", "A", 3, Session(0, 9 * 60, 12 * 60))
+        afternoon = section("B-1", "B", 3, Session(0, 12 * 60, 15 * 60))
+        request = OptimizationRequest(
+            sections=(morning, afternoon),
+            preferences=Preferences(max_daily_minutes=300, min_lunch_minutes=60),
+        )
+
+        candidate = build_candidate(request, (morning, afternoon), rank=1)
+
+        self.assertEqual(candidate.score.daily_overflow_minutes, 60)
+        self.assertEqual(candidate.score.lunch_shortage_minutes, 60)
+        self.assertIn("하루 수업시간", " ".join(candidate.unmet_preferences))
+        self.assertIn("점심", " ".join(candidate.unmet_preferences))
+
+    def test_lunch_uses_longest_continuous_break_not_total_free_minutes(self) -> None:
+        before = section("A-1", "A", 1, Session(0, 12 * 60, 12 * 60 + 45))
+        after = section("B-1", "B", 1, Session(0, 13 * 60 + 15, 14 * 60))
+        request = OptimizationRequest(
+            sections=(before, after),
+            preferences=Preferences(min_lunch_minutes=60),
+        )
+
+        candidate = build_candidate(request, (before, after), rank=1)
+
+        self.assertEqual(candidate.score.lunch_shortage_minutes, 30)
+
+    def test_gap_weight_minimize_changes_and_target_credits_change_score(self) -> None:
+        current = section("A-1", "A", 2, Session(0, 9 * 60, 10 * 60))
+        added = section("B-1", "B", 3, Session(0, 11 * 60, 12 * 60))
+        base = dict(
+            sections=(current, added),
+            current_section_ids=frozenset({"A-1"}),
+            target_credits=6,
+        )
+        no_soft_cost = OptimizationRequest(
+            **base,
+            preferences=Preferences(gap_weight_percent=0, minimize_changes=False),
+        )
+        full_soft_cost = OptimizationRequest(
+            **base,
+            preferences=Preferences(gap_weight_percent=100, minimize_changes=True),
+        )
+
+        unweighted = build_candidate(no_soft_cost, (current, added), rank=1)
+        weighted = build_candidate(full_soft_cost, (current, added), rank=1)
+
+        self.assertEqual(weighted.score.target_credit_deviation, 1)
+        self.assertEqual(weighted.score.gap_minutes, 60)
+        self.assertEqual(weighted.score.changed_courses, 1)
+        self.assertGreater(weighted.score.weighted_score, unweighted.score.weighted_score)
+        self.assertIn("목표 학점", " ".join(weighted.unmet_preferences))
+
 
 class BacktrackingOptimizerTests(unittest.TestCase):
     def setUp(self) -> None:
@@ -217,6 +270,94 @@ class CpSatOptimizerTests(unittest.TestCase):
 
         self.assertEqual(result.status, SolverStatus.INFEASIBLE)
         self.assertTrue(result.relaxations)
+
+    def test_target_credits_prefers_closest_feasible_credit_total(self) -> None:
+        two_credits = section("A-1", "A", 2, Session(0, 9 * 60, 10 * 60))
+        three_credits = section("B-1", "B", 3, Session(0, 9 * 60, 10 * 60))
+        request = OptimizationRequest(
+            sections=(two_credits, three_credits),
+            min_credits=2,
+            max_credits=3,
+            target_credits=3,
+            max_candidates=1,
+        )
+
+        result = CpSatOptimizer().solve(request)
+
+        self.assertTrue(result.candidates)
+        self.assertEqual(result.candidates[0].section_ids, ("B-1",))
+        self.assertEqual(result.candidates[0].score.target_credit_deviation, 0)
+
+    def test_cp_objective_matches_adjacent_session_public_score(self) -> None:
+        """Movement regression/property check, including reviewer seed 2996."""
+
+        assert CpSatOptimizer is not None
+        from timetabler.optimizer.cp_sat import cp_model
+
+        assert cp_model is not None
+        for seed in (*range(20), 2996):
+            rng = random.Random(seed)
+            cursor = 9 * 60
+            generated: list[Section] = []
+            for index in range(5):
+                duration = rng.choice((20, 30, 40))
+                location = rng.choice(("north", "south", None))
+                generated.append(
+                    section(
+                        f"S-{index}",
+                        f"C-{index}",
+                        1,
+                        Session(0, cursor, cursor + duration, location),
+                    )
+                )
+                cursor += duration + rng.randrange(0, 31)
+            request = OptimizationRequest(
+                sections=tuple(generated),
+                min_credits=5,
+                max_credits=5,
+                target_credits=5,
+                locked_section_ids=frozenset(item.section_id for item in generated),
+                preferences=Preferences(
+                    gap_weight_percent=rng.randrange(0, 101),
+                    minimize_changes=bool(seed % 2),
+                ),
+                max_candidates=1,
+                seed=seed,
+            )
+            optimizer = CpSatOptimizer()
+            model, _ = optimizer._build_model(request)
+            solver = cp_model.CpSolver()
+
+            status = solver.solve(model)
+            public_score = build_candidate(request, tuple(generated), rank=1).score.weighted_score
+
+            self.assertEqual(status, cp_model.OPTIMAL, f"seed={seed}")
+            self.assertEqual(round(solver.objective_value), public_score, f"seed={seed}")
+
+    def test_cp_lunch_objective_matches_continuous_break_score(self) -> None:
+        before = section("A-1", "A", 1, Session(0, 12 * 60, 12 * 60 + 45))
+        after = section("B-1", "B", 1, Session(0, 13 * 60 + 15, 14 * 60))
+        request = OptimizationRequest(
+            sections=(before, after),
+            min_credits=2,
+            max_credits=2,
+            locked_section_ids=frozenset({"A-1", "B-1"}),
+            preferences=Preferences(min_lunch_minutes=60),
+            max_candidates=1,
+        )
+        optimizer = CpSatOptimizer()
+        model, _ = optimizer._build_model(request)
+        from timetabler.optimizer.cp_sat import cp_model
+
+        assert cp_model is not None
+        solver = cp_model.CpSolver()
+
+        status = solver.solve(model)
+        public_score = build_candidate(request, (before, after), rank=1).score
+
+        self.assertEqual(status, cp_model.OPTIMAL)
+        self.assertEqual(public_score.lunch_shortage_minutes, 30)
+        self.assertEqual(round(solver.objective_value), public_score.weighted_score)
 
     def test_fifty_small_fixtures_match_reference_feasibility(self) -> None:
         """Operational-gate baseline: 50 normal/boundary/infeasible fixtures."""

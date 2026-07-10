@@ -8,9 +8,9 @@ from uuid import uuid4
 
 from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import ORJSONResponse
 
 from timetabler import __version__
+from timetabler.api.rate_limit import SlidingWindowRateLimiter
 from timetabler.api.routes import catalog, health, optimizations
 from timetabler.catalog.repository import CatalogRepository
 from timetabler.config import Settings, get_settings
@@ -36,6 +36,11 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         app.state.catalog = catalog_repository
         app.state.database = database
         app.state.job_store = OptimizationJobStore(database.session_factory)
+        app.state.settings = resolved
+        app.state.optimization_rate_limiter = SlidingWindowRateLimiter(
+            limit=resolved.optimization_rate_limit_requests,
+            window_seconds=resolved.optimization_rate_limit_window_seconds,
+        )
         try:
             yield
         finally:
@@ -45,7 +50,6 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         title="PL-timeTabler API",
         version=__version__,
         openapi_version="3.1.0",
-        default_response_class=ORJSONResponse,
         lifespan=lifespan,
     )
     app.add_middleware(

@@ -1,26 +1,40 @@
 from __future__ import annotations
 
-from typing import Annotated
+from typing import Annotated, cast
 
 from fastapi import Depends, Request
 
+from timetabler.api.rate_limit import SlidingWindowRateLimiter
 from timetabler.catalog.repository import CatalogRepository
+from timetabler.config import Settings
 from timetabler.db.session import Database
 from timetabler.jobs.store import OptimizationJobStore
 
 
 def get_catalog(request: Request) -> CatalogRepository:
-    return request.app.state.catalog
+    return cast(CatalogRepository, request.app.state.catalog)
 
 
 def get_database(request: Request) -> Database:
-    return request.app.state.database
+    return cast(Database, request.app.state.database)
 
 
 def get_job_store(request: Request) -> OptimizationJobStore:
-    return request.app.state.job_store
+    return cast(OptimizationJobStore, request.app.state.job_store)
+
+
+def get_settings(request: Request) -> Settings:
+    return cast(Settings, request.app.state.settings)
+
+
+def get_optimization_rate_limiter(request: Request) -> SlidingWindowRateLimiter:
+    return cast(SlidingWindowRateLimiter, request.app.state.optimization_rate_limiter)
 
 
 CatalogDependency = Annotated[CatalogRepository, Depends(get_catalog)]
 DatabaseDependency = Annotated[Database, Depends(get_database)]
 JobStoreDependency = Annotated[OptimizationJobStore, Depends(get_job_store)]
+SettingsDependency = Annotated[Settings, Depends(get_settings)]
+OptimizationRateLimiterDependency = Annotated[
+    SlidingWindowRateLimiter, Depends(get_optimization_rate_limiter)
+]

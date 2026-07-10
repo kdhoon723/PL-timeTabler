@@ -37,6 +37,11 @@ def test_optimization_queue_api(client: TestClient) -> None:
             "lockedSectionIds": ["922601-01"],
             "minCredits": 2,
             "maxCredits": 18,
+            "targetCredits": 15,
+            "preferences": {
+                "gapWeightPercent": 75,
+                "minimizeChanges": False,
+            },
         },
     )
     assert create.status_code == 202
@@ -47,6 +52,9 @@ def test_optimization_queue_api(client: TestClient) -> None:
     fetched = client.get(f"/api/v1/optimizations/{created['id']}")
     assert fetched.status_code == 200
     assert fetched.json()["request"]["requiredCourseCodes"] == ["922601"]
+    assert fetched.json()["request"]["targetCredits"] == 15
+    assert fetched.json()["request"]["preferences"]["gapWeightPercent"] == 75
+    assert fetched.json()["request"]["preferences"]["minimizeChanges"] is False
 
     cancelled = client.delete(f"/api/v1/optimizations/{created['id']}")
     assert cancelled.status_code == 200
@@ -69,6 +77,52 @@ def test_reject_stale_dataset_and_unknown_sections(client: TestClient) -> None:
         },
     )
     assert unknown.status_code == 422
+
+
+def test_reject_invalid_or_duplicate_preferred_days(client: TestClient) -> None:
+    semester = client.get("/api/v1/semesters").json()[0]
+    base = {"datasetVersion": semester["datasetVersion"]}
+
+    invalid = client.post(
+        "/api/v1/optimizations",
+        json={**base, "preferences": {"preferredDaysOff": ["Funday"]}},
+    )
+    duplicate = client.post(
+        "/api/v1/optimizations",
+        json={**base, "preferences": {"preferredDaysOff": ["금", "금"]}},
+    )
+
+    assert invalid.status_code == 422
+    assert duplicate.status_code == 422
+
+
+def test_reject_locked_section_whose_course_is_excluded(client: TestClient) -> None:
+    semester = client.get("/api/v1/semesters").json()[0]
+    response = client.post(
+        "/api/v1/optimizations",
+        json={
+            "datasetVersion": semester["datasetVersion"],
+            "lockedSectionIds": ["922601-01"],
+            "excludedCourseCodes": ["922601"],
+        },
+    )
+
+    assert response.status_code == 422
+    assert response.json()["detail"] == {"lockedSectionsWithExcludedCourses": ["922601-01"]}
+
+
+def test_reject_fractional_credit_bounds_instead_of_rounding(client: TestClient) -> None:
+    semester = client.get("/api/v1/semesters").json()[0]
+    response = client.post(
+        "/api/v1/optimizations",
+        json={
+            "datasetVersion": semester["datasetVersion"],
+            "minCredits": 12.5,
+            "maxCredits": 18,
+        },
+    )
+
+    assert response.status_code == 422
 
 
 def test_openapi_exposes_only_implemented_product_endpoints(client: TestClient) -> None:

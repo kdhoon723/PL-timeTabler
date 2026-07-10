@@ -1,27 +1,41 @@
-from fastapi import APIRouter, HTTPException, Response, status
+from datetime import timedelta
 
-from timetabler.api.dependencies import CatalogDependency, JobStoreDependency
+from fastapi import APIRouter, HTTPException, Request, Response, status
+
+from timetabler.api.dependencies import (
+    CatalogDependency,
+    JobStoreDependency,
+    OptimizationRateLimiterDependency,
+    SettingsDependency,
+)
+from timetabler.api.rate_limit import (
+    RateLimitExceededError,
+    client_key_from_headers,
+)
 from timetabler.api.schemas import OptimizationCreate, OptimizationJobRead
-from timetabler.jobs.store import JobNotFoundError
+from timetabler.jobs.store import ActiveJobLimitError, JobNotFoundError
 
 router = APIRouter(prefix="/optimizations", tags=["optimizations"])
 
 
 @router.post("", response_model=OptimizationJobRead, status_code=status.HTTP_202_ACCEPTED)
 async def create_optimization(
-    request: OptimizationCreate,
+    body: OptimizationCreate,
+    http_request: Request,
     catalog: CatalogDependency,
     store: JobStoreDependency,
+    limiter: OptimizationRateLimiterDependency,
+    settings: SettingsDependency,
     response: Response,
 ) -> OptimizationJobRead:
     snapshot = catalog.snapshot
-    if request.semester != snapshot.semester:
+    if body.semester != snapshot.semester:
         raise HTTPException(status_code=422, detail="unsupported semester")
-    if request.dataset_version != snapshot.dataset_version:
+    if body.dataset_version != snapshot.dataset_version:
         raise HTTPException(status_code=409, detail="catalog version changed; refresh required")
-    section_ids = catalog.by_id(request.semester)
-    unknown_locked = sorted(set(request.locked_section_ids) - section_ids.keys())
-    unknown_selected = sorted(set(request.selected_section_ids) - section_ids.keys())
+    section_ids = catalog.by_id(body.semester)
+    unknown_locked = sorted(set(body.locked_section_ids) - section_ids.keys())
+    unknown_selected = sorted(set(body.selected_section_ids) - section_ids.keys())
     if unknown_locked or unknown_selected:
         raise HTTPException(
             status_code=422,
@@ -30,7 +44,40 @@ async def create_optimization(
                 "unknownSelectedSectionIds": unknown_selected,
             },
         )
-    job = await store.create(request)
+    locked_excluded = sorted(
+        section_id
+        for section_id in set(body.locked_section_ids)
+        if section_ids[section_id].course_code in set(body.excluded_course_codes)
+    )
+    if locked_excluded:
+        raise HTTPException(
+            status_code=422,
+            detail={"lockedSectionsWithExcludedCourses": locked_excluded},
+        )
+    client_key = client_key_from_headers(
+        http_request.headers.get("CF-Connecting-IP"),
+        http_request.client.host if http_request.client is not None else None,
+    )
+    try:
+        await limiter.consume(client_key)
+    except RateLimitExceededError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail="too many optimization requests; retry later",
+            headers={"Retry-After": str(exc.retry_after_seconds)},
+        ) from exc
+    try:
+        job = await store.create(
+            body,
+            active_limit=settings.optimization_active_job_limit,
+            retention=timedelta(hours=settings.optimization_job_retention_hours),
+        )
+    except ActiveJobLimitError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="optimizer queue is at capacity; retry later",
+            headers={"Retry-After": str(exc.retry_after_seconds)},
+        ) from exc
     response.headers["Location"] = f"/api/v1/optimizations/{job.id}"
     return job
 

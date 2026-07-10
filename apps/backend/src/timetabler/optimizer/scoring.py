@@ -7,6 +7,10 @@ from itertools import pairwise
 
 from .models import Candidate, OptimizationRequest, ScoreBreakdown, Section, Session
 
+PREFERENCE_PERCENT_BASE = 50
+LUNCH_START_MINUTE = 11 * 60 + 30
+LUNCH_END_MINUTE = 14 * 60
+
 
 def _daily_sessions(sections: tuple[Section, ...]) -> dict[int, list[Session]]:
     result: dict[int, list[Session]] = defaultdict(list)
@@ -38,6 +42,21 @@ def _gap_and_movement(sessions: list[Session]) -> tuple[int, int]:
         ):
             movement_transitions += 1
     return gap_minutes, movement_transitions
+
+
+def _longest_lunch_break(sessions: list[Session]) -> int:
+    """Return the longest continuous free interval in the lunch window."""
+
+    cursor = LUNCH_START_MINUTE
+    longest = 0
+    for session in sessions:
+        occupied_start = max(session.start_minute, LUNCH_START_MINUTE)
+        occupied_end = min(session.end_minute, LUNCH_END_MINUTE)
+        if occupied_start >= occupied_end:
+            continue
+        longest = max(longest, occupied_start - cursor)
+        cursor = max(cursor, occupied_end)
+    return max(longest, LUNCH_END_MINUTE - cursor)
 
 
 def build_candidate(
@@ -93,18 +112,49 @@ def build_candidate(
         )
     )
     unknown_time_sections = sum(not section.sessions for section in selected)
+    daily_overflow_minutes = (
+        sum(
+            max(
+                0,
+                sum(session.end_minute - session.start_minute for session in sessions)
+                - request.preferences.max_daily_minutes,
+            )
+            for sessions in daily.values()
+        )
+        if request.preferences.max_daily_minutes is not None
+        else 0
+    )
+    lunch_shortage_minutes = 0
+    if request.preferences.min_lunch_minutes:
+        for sessions in daily.values():
+            lunch_shortage_minutes += max(
+                0,
+                request.preferences.min_lunch_minutes - _longest_lunch_break(sessions),
+            )
+
+    total_credits = sum(section.credits for section in selected)
+    target_credit_deviation = (
+        abs(total_credits - request.target_credits) if request.target_credits is not None else 0
+    )
 
     weights = request.weights
-    weighted_score = (
+    fixed_score = (
         len(daily) * weights.campus_day
         + preferred_day_off_violations * weights.preferred_day_off
-        + gap_minutes * weights.gap_minute
         + early_minutes * weights.early_minute
         + late_minutes * weights.late_minute
         + avoided_day_sessions * weights.avoided_day
-        + len(changed_course_ids) * weights.section_change
         + unknown_time_sections * weights.unknown_time
         + movement_transitions * weights.movement_transition
+        + daily_overflow_minutes * weights.daily_overflow_minute
+        + lunch_shortage_minutes * weights.lunch_shortage_minute
+    )
+    if request.preferences.minimize_changes:
+        fixed_score += len(changed_course_ids) * weights.section_change
+    fixed_score += target_credit_deviation * weights.target_credit
+    weighted_score = (
+        fixed_score * PREFERENCE_PERCENT_BASE
+        + gap_minutes * weights.gap_minute * request.preferences.gap_weight_percent
     )
     breakdown = ScoreBreakdown(
         campus_days=len(daily),
@@ -118,6 +168,9 @@ def build_candidate(
         changed_courses=len(changed_course_ids),
         unknown_time_sections=unknown_time_sections,
         movement_transitions=movement_transitions,
+        daily_overflow_minutes=daily_overflow_minutes,
+        lunch_shortage_minutes=lunch_shortage_minutes,
+        target_credit_deviation=target_credit_deviation,
         weighted_score=weighted_score,
     )
 
@@ -137,12 +190,18 @@ def build_candidate(
         )
     if unknown_time_sections:
         unmet.append(f"시간 미정 분반이 {unknown_time_sections}개 있습니다")
+    if daily_overflow_minutes:
+        unmet.append(f"하루 수업시간 목표를 총 {daily_overflow_minutes}분 초과했습니다")
+    if lunch_shortage_minutes:
+        unmet.append(f"점심 여유가 총 {lunch_shortage_minutes}분 부족합니다")
+    if target_credit_deviation:
+        unmet.append(f"목표 학점과 {target_credit_deviation}학점 차이가 있습니다")
 
     return Candidate(
         rank=rank,
         section_ids=tuple(section.section_id for section in selected),
         course_ids=tuple(section.course_id for section in selected),
-        total_credits=sum(section.credits for section in selected),
+        total_credits=total_credits,
         score=breakdown,
         changed_course_ids=changed_course_ids,
         unmet_preferences=tuple(unmet),

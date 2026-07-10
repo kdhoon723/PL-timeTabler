@@ -1,68 +1,182 @@
-import type { components } from "./schema";
+import { timeToMinutes } from '../domain/time'
+import type { Catalog, CommonRules, DepartmentSources, DraftSnapshot, OptimizationJob, Section } from '../types'
 
-export type Semester = components["schemas"]["Semester"];
-export type CatalogPage = components["schemas"]["CatalogPage"];
-export type Section = components["schemas"]["Section"];
-export type Session = components["schemas"]["Session"];
-export type OptimizationCreate = components["schemas"]["OptimizationCreate"];
-export type OptimizationJob = components["schemas"]["OptimizationJobRead"];
-export type OptimizationCandidate = components["schemas"]["OptimizationCandidate"];
+const CATALOG_CACHE_KEY = 'pl-timetabler:catalog:v1'
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL ?? "/api/v1";
+async function jsonFetch<T>(url: string, init?: RequestInit): Promise<T> {
+  const response = await fetch(url, { ...init, headers: { 'Content-Type': 'application/json', ...init?.headers } })
+  if (!response.ok) throw new Error(`${response.status} ${response.statusText}`)
+  return response.json() as Promise<T>
+}
 
-export class ApiError extends Error {
-  constructor(
-    message: string,
-    readonly status: number,
-  ) {
-    super(message);
+function isCatalog(value: unknown): value is Catalog {
+  return !!value && typeof value === 'object' && 'sections' in value && Array.isArray(value.sections)
+}
+
+interface ApiCatalogPage {
+  semester: string
+  preparedAt: string
+  datasetVersion: string
+  sections: Array<{
+    id: string
+    courseCode: string
+    sectionCode: string
+    name: string
+    professor: string | null
+    category: string
+    credits: number
+    rawLectureTime: string
+    sessions: Array<{
+      day: Section['sessions'][number]['day']
+      startMinute: number
+      endMinute: number
+      roomName: string | null
+      buildingName: string | null
+    }>
+  }>
+}
+
+function minutesToTime(value: number): string {
+  return `${String(Math.floor(value / 60)).padStart(2, '0')}:${String(value % 60).padStart(2, '0')}`
+}
+
+function normalizeApiCatalog(page: ApiCatalogPage): Catalog {
+  return {
+    schemaVersion: 1,
+    semester: page.semester,
+    dataVersion: page.datasetVersion,
+    updatedAt: page.preparedAt,
+    source: { label: '대진대학교 공개 개설과목', url: 'https://www.daejin.ac.kr/' },
+    sections: page.sections.map((section) => ({
+      id: section.id,
+      courseCode: section.courseCode,
+      sectionCode: section.sectionCode,
+      name: section.name,
+      professor: section.professor,
+      category: section.category,
+      credits: section.credits,
+      rawTime: section.rawLectureTime || null,
+      sessions: section.sessions.map((session) => ({
+        day: session.day,
+        start: minutesToTime(session.startMinute),
+        end: minutesToTime(session.endMinute),
+        room: session.roomName,
+        building: session.buildingName,
+      })),
+    })),
   }
 }
 
-async function request<T>(path: string, init?: RequestInit): Promise<T> {
-  const response = await fetch(`${API_BASE}${path}`, {
-    ...init,
-    headers: {
-      Accept: "application/json",
-      ...(init?.body ? { "Content-Type": "application/json" } : {}),
-      ...init?.headers,
-    },
-  });
-  if (!response.ok) {
-    let detail = `요청을 완료하지 못했습니다. (${response.status})`;
+export async function loadCatalog(semester = '2026-1'): Promise<{ catalog: Catalog; offline: boolean }> {
+  try {
+    const page = await jsonFetch<ApiCatalogPage>(`/api/v1/catalog/${encodeURIComponent(semester)}?limit=2000`)
+    const catalog = normalizeApiCatalog(page)
+    try { localStorage.setItem(CATALOG_CACHE_KEY, JSON.stringify(catalog)) } catch { /* cache is best effort */ }
+    return { catalog, offline: false }
+  } catch { /* fall through to packaged and browser caches */ }
+  for (const url of [`/data/catalog-${semester}.json`]) {
     try {
-      const payload = (await response.json()) as { detail?: unknown };
-      if (typeof payload.detail === "string") detail = payload.detail;
-    } catch {
-      // The status code remains the reliable fallback when an upstream proxy returns HTML.
-    }
-    throw new ApiError(detail, response.status);
+      const catalog = await jsonFetch<Catalog>(url)
+      if (!isCatalog(catalog)) throw new Error('카탈로그 형식이 올바르지 않습니다.')
+      try { localStorage.setItem(CATALOG_CACHE_KEY, JSON.stringify(catalog)) } catch { /* cache is best effort */ }
+      return { catalog, offline: url.startsWith('/data/') }
+    } catch { /* use next source */ }
   }
-  return (await response.json()) as T;
+  try {
+    const cached: unknown = JSON.parse(localStorage.getItem(CATALOG_CACHE_KEY) ?? 'null')
+    if (isCatalog(cached)) return { catalog: cached, offline: true }
+  } catch { /* no usable cache */ }
+  throw new Error('강의 데이터를 불러오지 못했습니다. 네트워크를 확인한 뒤 다시 시도해 주세요.')
 }
 
-export function fetchSemesters(signal?: AbortSignal): Promise<Semester[]> {
-  return request<Semester[]>("/semesters", { signal });
+export async function loadCommonRules(): Promise<CommonRules> {
+  try { return await jsonFetch<CommonRules>('/api/v1/requirements/common') }
+  catch { return jsonFetch<CommonRules>('/data/common-graduation-rules.json') }
 }
 
-export function fetchCatalog(semester: string, signal?: AbortSignal): Promise<CatalogPage> {
-  return request<CatalogPage>(`/catalog/${encodeURIComponent(semester)}?limit=2000`, { signal });
+export function loadDepartmentSources(): Promise<DepartmentSources> {
+  return jsonFetch<DepartmentSources>('/data/department-sources-2026.json')
 }
 
-export function createOptimization(input: OptimizationCreate): Promise<OptimizationJob> {
-  return request<OptimizationJob>("/optimizations", {
-    method: "POST",
-    body: JSON.stringify(input),
-  });
+export async function createOptimizationJob(draft: DraftSnapshot, sections: readonly Section[]): Promise<OptimizationJob> {
+  if (!draft.dataVersion) throw new Error('강의 데이터 버전을 확인한 뒤 다시 시도해 주세요.')
+  const sectionById = new Map(sections.map((section) => [section.id, section]))
+  const courseCodes = (roles: ReadonlySet<string>) => [...new Set(draft.items
+    .filter((item) => roles.has(item.role))
+    .map((item) => sectionById.get(item.sectionId)?.courseCode)
+    .filter((value): value is string => !!value))]
+  const selectedSectionIds = draft.items
+    .filter((item) => item.role === 'must' || item.role === 'want')
+    .map((item) => item.sectionId)
+  const activeCourseCodes = new Set(courseCodes(new Set(['must', 'want', 'backup'])))
+  const raw = await jsonFetch<unknown>('/api/v1/optimizations', { method: 'POST', body: JSON.stringify({
+    semester: draft.semester,
+    datasetVersion: draft.dataVersion,
+    requiredCourseCodes: courseCodes(new Set(['must'])),
+    candidateCourseCodes: courseCodes(new Set(['want', 'backup'])),
+    excludedCourseCodes: courseCodes(new Set(['exclude'])).filter((courseCode) => !activeCourseCodes.has(courseCode)),
+    selectedSectionIds,
+    lockedSectionIds: draft.items.filter((item) => item.locked && (item.role === 'must' || item.role === 'want')).map((item) => item.sectionId),
+    minCredits: draft.preferences.minCredits,
+    maxCredits: draft.preferences.maxCredits,
+    targetCredits: draft.preferences.targetCredits,
+    preferences: {
+      preferredDaysOff: draft.preferences.preferredFreeDays,
+      avoidBeforeMinute: draft.preferences.avoidBefore ? timeToMinutes(draft.preferences.avoidBefore) : null,
+      avoidAfterMinute: draft.preferences.avoidAfter ? timeToMinutes(draft.preferences.avoidAfter) : null,
+      minimizeCampusDays: true,
+      minimizeGapMinutes: draft.preferences.compactness > 0,
+      gapWeightPercent: draft.preferences.compactness,
+      minimizeChanges: draft.preferences.minimizeChanges,
+      maxDailyMinutes: draft.preferences.maxDailyMinutes || null,
+      minLunchMinutes: draft.preferences.minLunchMinutes,
+    },
+    candidateCount: 3,
+    seed: 42,
+    timeLimitSeconds: 8,
+  }) })
+  return normalizeJob(raw)
 }
 
-export function fetchOptimization(jobId: string): Promise<OptimizationJob> {
-  return request<OptimizationJob>(`/optimizations/${encodeURIComponent(jobId)}`);
+export async function getOptimizationJob(id: string, signal?: AbortSignal): Promise<OptimizationJob> {
+  return normalizeJob(await jsonFetch<unknown>(`/api/v1/optimizations/${encodeURIComponent(id)}`, { signal }))
 }
 
-export function cancelOptimization(jobId: string): Promise<OptimizationJob> {
-  return request<OptimizationJob>(`/optimizations/${encodeURIComponent(jobId)}`, {
-    method: "DELETE",
-  });
+function normalizeJob(raw: unknown): OptimizationJob {
+  const value = raw as { id: string; status: string; result?: { candidates?: Array<Record<string, unknown>>; reasons?: string[] }; errorMessage?: string }
+  const result = value.result
+  const status = value.status === 'OPTIMAL' || value.status === 'FEASIBLE' ? 'SUCCEEDED' : value.status as OptimizationJob['status']
+  const candidates = (result?.candidates ?? []).map((candidate) => {
+    const metrics = (candidate.metrics ?? {}) as Record<string, unknown>
+    const metricNumber = (key: string) => {
+      const metric = metrics[key]
+      return typeof metric === 'number' ? metric : 0
+    }
+    const metricTime = (key: string) => {
+      const metric = metrics[key]
+      return typeof metric === 'number' ? minutesToTime(metric) : null
+    }
+    return {
+      id: `${value.id}-${candidate.rank}`,
+      rank: candidate.rank as number,
+      status: value.status === 'OPTIMAL' ? 'OPTIMAL' as const : 'FEASIBLE' as const,
+      sectionIds: (candidate.sectionIds ?? []) as string[],
+      score: ((candidate.scoreComponents as Record<string, number> | undefined)?.weighted ?? 0),
+      reasons: (candidate.explanation ?? []) as string[],
+      unmetPreferences: (candidate.unmetPreferences ?? []) as string[],
+      metrics: {
+        credits: metricNumber('totalCredits'),
+        campusDays: metricNumber('campusDays'),
+        totalGapMinutes: metricNumber('gapMinutes'),
+        earliest: metricTime('firstClassMinute'),
+        latest: metricTime('lastClassMinute'),
+        dailyMinutes: {},
+      },
+    }
+  })
+  return { id: value.id, status, candidates, relaxationSuggestions: result?.reasons ?? [], message: value.errorMessage }
 }
 
+export async function cancelOptimizationJob(id: string): Promise<void> {
+  await jsonFetch(`/api/v1/optimizations/${encodeURIComponent(id)}`, { method: 'DELETE' })
+}

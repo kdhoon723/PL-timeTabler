@@ -19,7 +19,7 @@
 | 최적화 | Python + OR-Tools CP-SAT | 시간 충돌·필수과목·학점·공강·시간대 선호를 hard/soft constraint로 모델링 |
 | 데이터베이스 | PostgreSQL 18 | 학기·과목·분반·교육과정·규칙 버전·최적화 작업을 관계형 구조로 관리 |
 | DB 접근 | SQLAlchemy 2 + Alembic | Python 도메인 모델과 명시적인 버전 마이그레이션 유지 |
-| API 계약 | OpenAPI 3.1 → 생성된 TypeScript SDK | Python과 React 사이 요청·응답 타입의 수동 중복 제거 |
+| API 계약 | OpenAPI 3.1 → 생성된 TypeScript 타입 | Python과 React 사이 요청·응답 타입의 수동 중복 제거 |
 | 배포 | Docker Compose | web, api, optimizer, db, migrate, ingest를 한 선언으로 재현 |
 | 웹 진입점 | Nginx 기반 React 정적 이미지 | 정적 파일 제공, `/api` 동일 출처 프록시, 캐시·압축 제어 |
 
@@ -118,21 +118,19 @@ db :5432 ──────── PostgreSQL ◀──── optimizer worker + 
 - `optimizer`: PostgreSQL에서 작업을 점유하고 OR-Tools를 실행한 뒤 후보와 설명 근거를 저장한다.
 - `db`: 공식 PostgreSQL 이미지와 named volume. 호스트 포트는 기본 공개하지 않는다.
 - `migrate`: Alembic upgrade를 일회 실행한다.
-- `ingest`: 공식 원문 검증·정규화·원자적 데이터 버전 전환을 수행한다.
+- `ingest`: 배포할 versioned file snapshot의 schema·레코드 수·checksum을 검증하는 release gate다. API는 검증된 파일을 직접 읽으므로 별도 DB import를 하지 않는다.
 
 ## API 경계
 
-주요 API는 `/api/v1` 아래 버전을 명시한다.
+현재 운영 API는 `/api/v1` 아래 버전을 명시한다.
 
-- `GET /health/live`, `GET /health/ready`: 프로세스와 DB 준비 상태
-- `GET /semesters`: 사용 가능한 학기와 데이터 버전
-- `GET /catalog/{semester}`: 브라우저 검색용 정규화 카탈로그
-- `GET /curricula`: 입학연도·학과·전공방식별 졸업요건
-- `GET /curricula/{id}/sources`: 적용 규칙의 공식 원문·페이지·갱신일
+- `GET /health/live`, `GET /health/ready`: 프로세스·카탈로그·DB 준비 상태
+- `GET /catalog/{semester}`: 브라우저 검색용 정규화 카탈로그와 `datasetVersion`
 - `POST /optimizations`: 후보과목·고정과목·학점·선호조건으로 작업 생성
-- `GET /optimizations/{id}`: `QUEUED/RUNNING/FEASIBLE/INFEASIBLE/TIME_LIMIT/FAILED` 상태와 후보 조회
+- `GET /optimizations/{id}`: 작업 상태, 후보, 설명 조회
 - `DELETE /optimizations/{id}`: 대기·실행 작업 취소 요청
-- `POST /shares`, `GET /shares/{id}`: 최소 정보로 시간표 공유·복원
+
+졸업요건 출처는 현재 검증된 정적 snapshot으로 배포하고, 시간표 공유는 개인정보를 서버에 남기지 않는 URL payload로 처리한다. 서버 저장형 이수내역·공유가 필요해질 때만 동의·삭제·만료 정책과 함께 `/curricula`, `/shares` API를 추가한다.
 
 FastAPI가 생성한 OpenAPI 3.1 문서를 CI에서 snapshot으로 검증하고 TypeScript SDK를 생성한다. breaking change는 API 버전 또는 명시적 migration 없이 병합하지 않는다.
 
@@ -176,6 +174,7 @@ FastAPI가 생성한 OpenAPI 3.1 문서를 CI에서 snapshot으로 검증하고 
 - 사용자가 잠근 분반 유지
 - 필수로 지정한 과목 또는 요건 그룹 충족
 - 희망 최소·최대 학점
+- 학점 조건은 암묵적 반올림이 없는 정수 계약
 - 학년·학과·선수과목 제한은 근거가 검증된 경우에만 적용
 
 ### Soft constraints
@@ -186,6 +185,9 @@ FastAPI가 생성한 OpenAPI 3.1 문서를 CI에서 snapshot으로 검증하고 
 - 연속 수업 이동 부담 최소화
 - 사용자가 선택한 과목·교수·분반 변경 최소화
 - 여러 후보의 다양성 확보
+- 점심 선호는 점심 창 안의 합산 공백이 아니라 최대 연속 휴식으로 계산
+
+시간 미정 분반은 충돌 안전성을 증명할 수 없으므로 일반 자동 후보에서는 제외한다. 사용자가 이미 선택·필수·잠금으로 명시한 경우만 유지하고 후보 설명에 수동 확인 경고를 포함한다.
 
 점수는 단일 불투명 숫자만 보여주지 않는다. 후보마다 등교일, 총 빈 시간, 첫 수업 시각, 변경 과목, 미충족 선호를 별도로 반환한다. solver에는 시간 제한과 결정론적 seed를 적용하고 `OPTIMAL`, `FEASIBLE`, `INFEASIBLE`, `TIME_LIMIT`을 구분한다.
 
@@ -210,7 +212,7 @@ FastAPI가 생성한 OpenAPI 3.1 문서를 CI에서 snapshot으로 검증하고 
 4. **데이터:** `pg_dump --format=custom`과 검증된 `pg_restore`
 5. **원문:** 졸업요건·카탈로그 source checksum과 parser version
 
-CI는 lint, typecheck, unit, contract, migration, parser fixture, E2E, 접근성, 이미지 취약점 검사를 실행한다. 배포 이미지는 커밋 SHA로 태그하고 healthcheck 실패 시 이전 이미지로 되돌릴 수 있어야 한다.
+CI는 lint, typecheck, unit, contract, migration, parser fixture, E2E, 접근성, Compose healthcheck를 실행한다. 배포 이미지는 커밋 SHA로 태그하고 healthcheck 실패 시 이전 이미지로 되돌릴 수 있어야 한다.
 
 운영에서는 구조화 로그에 request/job ID를 포함하고, API latency·오류율·optimizer queue time·solve time·import 실패를 측정한다. 비밀값과 개인 이수내역은 로그에 남기지 않는다.
 
@@ -225,7 +227,7 @@ CI는 lint, typecheck, unit, contract, migration, parser fixture, E2E, 접근성
 ## 출시 아키텍처 완료 조건
 
 - 새 Docker 호스트에서 Compose, `.env`, DB dump, source data로 동일 스택 복원
-- API와 optimizer 장애가 서로의 프로세스를 중단시키지 않음
+- API와 optimizer가 별도 프로세스로 실행되고 작업 상태가 PostgreSQL에 유지됨
 - 1,576개 강의 fixture와 학사규칙 fixture로 결과가 결정론적으로 재현됨
 - OpenAPI snapshot과 생성 TypeScript SDK가 일치함
 - migration upgrade·downgrade 또는 명시적 forward-fix 절차가 검증됨

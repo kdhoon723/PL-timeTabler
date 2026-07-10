@@ -121,3 +121,23 @@ export interface CommonRules {
   rules: CommonRule[]
   manualReviewReasons: string[]
 }
+
+export interface DepartmentSource {
+  college: string
+  academicUnit: string
+  unitType: string
+  curriculumUrl: string | null
+  curriculumStatus: string
+  graduationUrl: string | null
+  majorRequiredStatus: string
+  prerequisiteStatus: string
+  transitionNote: string | null
+  handbookPage: number | null
+}
+
+export interface DepartmentSources {
+  schemaVersion: number
+  asOf: string
+  source: string
+  departments: DepartmentSource[]
+}

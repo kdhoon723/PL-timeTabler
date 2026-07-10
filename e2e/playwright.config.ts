@@ -1,4 +1,8 @@
 import { defineConfig, devices } from "@playwright/test";
+import { fileURLToPath } from "node:url";
+
+const webDirectory = fileURLToPath(new URL("../apps/web", import.meta.url));
+const liveBaseUrl = process.env.E2E_BASE_URL;
 
 export default defineConfig({
   testDir: ".",
@@ -7,12 +11,12 @@ export default defineConfig({
   retries: 0,
   reporter: "list",
   use: {
-    baseURL: "http://127.0.0.1:4173",
+    baseURL: liveBaseUrl ?? "http://127.0.0.1:4173",
     trace: "retain-on-failure",
   },
-  webServer: {
+  webServer: liveBaseUrl ? undefined : {
     command: "npm run dev -- --host 127.0.0.1 --port 4173",
-    cwd: "apps/web",
+    cwd: webDirectory,
     url: "http://127.0.0.1:4173",
     reuseExistingServer: false,
   },

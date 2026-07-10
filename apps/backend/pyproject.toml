@@ -33,6 +33,11 @@ dev = [
 timetabler-api = "timetabler.api.main:run"
 timetabler-validate-data = "timetabler.catalog.validate:run"
 timetabler-openapi = "timetabler.api.openapi:run"
+timetabler-optimizer = "timetabler.optimizer.worker:run"
+timetabler-export-static-catalog = "timetabler.catalog.static_export:run"
+# The API reads versioned catalog files directly.  Ingest is therefore the
+# release gate that validates a staged snapshot before containers are replaced.
+timetabler-ingest = "timetabler.catalog.validate:run"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/timetabler"]

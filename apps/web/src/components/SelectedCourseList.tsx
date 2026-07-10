@@ -1,60 +1,25 @@
-import type { Section } from "../api/client";
-import { formatSessions } from "../domain/timetable";
+import type { PlanItem, Section } from '../types'
+import { formatSession } from '../domain/time'
+import { LockIcon } from './Icons'
 
-interface SelectedCourseListProps {
-  sections: readonly Section[];
-  lockedIds: ReadonlySet<string>;
-  conflictingIds: ReadonlySet<string>;
-  onToggleLock: (id: string) => void;
-  onRemove: (id: string) => void;
+interface Props {
+  items: PlanItem[]
+  sectionById: Map<string, Section>
+  onSelect: (section: Section) => void
 }
 
-export function SelectedCourseList({
-  sections,
-  lockedIds,
-  conflictingIds,
-  onToggleLock,
-  onRemove,
-}: SelectedCourseListProps) {
-  return (
-    <section className="selected-panel" aria-labelledby="selected-heading">
-      <div className="section-heading-row">
-        <h2 id="selected-heading">선택 과목</h2>
-        <span>{sections.length}개</span>
-      </div>
-      {sections.length === 0 ? (
-        <p className="empty-copy">과목을 추가하면 분반과 충돌 상태를 여기서 확인할 수 있습니다.</p>
-      ) : (
-        <ul className="selected-list">
-          {sections.map((section) => (
-            <li className={conflictingIds.has(section.id) ? "has-conflict" : ""} key={section.id}>
-              <div>
-                <strong>{section.name}</strong>
-                <span>
-                  {section.sectionCode}분반 · {section.professor ?? "교수 미정"}
-                </span>
-                <span>{formatSessions(section)}</span>
-                {section.timeToBeAnnounced && <span className="status-label warning">시간 미정</span>}
-                {conflictingIds.has(section.id) && <span className="status-label danger">충돌</span>}
-              </div>
-              <div className="row-actions">
-                <button
-                  className="secondary-button"
-                  type="button"
-                  aria-pressed={lockedIds.has(section.id)}
-                  onClick={() => onToggleLock(section.id)}
-                >
-                  {lockedIds.has(section.id) ? "잠금 해제" : "잠금"}
-                </button>
-                <button className="ghost-button danger-text" type="button" onClick={() => onRemove(section.id)}>
-                  삭제
-                </button>
-              </div>
-            </li>
-          ))}
-        </ul>
-      )}
-    </section>
-  );
-}
+const ROLE_LABEL = { must: '반드시', want: '희망', backup: '예비', exclude: '제외' }
 
+export function SelectedCourseList({ items, sectionById, onSelect }: Props) {
+  const entries = items.map((item) => ({ item, section: sectionById.get(item.sectionId) })).filter((entry): entry is { item: PlanItem; section: Section } => !!entry.section)
+  return <section className="selected-section" aria-labelledby="selected-title">
+    <div className="section-heading"><div><h2 id="selected-title">선택한 과목</h2><p>과목을 눌러 분반과 역할을 바꿀 수 있습니다.</p></div><span>{entries.length}개</span></div>
+    {entries.length === 0 ? <p className="empty-copy">아직 선택한 과목이 없습니다.</p> : <ul className="selected-list">
+      {entries.map(({ item, section }) => <li key={section.id}><button type="button" onClick={() => onSelect(section)}>
+        <span className={`role-mark role-${item.role}`}>{ROLE_LABEL[item.role]}</span>
+        <span className="selected-main"><strong>{section.name}</strong><small>{section.sectionCode}분반 · {section.professor ?? '교수 미정'} · {section.sessions.map(formatSession).join(' / ') || '시간 미정'}</small></span>
+        {item.locked && <span className="lock-label"><LockIcon />잠김</span>}
+      </button></li>)}
+    </ul>}
+  </section>
+}

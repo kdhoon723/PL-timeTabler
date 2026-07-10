@@ -9,7 +9,7 @@ RUN npm run api:generate --prefix apps/web && npm run build --prefix apps/web
 
 FROM nginx:1.29-alpine
 COPY apps/web/nginx.conf /etc/nginx/conf.d/default.conf
+COPY apps/web/security-headers.conf /etc/nginx/security-headers.conf
 COPY --from=builder /app/apps/web/dist /usr/share/nginx/html
 EXPOSE 80
 HEALTHCHECK --interval=10s --timeout=2s --retries=5 CMD wget -qO- http://127.0.0.1/healthz || exit 1
-

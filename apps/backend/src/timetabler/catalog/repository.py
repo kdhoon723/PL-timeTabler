@@ -37,6 +37,12 @@ def sha256_file(path: Path) -> str:
     return digest.hexdigest()
 
 
+def canonical_dataset_version(course_checksum: str, classroom_checksum: str) -> str:
+    """Version every source that can change browser or optimizer behavior."""
+
+    return f"{course_checksum[:12]}-{classroom_checksum[:12]}"
+
+
 class CatalogRepository:
     def __init__(self, data_root: Path, *, validate_checksums: bool = True) -> None:
         self._data_root = data_root
@@ -128,8 +134,11 @@ class CatalogRepository:
         dataset_entries = {Path(str(entry["path"])).name: entry for entry in manifest["datasets"]}
 
         if self._validate_checksums:
-            self._validate_checksum(course_path, dataset_entries[course_path.name])
-            self._validate_checksum(classroom_path, dataset_entries[classroom_path.name])
+            for entry in manifest["datasets"]:
+                relative_path = Path(str(entry["path"]))
+                if relative_path.parts and relative_path.parts[0] == "data":
+                    relative_path = Path(*relative_path.parts[1:])
+                self._validate_checksum(self._data_root / relative_path, entry)
 
         raw_courses = self._read_json(course_path)
         raw_classrooms = self._read_json(classroom_path)
@@ -241,7 +250,10 @@ class CatalogRepository:
         return CatalogSnapshot(
             semester=semester,
             prepared_at=str(manifest["preparedAt"]),
-            dataset_version=str(dataset_entries[course_path.name]["sha256"]),
+            dataset_version=canonical_dataset_version(
+                str(dataset_entries[course_path.name]["sha256"]),
+                str(dataset_entries[classroom_path.name]["sha256"]),
+            ),
             sections=tuple(sections),
             stats=CatalogStats(
                 course_records=len(sections),
