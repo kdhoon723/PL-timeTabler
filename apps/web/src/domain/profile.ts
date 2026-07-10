@@ -6,6 +6,7 @@ export const ACTIVE_SEMESTER = '2026-1'
 export const ACTIVE_SEMESTER_YEAR = 2026
 
 type GradeProfile = Pick<AcademicProfile, 'admissionYear' | 'currentGrade' | 'entryType'>
+export type AcademicProgression = 'CONSISTENT' | 'DELAYED' | 'ACCELERATED' | 'TRANSFER'
 
 export function expectedFreshmanGrade(admissionYear: number, activeSemesterYear = ACTIVE_SEMESTER_YEAR): AcademicProfile['currentGrade'] | null {
   const expected = activeSemesterYear - admissionYear + 1
@@ -13,12 +14,21 @@ export function expectedFreshmanGrade(admissionYear: number, activeSemesterYear 
 }
 
 export function isAcademicProfileConsistent(profile: GradeProfile): boolean {
-  if (profile.entryType === 'TRANSFER') return true
-  return expectedFreshmanGrade(profile.admissionYear) === profile.currentGrade
+  const progression = academicProgression(profile)
+  return progression === 'CONSISTENT' || progression === 'TRANSFER'
 }
 
 export function isAcademicProfileAuthoritative(profile: GradeProfile & Pick<AcademicProfile, 'gradeMismatchAcknowledged'>): boolean {
-  return isAcademicProfileConsistent(profile) || profile.gradeMismatchAcknowledged === true
+  const progression = academicProgression(profile)
+  return progression === 'CONSISTENT' || progression === 'TRANSFER' || progression === 'DELAYED' && profile.gradeMismatchAcknowledged === true
+}
+
+export function academicProgression(profile: GradeProfile): AcademicProgression {
+  if (profile.entryType === 'TRANSFER') return 'TRANSFER'
+  const expected = expectedFreshmanGrade(profile.admissionYear)
+  if (expected === null) return 'DELAYED'
+  if (profile.currentGrade === expected) return 'CONSISTENT'
+  return profile.currentGrade < expected ? 'DELAYED' : 'ACCELERATED'
 }
 
 function normalizeProfile(value: unknown): AcademicProfile | null {

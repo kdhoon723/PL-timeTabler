@@ -34,6 +34,7 @@ describe('timetable candidate preview', () => {
 
     expect(screen.getByLabelText(/알고리즘.*미리보기에서 제외/)).toHaveClass('preview-removed')
     expect(screen.getByLabelText(/운영체제.*미리보기에서 추가/)).toHaveClass('preview-added')
+    expect(screen.getByRole('heading', { name: '내 시간표' }).parentElement).toHaveTextContent('1개 분반')
     expect(onSelect).not.toHaveBeenCalled()
   })
 })
@@ -129,5 +130,38 @@ describe('guided desktop section drag', () => {
 
     expect(onSelect).not.toHaveBeenCalled()
     expect(container.querySelector('[data-drop-section-id]')).not.toBeInTheDocument()
+  })
+
+  it('groups coincident official slots and requires an accessible explicit section choice', () => {
+    const current = section('A-1', '알고리즘')
+    const alternative2 = { ...section('A-2', '알고리즘'), sectionCode: '02' }
+    const alternative3 = { ...section('A-3', '알고리즘'), sectionCode: '03' }
+    const onReplace = vi.fn()
+    const dataTransfer = { setData: vi.fn(), effectAllowed: '', dropEffect: '' }
+    const { container } = render(<TimetableGrid sections={[current]} conflicts={[]} lockedIds={new Set()} onSelect={() => undefined} dragEnabled dragAlternativesById={new Map([[current.id, [alternative2, alternative3]]])} onReplace={onReplace} />)
+    const source = screen.getByRole('button', { name: /알고리즘 월/ })
+    source.focus()
+
+    fireEvent.dragStart(source, { dataTransfer })
+    const slots = container.querySelectorAll<HTMLElement>('[data-drop-slot-key="월-10:30-12:00"]')
+    expect(slots).toHaveLength(1)
+    expect(slots[0]).toHaveTextContent('2개 분반 중 선택')
+    fireEvent.drop(slots[0]!, { dataTransfer })
+
+    const chooser = screen.getByRole('dialog', { name: '같은 시간 분반 선택' })
+    const choice2 = screen.getByRole('button', { name: /02분반 선택/ })
+    const choice3 = screen.getByRole('button', { name: /03분반 선택/ })
+    expect(chooser).toContainElement(choice2)
+    expect(chooser).toContainElement(choice3)
+    expect(choice2).toHaveFocus()
+    fireEvent.keyDown(chooser, { key: 'Escape' })
+    expect(screen.queryByRole('dialog', { name: '같은 시간 분반 선택' })).not.toBeInTheDocument()
+    expect(source).toHaveFocus()
+
+    fireEvent.dragStart(source, { dataTransfer })
+    fireEvent.drop(container.querySelector<HTMLElement>('[data-drop-slot-key="월-10:30-12:00"]')!, { dataTransfer })
+    fireEvent.click(screen.getByRole('button', { name: /03분반 선택/ }))
+    expect(onReplace).toHaveBeenCalledWith(current, alternative3)
+    expect(screen.getByRole('heading', { name: '내 시간표' })).toHaveFocus()
   })
 })

@@ -33,25 +33,25 @@ describe('major requirement cohort boundary', () => {
     expect(canApplyMajorRequirements({ ...profile, admissionYear: 2025 }, requirements)).toBe(false)
     expect(canApplyMajorRequirements({ ...profile, entryType: 'TRANSFER' }, requirements)).toBe(false)
     expect(canApplyMajorRequirements({ ...profile, currentGrade: 3 }, requirements)).toBe(false)
-    expect(canApplyMajorRequirements({ ...profile, currentGrade: 3, gradeMismatchAcknowledged: true }, requirements)).toBe(true)
+    expect(canApplyMajorRequirements({ ...profile, currentGrade: 3, gradeMismatchAcknowledged: true }, requirements)).toBe(false)
   })
 })
 
 describe('required course progress', () => {
-  const profile: AcademicProfile = { schemaVersion: 1, department: '컴퓨터공학전공', admissionYear: 2026, currentGrade: 3, entryType: 'FRESHMAN', studentType: 'DOMESTIC', sectionGroup: 'UNKNOWN', gradeMismatchAcknowledged: true, updatedAt: '2026-07-11T00:00:00Z' }
+  const profile: AcademicProfile = { schemaVersion: 1, department: '컴퓨터공학전공', admissionYear: 2026, currentGrade: 1, entryType: 'FRESHMAN', studentType: 'DOMESTIC', sectionGroup: 'UNKNOWN', updatedAt: '2026-07-11T00:00:00Z' }
   const operatingSystems = section('561041-01', '01', '월', '13:30', '15:00', '561041', '운영체제론', 3)
   const computing = section('922601-01', '01', '화', '11:30', '13:30', '922601', 'AI시대의컴퓨팅사고', 2)
   const catalog = [operatingSystems, computing]
-  const majorRequired: MajorRequiredCourses = { schemaVersion: 1, asOf: '2026-07-11', cohortAdmissionYear: 2026, source: 'test', method: 'test', programs: [{ academicUnit: '컴퓨터공학전공', status: 'AVAILABLE', manualReviewReason: null, handbookPages: [77], courses: [{ courseCode: '561041', name: '운영체제론', grade: 3, semesters: [1], handbookPage: 77 }] }] }
+  const majorRequired: MajorRequiredCourses = { schemaVersion: 1, asOf: '2026-07-11', cohortAdmissionYear: 2026, source: 'test', method: 'test', programs: [{ academicUnit: '컴퓨터공학전공', status: 'AVAILABLE', manualReviewReason: null, handbookPages: [77], courses: [{ courseCode: '561041', name: '운영체제론', grade: 1, semesters: [1], handbookPage: 77 }] }] }
   const rules: CommonRules = { schemaVersion: 1, asOf: '2026-07-11', resultLabel: 'test', statuses: [], manualReviewReasons: [], rules: [{ id: 'required', admissionYears: { start: 2025 }, scope: { studentType: 'DOMESTIC', academicUnit: 'GENERAL_EXCEPTIONS_EXCLUDED' }, kind: 'REQUIRED_COURSE_GROUP', courses: [{ name: 'AI시대의컴퓨팅사고', credits: 2 }], sourceRefs: ['test'] }] }
 
   it('withholds automatic required-course options for an unconfirmed mismatch', async () => {
-    render(<RequiredCoursePanel profile={{ ...profile, gradeMismatchAcknowledged: undefined }} rules={rules} majorRequired={majorRequired} catalog={catalog} items={[]} sectionById={new Map(catalog.map((value) => [value.id, value]))} onEditProfile={() => undefined} onAddRequired={() => undefined} />)
+    render(<RequiredCoursePanel profile={{ ...profile, currentGrade: 3, gradeMismatchAcknowledged: true }} rules={rules} majorRequired={majorRequired} catalog={catalog} items={[]} sectionById={new Map(catalog.map((value) => [value.id, value]))} onEditProfile={() => undefined} onAddRequired={() => undefined} />)
 
     const toggle = screen.getByRole('button', { name: /필수 과목 먼저/ })
     expect(toggle).toHaveTextContent('0/0개')
     await userEvent.click(toggle)
-    expect(screen.getByText(/현재 학년 조합을 확인하기 전에는 전공필수를 자동 판정하지 않습니다/)).toBeInTheDocument()
+    expect(screen.getByText(/현재 학년이 일반 예상보다 높아 학과 확인 전에는 전공필수를 자동 판정하지 않습니다/)).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: '시간표에 배치' })).not.toBeInTheDocument()
   })
 

@@ -65,7 +65,7 @@ test.describe('responsive timetable editor', () => {
     await expect(page.getByRole('button', { name: /AI시대의컴퓨팅사고 화/ })).toBeVisible()
   })
 
-  test('guides department selection, then places a current-grade required course in the live timetable', async ({ page }) => {
+  test('saves accelerated progression for manual review without authorizing automatic requirements', async ({ page }) => {
     await page.goto('/')
     await expect(page.getByRole('heading', { name: /원하는 시간표/ })).toBeVisible()
     await page.getByRole('button', { name: '학과 선택하고 시작' }).click()
@@ -74,16 +74,14 @@ test.describe('responsive timetable editor', () => {
     await page.getByRole('button', { name: '3학년' }).click()
     await page.getByRole('button', { name: '국내학생' }).click()
     await expect(page.getByRole('alert')).toContainText('보통 1학년')
-    await page.getByRole('checkbox', { name: /현재 3학년이 맞습니다/ }).check()
+    await expect(page.getByRole('alert')).toContainText('학과 확인 전에는 필수과목을 자동 판정하지 않습니다')
+    await expect(page.getByRole('checkbox', { name: /현재 3학년이 맞습니다/ })).toHaveCount(0)
     await page.getByRole('button', { name: '시간표 만들기' }).click()
 
     await expect(page.getByText('컴퓨터공학전공 · 3학년')).toBeVisible()
     await page.getByRole('button', { name: /필수 과목 먼저/ }).click()
-    const required = page.locator('.required-option').filter({ hasText: '운영체제론' })
-    await expect(required).toBeVisible()
-    await required.getByRole('combobox', { name: '운영체제론 분반' }).selectOption({ index: 1 })
-    await required.getByRole('button', { name: '시간표에 배치' }).click()
-    await expect(page.getByRole('button', { name: /운영체제론 월 13:30/ })).toBeVisible()
+    await expect(page.getByText(/현재 학년이 일반 예상보다 높아 학과 확인 전에는 전공필수를 자동 판정하지 않습니다/)).toBeVisible()
+    await expect(page.getByRole('button', { name: '시간표에 배치' })).toHaveCount(0)
     await page.reload()
     await expect(page.getByRole('heading', { name: /원하는 시간표/ })).toHaveCount(0)
     await expect(page.getByText('컴퓨터공학전공 · 3학년')).toBeVisible()
@@ -169,7 +167,7 @@ test.describe('responsive timetable editor', () => {
     test.skip(testInfo.project.name !== 'mobile-390', '390px layout contract')
     await page.addInitScript(() => {
       localStorage.setItem('pl-timetabler:onboarding:v1', 'complete')
-      localStorage.setItem('pl-timetabler:profile:v1', JSON.stringify({ schemaVersion: 1, department: '컴퓨터공학전공', admissionYear: 2026, currentGrade: 3, entryType: 'FRESHMAN', studentType: 'DOMESTIC', sectionGroup: 'UNKNOWN', gradeMismatchAcknowledged: true, updatedAt: '2026-07-11T00:00:00Z' }))
+      localStorage.setItem('pl-timetabler:profile:v1', JSON.stringify({ schemaVersion: 1, department: '컴퓨터공학전공', admissionYear: 2026, currentGrade: 1, entryType: 'FRESHMAN', studentType: 'DOMESTIC', sectionGroup: 'UNKNOWN', updatedAt: '2026-07-11T00:00:00Z' }))
     })
     await page.goto('/')
     await expect(page.getByRole('button', { name: /필수 과목 먼저/ })).toHaveAttribute('aria-expanded', 'false')
@@ -179,8 +177,8 @@ test.describe('responsive timetable editor', () => {
 })
 
 test.describe('desktop preview and guided section drag', () => {
-  test('previews a candidate without mutation, applies it, and preserves undo', async ({ page }, testInfo) => {
-    test.skip(testInfo.project.name !== 'desktop-1440', 'desktop preview contract')
+  test('keeps decision metrics in mobile and desktop preview, then applies with undo', async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name === 'tablet-768', 'mobile and desktop preview contract')
     await seedDraft(page)
     await page.route('**/api/v1/optimizations', async (route) => {
       if (new URL(route.request().url()).pathname !== '/api/v1/optimizations') return route.continue()
@@ -204,12 +202,21 @@ test.describe('desktop preview and guided section drag', () => {
       })
     })
     await openEditor(page)
+    if (testInfo.project.name === 'mobile-390') await page.getByRole('button', { name: /자동 생성/ }).click()
 
     await page.getByRole('button', { name: '시간표 3개 만들기' }).click()
     await page.getByRole('button', { name: '후보 1 미리보기' }).click()
 
-    await expect(page.getByRole('region', { name: '후보 1 변경 내용' })).toBeFocused()
-    await expect(page.getByText('교체: AI시대의컴퓨팅사고 01분반 → 03분반')).toBeVisible()
+    const preview = page.getByRole('region', { name: '후보 1 변경 내용' })
+    await expect(preview).toBeFocused()
+    await expect(preview.getByText('교체: AI시대의컴퓨팅사고 01분반 → 03분반')).toBeVisible()
+    const metrics = preview.getByLabel('후보 시간표 요약')
+    await expect(metrics).toContainText('등교일1일')
+    await expect(metrics).toContainText('학점2학점')
+    await expect(metrics).toContainText('빈 시간0분')
+    await expect(metrics).toContainText('첫 수업09:30')
+    await expect(metrics).toContainText('마지막 수업11:30')
+    await expect(page.getByRole('heading', { name: '내 시간표' }).locator('..')).toContainText('1개 분반')
     await expect(page.getByLabel(/AI시대의컴퓨팅사고 화.*교체 전 분반/)).toBeVisible()
     await expect(page.getByLabel(/AI시대의컴퓨팅사고 금.*교체 후 분반/)).toBeVisible()
     expect(await page.evaluate(() => JSON.parse(localStorage.getItem('pl-timetabler:draft:v1')!).items[0].sectionId)).toBe('922601-01')
@@ -229,17 +236,25 @@ test.describe('desktop preview and guided section drag', () => {
     await expect(source).toHaveAttribute('draggable', 'true')
     const dataTransfer = await page.evaluateHandle(() => new DataTransfer())
     await source.dispatchEvent('dragstart', { dataTransfer })
-    const officialSlot = page.locator('[data-drop-section-id="922601-03"]')
+    const officialSlot = page.locator('[data-drop-slot-key="금-09:30-11:30"]')
     await expect(officialSlot).toBeVisible()
+    await expect(officialSlot).toContainText('3개 분반 중 선택')
     await officialSlot.dispatchEvent('dragenter', { dataTransfer })
     await expect(officialSlot).toHaveClass(/active/)
     await officialSlot.dispatchEvent('dragover', { dataTransfer })
     await officialSlot.dispatchEvent('drop', { dataTransfer })
     await dataTransfer.dispose()
 
+    const chooser = page.getByRole('dialog', { name: '같은 시간 분반 선택' })
+    await expect(chooser.getByRole('button', { name: '03분반 선택' })).toBeFocused()
+    await expect(chooser.getByRole('button', { name: '04분반 선택' })).toBeVisible()
+    await expect(chooser.getByRole('button', { name: '05분반 선택' })).toBeVisible()
+    await chooser.getByRole('button', { name: '04분반 선택' }).click()
+
+    await expect(page.getByRole('heading', { name: '내 시간표' })).toBeFocused()
     await expect(page.getByRole('button', { name: /AI시대의컴퓨팅사고 금 09:30/ })).toBeVisible()
-    await expect(page.locator('.timetable-section [role="status"]')).toContainText('03분반으로 교체했습니다')
-    expect(await page.evaluate(() => JSON.parse(localStorage.getItem('pl-timetabler:draft:v1')!).items[0].sectionId)).toBe('922601-03')
+    await expect(page.locator('.timetable-section [role="status"]')).toContainText('04분반으로 교체했습니다')
+    expect(await page.evaluate(() => JSON.parse(localStorage.getItem('pl-timetabler:draft:v1')!).items[0].sectionId)).toBe('922601-04')
     await page.getByRole('button', { name: '되돌리기' }).click()
     await expect(page.getByRole('button', { name: /AI시대의컴퓨팅사고 화 11:30/ })).toBeVisible()
     await expect(page.getByRole('dialog', { name: 'AI시대의컴퓨팅사고' })).toHaveCount(0)

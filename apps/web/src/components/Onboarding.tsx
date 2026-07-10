@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { KeyboardEvent } from 'react'
-import { ACTIVE_SEMESTER, createAcademicProfile, expectedFreshmanGrade, isAcademicProfileConsistent } from '../domain/profile'
+import { ACTIVE_SEMESTER, academicProgression, createAcademicProfile, expectedFreshmanGrade } from '../domain/profile'
 import type { AcademicProfile, DepartmentSource, EntryType, SectionGroup, StudentClassification } from '../types'
 
 interface Props {
@@ -27,7 +27,9 @@ export function Onboarding({ departments, initialProfile, mode, authAvailable, o
   const [sectionGroup, setSectionGroup] = useState<SectionGroup>(initialProfile?.sectionGroup ?? 'UNKNOWN')
   const [gradeMismatchAcknowledged, setGradeMismatchAcknowledged] = useState(initialProfile?.gradeMismatchAcknowledged ?? false)
   const gradeProfile = { admissionYear, currentGrade, entryType }
-  const gradeMismatch = !isAcademicProfileConsistent(gradeProfile)
+  const progression = academicProgression(gradeProfile)
+  const gradeMismatch = progression === 'DELAYED' || progression === 'ACCELERATED'
+  const delayedProgression = progression === 'DELAYED'
   const expectedGrade = expectedFreshmanGrade(admissionYear)
   const matchingDepartments = useMemo(() => {
     const normalized = query.trim().toLocaleLowerCase('ko')
@@ -43,8 +45,8 @@ export function Onboarding({ departments, initialProfile, mode, authAvailable, o
   }, [])
 
   const finish = (group = sectionGroup) => {
-    if (gradeMismatch && !gradeMismatchAcknowledged) return
-    onComplete(createAcademicProfile({ department, admissionYear, currentGrade, entryType, studentType, sectionGroup: group, gradeMismatchAcknowledged: gradeMismatch ? true : undefined }))
+    if (delayedProgression && !gradeMismatchAcknowledged) return
+    onComplete(createAcademicProfile({ department, admissionYear, currentGrade, entryType, studentType, sectionGroup: group, gradeMismatchAcknowledged: delayedProgression ? true : undefined }))
   }
 
   const keepFocusInside = (event: KeyboardEvent<HTMLDialogElement>) => {
@@ -85,11 +87,11 @@ export function Onboarding({ departments, initialProfile, mode, authAvailable, o
           <label><span>입학연도</span><select value={admissionYear} onChange={(event) => { setAdmissionYear(Number(event.target.value)); setGradeMismatchAcknowledged(false) }}>{Array.from({ length: 15 }, (_, index) => 2026 - index).map((year) => <option value={year} key={year}>{year}학년도</option>)}</select></label>
           <fieldset><legend>현재 학년</legend><div className="segmented-control">{([1, 2, 3, 4] as const).map((grade) => <button type="button" className={currentGrade === grade ? 'selected' : ''} aria-pressed={currentGrade === grade} key={grade} onClick={() => { setCurrentGrade(grade); setGradeMismatchAcknowledged(false) }}>{grade}학년</button>)}</div></fieldset>
           <fieldset><legend>입학 구분</legend><div className="choice-cards"><button type="button" className={entryType === 'FRESHMAN' ? 'selected' : ''} aria-pressed={entryType === 'FRESHMAN'} onClick={() => { setEntryType('FRESHMAN'); setGradeMismatchAcknowledged(false) }}><strong>신입학</strong><small>입학연도 요건 점검에 사용</small></button><button type="button" className={entryType === 'TRANSFER' ? 'selected' : ''} aria-pressed={entryType === 'TRANSFER'} onClick={() => { setEntryType('TRANSFER'); setGradeMismatchAcknowledged(false) }}><strong>편입학</strong><small>인정학점은 별도 확인</small></button></div></fieldset>
-          {gradeMismatch && <div className="profile-consistency-warning" role="alert"><strong>입학연도와 현재 학년을 확인해 주세요</strong><p>{ACTIVE_SEMESTER.replace('-', '학년도 ')}학기 기준 신입학 {admissionYear}학번은 {expectedGrade ? `보통 ${expectedGrade}학년` : '일반적인 4년 재학 범위를 지난 학번'}입니다.</p><label><input type="checkbox" checked={gradeMismatchAcknowledged} onChange={(event) => setGradeMismatchAcknowledged(event.target.checked)} />휴학·복학 등으로 현재 {currentGrade}학년이 맞습니다.</label></div>}
+          {gradeMismatch && <div className="profile-consistency-warning" role="alert"><strong>입학연도와 현재 학년을 확인해 주세요</strong><p>{ACTIVE_SEMESTER.replace('-', '학년도 ')}학기 기준 신입학 {admissionYear}학번은 {expectedGrade ? `보통 ${expectedGrade}학년` : '일반적인 4년 재학 범위를 지난 학번'}입니다.</p>{progression === 'ACCELERATED' ? <p>현재 학년이 일반 예상보다 높아 학과 확인 전에는 필수과목을 자동 판정하지 않습니다. 프로필은 저장할 수 있습니다.</p> : <label><input type="checkbox" checked={gradeMismatchAcknowledged} onChange={(event) => setGradeMismatchAcknowledged(event.target.checked)} />휴학·복학 등으로 현재 {currentGrade}학년이 맞습니다.</label>}</div>}
           <fieldset><legend>학생 구분</legend><div className="segmented-control section-group-control"><button type="button" className={studentType === 'UNKNOWN' ? 'selected' : ''} aria-pressed={studentType === 'UNKNOWN'} onClick={() => setStudentType('UNKNOWN')}>모름</button><button type="button" className={studentType === 'DOMESTIC' ? 'selected' : ''} aria-pressed={studentType === 'DOMESTIC'} onClick={() => setStudentType('DOMESTIC')}>국내학생</button><button type="button" className={studentType === 'INTERNATIONAL' ? 'selected' : ''} aria-pressed={studentType === 'INTERNATIONAL'} onClick={() => setStudentType('INTERNATIONAL')}>외국인·기타</button></div><p className="field-help">국내학생 전용 교양필수를 구분할 때 사용합니다. 모르면 자동 판정하지 않습니다.</p></fieldset>
           <fieldset><legend>학번 끝자리 분반</legend><div className="segmented-control section-group-control"><button type="button" className={sectionGroup === 'UNKNOWN' ? 'selected' : ''} aria-pressed={sectionGroup === 'UNKNOWN'} onClick={() => setSectionGroup('UNKNOWN')}>모름·없음</button><button type="button" className={sectionGroup === 'ODD' ? 'selected' : ''} aria-pressed={sectionGroup === 'ODD'} onClick={() => setSectionGroup('ODD')}>홀수</button><button type="button" className={sectionGroup === 'EVEN' ? 'selected' : ''} aria-pressed={sectionGroup === 'EVEN'} onClick={() => setSectionGroup('EVEN')}>짝수</button></div><p className="field-help">학과에서 홀수·짝수 지정 분반을 안내받은 경우에만 선택하세요. 공식 분반표가 확인된 학과에서만 자동 배치에 적용됩니다.</p></fieldset>
         </div>
-        <div className="onboarding-actions"><button type="button" className="primary-button" disabled={gradeMismatch && !gradeMismatchAcknowledged} onClick={() => finish()}>시간표 만들기</button><small>저장한 정보는 이 브라우저에서 언제든 바꿀 수 있어요.</small></div>
+        <div className="onboarding-actions"><button type="button" className="primary-button" disabled={delayedProgression && !gradeMismatchAcknowledged} onClick={() => finish()}>시간표 만들기</button><small>저장한 정보는 이 브라우저에서 언제든 바꿀 수 있어요.</small></div>
       </section>}
     </div>
   </dialog>

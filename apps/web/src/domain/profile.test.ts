@@ -27,13 +27,23 @@ describe('academic profile persistence', () => {
     expect(loadAcademicProfile()?.studentType).toBe('UNKNOWN')
   })
 
-  it('requires an acknowledgement before an unusual freshman grade is authoritative', () => {
+  it('never authorizes accelerated progression through a leave-return acknowledgement', () => {
     const profile = createAcademicProfile({ department: '컴퓨터공학전공', admissionYear: 2026, currentGrade: 3, entryType: 'FRESHMAN', studentType: 'DOMESTIC', sectionGroup: 'UNKNOWN' })
 
     expect(expectedFreshmanGrade(profile.admissionYear)).toBe(1)
     expect(isAcademicProfileConsistent(profile)).toBe(false)
     expect(isAcademicProfileAuthoritative(profile)).toBe(false)
-    expect(isAcademicProfileAuthoritative({ ...profile, gradeMismatchAcknowledged: true })).toBe(true)
+    expect(isAcademicProfileAuthoritative({ ...profile, gradeMismatchAcknowledged: true })).toBe(false)
+  })
+
+  it('allows acknowledged delayed and older-than-four-year progression', () => {
+    const delayed = createAcademicProfile({ department: '컴퓨터공학전공', admissionYear: 2024, currentGrade: 1, entryType: 'FRESHMAN', studentType: 'DOMESTIC', sectionGroup: 'UNKNOWN' })
+    const older = createAcademicProfile({ department: '컴퓨터공학전공', admissionYear: 2021, currentGrade: 4, entryType: 'FRESHMAN', studentType: 'DOMESTIC', sectionGroup: 'UNKNOWN' })
+
+    expect(isAcademicProfileAuthoritative(delayed)).toBe(false)
+    expect(isAcademicProfileAuthoritative({ ...delayed, gradeMismatchAcknowledged: true })).toBe(true)
+    expect(isAcademicProfileAuthoritative(older)).toBe(false)
+    expect(isAcademicProfileAuthoritative({ ...older, gradeMismatchAcknowledged: true })).toBe(true)
   })
 
   it('keeps old consistent profiles authoritative and exempts transfer entry', () => {

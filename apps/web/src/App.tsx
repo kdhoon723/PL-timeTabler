@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from 'r
 import { loadAuthSession, loadCatalog, loadCommonRules, loadDepartmentSources, loadMajorRequiredCourses } from './api/client'
 import { findAlternatives, findConflicts } from './domain/conflicts'
 import { diffCandidate } from './domain/candidateDiff'
+import { optimizationDraftFingerprint } from './domain/optimizationDraft'
 import { computeMetrics } from './domain/metrics'
 import { encodeDraft } from './domain/share'
 import { exportTimetablePng } from './domain/exportImage'
@@ -45,7 +46,7 @@ export default function App() {
   const [catalogError, setCatalogError] = useState<string | null>(null)
   const [searchOpen, setSearchOpen] = useState(false)
   const [selectedId, setSelectedId] = useState<string | null>(null)
-  const [candidatePreview, setCandidatePreview] = useState<{ candidate: Candidate; baseUpdatedAt: string } | null>(null)
+  const [candidatePreview, setCandidatePreview] = useState<{ candidate: Candidate; generationFingerprint: string } | null>(null)
   const [showTools, setShowTools] = useState(false)
   const [route, setRoute] = useState(location.pathname)
   const [toast, setToast] = useState<string | null>(null)
@@ -72,11 +73,13 @@ export default function App() {
   showToolsRef.current = showTools
 
   const sectionById = useMemo(() => new Map(catalog.map((section) => [section.id, section])), [catalog])
+  const draftFingerprint = useMemo(() => optimizationDraftFingerprint(state.present), [state.present])
+  const validCandidatePreview = candidatePreview?.generationFingerprint === draftFingerprint ? candidatePreview : null
   const activeSections = useMemo(() => state.present.items.filter((item) => item.role === 'must' || item.role === 'want').map((item) => sectionById.get(item.sectionId)).filter((section): section is Section => !!section), [sectionById, state.present.items])
   const metrics = useMemo(() => computeMetrics(activeSections), [activeSections])
   const conflicts = useMemo(() => findConflicts(state.present.items, sectionById), [sectionById, state.present.items])
-  const previewDiff = useMemo(() => candidatePreview ? diffCandidate(candidatePreview.candidate.sectionIds, state.present.items, sectionById) : null, [candidatePreview, sectionById, state.present.items])
-  const previewItems = useMemo(() => candidatePreview ? planItemsForCandidate(candidatePreview.candidate.sectionIds, state.present.items, sectionById) : null, [candidatePreview, sectionById, state.present.items])
+  const previewDiff = useMemo(() => validCandidatePreview ? diffCandidate(validCandidatePreview.candidate.sectionIds, state.present.items, sectionById) : null, [sectionById, state.present.items, validCandidatePreview])
+  const previewItems = useMemo(() => validCandidatePreview ? planItemsForCandidate(validCandidatePreview.candidate.sectionIds, state.present.items, sectionById) : null, [sectionById, state.present.items, validCandidatePreview])
   const previewConflicts = useMemo(() => previewItems ? findConflicts(previewItems, sectionById) : conflicts, [conflicts, previewItems, sectionById])
   const previewStatusById = useMemo(() => previewDiff ? new Map(previewDiff.previewSections.map(({ section, state: previewState }) => [section.id, previewState])) : undefined, [previewDiff])
   const gridSections = previewDiff ? previewDiff.previewSections.map(({ section }) => section) : activeSections
@@ -144,8 +147,11 @@ export default function App() {
     } else if (!showTools && dialog.open) dialog.close()
   }, [isDesktopTools, showTools])
   useEffect(() => {
-    if (candidatePreview && candidatePreview.baseUpdatedAt !== state.present.updatedAt) setCandidatePreview(null)
-  }, [candidatePreview, state.present.updatedAt])
+    if (candidatePreview && candidatePreview.generationFingerprint !== draftFingerprint) {
+      setCandidatePreview(null)
+      showToast('시간표 조건이 바뀌어 이전 후보를 닫았습니다. 새 후보를 만들어 주세요.')
+    }
+  }, [candidatePreview, draftFingerprint, showToast])
   useEffect(() => {
     const handleShortcut = (event: KeyboardEvent) => {
       if (!(event.ctrlKey || event.metaKey) || event.altKey || event.key.toLocaleLowerCase() !== 'z') return
@@ -184,8 +190,12 @@ export default function App() {
       else requestAnimationFrame(() => toolsTriggerRef.current?.focus())
     }
   }
-  const previewCandidate = (candidate: Candidate) => {
-    setCandidatePreview({ candidate, baseUpdatedAt: state.present.updatedAt })
+  const previewCandidate = (candidate: Candidate, generationFingerprint: string) => {
+    if (generationFingerprint !== draftFingerprint) {
+      showToast('시간표 조건이 바뀌어 이 후보를 미리 볼 수 없습니다. 새 후보를 만들어 주세요.')
+      return
+    }
+    setCandidatePreview({ candidate, generationFingerprint })
     setSelectedId(null)
     if (!isDesktopTools && showTools) closeTools('preview')
     else focusPreviewBar()
@@ -220,12 +230,22 @@ export default function App() {
   const dragReplaceSection = (source: Section, replacement: Section) => {
     const sourceItem = state.present.items.find((item) => item.sectionId === source.id)
     const validReplacement = findAlternatives(source, catalog, activeSections).some((section) => section.id === replacement.id)
-    if (!isDesktopDrag || candidatePreview || !sourceItem || sourceItem.locked || !validReplacement) return
+    if (!isDesktopDrag || validCandidatePreview || !sourceItem || sourceItem.locked || !validReplacement) return
     dispatch({ type: 'SWAP', fromId: source.id, toId: replacement.id })
     setSelectedId(null)
     showToast(`${source.name} ${source.sectionCode}분반을 ${replacement.sectionCode}분반으로 교체했습니다.`, true)
   }
-  const applyCandidate = (candidate: Candidate) => { dispatch({ type: 'APPLY', items: planItemsForCandidate(candidate.sectionIds, state.present.items, sectionById) }); setCandidatePreview(null); showToast('자동 생성 후보를 적용했습니다.', true); if (showTools) closeTools() }
+  const applyCandidate = () => {
+    if (!candidatePreview || candidatePreview.generationFingerprint !== draftFingerprint) {
+      setCandidatePreview(null)
+      showToast('시간표 조건이 바뀌어 이전 후보를 적용하지 않았습니다. 새 후보를 만들어 주세요.')
+      return
+    }
+    dispatch({ type: 'APPLY', items: planItemsForCandidate(candidatePreview.candidate.sectionIds, state.present.items, sectionById) })
+    setCandidatePreview(null)
+    showToast('자동 생성 후보를 적용했습니다.', true)
+    if (showTools) closeTools()
+  }
   const applyBackup = (section: Section) => { dispatch({ type: 'ITEMS', items: itemsWithAppliedBackup(section.id, state.present.items, sectionById) }); showToast(`${section.name}을 현재 시간표에 적용했습니다.`, true) }
 
   const share = async () => {
@@ -249,7 +269,7 @@ export default function App() {
 
   if (route === '/requirements') return <><RequirementsPage catalog={catalog} profile={profile} onBack={() => navigate('/')} onAddCourse={(section) => { addSection(section, 'must'); navigate('/') }} /><Toast message={toast} onClose={() => setToast(null)} /></>
 
-  const toolsContent = <><PreferencesPanel preferences={state.present.preferences} onChange={(preferences) => dispatch({ type: 'PREFERENCES', preferences })} /><OptimizerPanel draft={state.present} sections={catalog} onPreview={previewCandidate} /><RegistrationChecklist items={state.present.items} sectionById={sectionById} onApplyBackup={applyBackup} onMessage={(message) => showToast(message)} /><section className="export-panel"><h2>내보내기</h2><div><button type="button" className="secondary-button" onClick={exportImage}>PNG 저장</button><button type="button" className="secondary-button" onClick={() => print()}>인쇄·PDF</button></div></section><p className="source-copy">대진대학교 공개 개설과목 · 데이터 {catalogMeta?.version.slice(0, 12) ?? '확인 중'}</p></>
+  const toolsContent = <><PreferencesPanel preferences={state.present.preferences} onChange={(preferences) => dispatch({ type: 'PREFERENCES', preferences })} /><OptimizerPanel draft={state.present} draftFingerprint={draftFingerprint} sections={catalog} onPreview={previewCandidate} /><RegistrationChecklist items={state.present.items} sectionById={sectionById} onApplyBackup={applyBackup} onMessage={(message) => showToast(message)} /><section className="export-panel"><h2>내보내기</h2><div><button type="button" className="secondary-button" onClick={exportImage}>PNG 저장</button><button type="button" className="secondary-button" onClick={() => print()}>인쇄·PDF</button></div></section><p className="source-copy">대진대학교 공개 개설과목 · 데이터 {catalogMeta?.version.slice(0, 12) ?? '확인 중'}</p></>
 
   return <div className="app-shell">
     <AppHeader credits={metrics.credits} profile={profile} authSession={authSession} canUndo={!!state.past.length} canRedo={!!state.future.length} onUndo={() => dispatch({ type: 'UNDO' })} onRedo={() => dispatch({ type: 'REDO' })} onShare={share} onExportPng={exportImage} onExportPdf={() => print()} onNavigate={navigate} onProfile={() => setProfileEditorOpen(true)} onAccount={() => setAuthOpen(true)} />
@@ -257,7 +277,7 @@ export default function App() {
     {catalogMeta && <div className="data-status"><span>{catalogMeta.offline ? '저장된 데이터 사용 중' : '최신 데이터 연결됨'}</span><span>2026-1 · {catalogMeta.updatedAt} 기준</span></div>}
     <main className="editor-layout">
       <aside className="desktop-search"><button type="button" className="primary-button full-button" onClick={() => setSearchOpen(true)}><PlusIcon />과목 추가</button><SelectedCourseList items={state.present.items} sectionById={sectionById} onSelect={(section) => setSelectedId(section.id)} /></aside>
-      <div className="editor-main"><div className="tablet-editor-actions"><button type="button" className="primary-button" onClick={() => setSearchOpen(true)}><PlusIcon />과목 추가</button></div><RequiredCoursePanel profile={profile} rules={commonRules} majorRequired={majorRequired} catalog={catalog} items={state.present.items} sectionById={sectionById} onEditProfile={() => setProfileEditorOpen(true)} onAddRequired={(section) => addSection(section, 'must')} /><ConflictNotice conflicts={candidatePreview ? previewConflicts : conflicts} onOpen={setSelectedId} />{candidatePreview && previewDiff && <CandidatePreviewBar candidate={candidatePreview.candidate} diff={previewDiff} containerRef={previewBarRef} onCancel={cancelCandidatePreview} onApply={() => applyCandidate(candidatePreview.candidate)} />}<TimetableGrid sections={gridSections} conflicts={candidatePreview ? previewConflicts : conflicts} lockedIds={new Set(state.present.items.filter((item) => item.locked).map((item) => item.sectionId))} onSelect={(section) => setSelectedId(section.id)} previewStatusById={previewStatusById} dragEnabled={isDesktopDrag && !candidatePreview} dragAlternativesById={dragAlternativesById} onReplace={dragReplaceSection} />
+      <div className="editor-main"><div className="tablet-editor-actions"><button type="button" className="primary-button" onClick={() => setSearchOpen(true)}><PlusIcon />과목 추가</button></div><RequiredCoursePanel profile={profile} rules={commonRules} majorRequired={majorRequired} catalog={catalog} items={state.present.items} sectionById={sectionById} onEditProfile={() => setProfileEditorOpen(true)} onAddRequired={(section) => addSection(section, 'must')} /><ConflictNotice conflicts={validCandidatePreview ? previewConflicts : conflicts} previewReadOnly={!!validCandidatePreview} onOpen={setSelectedId} />{validCandidatePreview && previewDiff && <CandidatePreviewBar candidate={validCandidatePreview.candidate} diff={previewDiff} containerRef={previewBarRef} onCancel={cancelCandidatePreview} onApply={applyCandidate} />}<TimetableGrid sections={gridSections} conflicts={validCandidatePreview ? previewConflicts : conflicts} lockedIds={new Set(state.present.items.filter((item) => item.locked).map((item) => item.sectionId))} onSelect={(section) => setSelectedId(section.id)} previewStatusById={previewStatusById} dragEnabled={isDesktopDrag && !validCandidatePreview} dragAlternativesById={dragAlternativesById} onReplace={dragReplaceSection} />
         <div className="mobile-summary"><SelectedCourseList items={state.present.items} sectionById={sectionById} onSelect={(section) => setSelectedId(section.id)} /></div>
       </div>
       {isDesktopTools ? <aside className="tools-panel" aria-label="자동 생성과 준비">{toolsContent}</aside> : <dialog className="tools-dialog" ref={toolsDialogRef} aria-labelledby="tools-dialog-title" onCancel={(event) => { event.preventDefault(); closeTools() }}><div className="mobile-tools-header"><h2 id="tools-dialog-title">자동 생성과 준비</h2><button ref={toolsCloseRef} type="button" onClick={() => closeTools()}>닫기</button></div>{toolsContent}</dialog>}
