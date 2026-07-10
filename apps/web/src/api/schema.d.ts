@@ -4,6 +4,74 @@
  */
 
 export interface paths {
+    "/api/v1/auth/logout": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Logout */
+        post: operations["logout_api_v1_auth_logout_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/otp/start": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Start Otp */
+        post: operations["start_otp_api_v1_auth_otp_start_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/otp/verify": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Verify Otp */
+        post: operations["verify_otp_api_v1_auth_otp_verify_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/session": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Current Session */
+        get: operations["current_session_api_v1_auth_session_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/catalog/{semester}": {
         parameters: {
             query?: never;
@@ -111,6 +179,17 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** AuthSessionRead */
+        AuthSessionRead: {
+            /** Authenticated */
+            authenticated: boolean;
+            /** Available */
+            available: boolean;
+            /** Expiresat */
+            expiresAt?: string | null;
+            /** Studentnumber */
+            studentNumber?: string | null;
+        };
         /** CandidateMetrics */
         CandidateMetrics: {
             /** Campusdays */
@@ -336,6 +415,23 @@ export interface components {
             /** Solverversion */
             solverVersion: string;
         };
+        /** OtpStartRequest */
+        OtpStartRequest: {
+            /** Studentnumber */
+            studentNumber: string;
+        };
+        /** OtpStartResponse */
+        OtpStartResponse: {
+            /** Message */
+            message: string;
+        };
+        /** OtpVerifyRequest */
+        OtpVerifyRequest: {
+            /** Code */
+            code: string;
+            /** Studentnumber */
+            studentNumber: string;
+        };
         /** ReadinessStatus */
         ReadinessStatus: {
             /** Catalog */
@@ -433,6 +529,110 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    logout_api_v1_auth_logout_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    start_otp_api_v1_auth_otp_start_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["OtpStartRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OtpStartResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    verify_otp_api_v1_auth_otp_verify_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["OtpVerifyRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AuthSessionRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    current_session_api_v1_auth_session_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AuthSessionRead"];
+                };
+            };
+        };
+    };
     catalog_page_api_v1_catalog__semester__get: {
         parameters: {
             query?: {

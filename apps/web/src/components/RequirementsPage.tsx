@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useState } from 'react'
 import { loadCommonRules, loadDepartmentSources } from '../api/client'
 import { academicUnitOverrideStatus, applicableRules, completedCourseMatches, type StudentType } from '../domain/requirements'
-import type { CommonRules, DepartmentSource, Section } from '../types'
+import type { AcademicProfile, CommonRules, DepartmentSource, Section } from '../types'
 import { CheckIcon, WarningIcon } from './Icons'
 
-interface Props { catalog: Section[]; onBack: () => void; onAddCourse: (section: Section) => void }
+interface Props { catalog: Section[]; profile: AcademicProfile | null; onBack: () => void; onAddCourse: (section: Section) => void }
 
 const SOURCE_URLS: Record<string, string> = {
   'regulations-2-1-01': 'https://www.daejin.ac.kr/regltn/daejin/2/631/download.do',
@@ -16,14 +16,14 @@ const KIND_LABEL: Record<string, string> = {
   TOTAL_CREDITS: '졸업 총학점', REGISTERED_SEMESTERS: '등록 학기', GRADUATION_GPA: '졸업 평점', ADVISOR_COUNSELING: '지도교수 상담', LIBERAL_TOTAL: '교양 이수학점', REQUIRED_COURSE_GROUP: '교양 필수과목', PRIMARY_MAJOR_CREDITS: '주전공 이수학점', MAJOR_CREDIT_PAIR: '전공별 이수학점', ACADEMIC_UNIT_OVERRIDE: '학과별 예외 기준',
 }
 
-export function RequirementsPage({ catalog, onBack, onAddCourse }: Props) {
+export function RequirementsPage({ catalog, profile, onBack, onAddCourse }: Props) {
   const [rules, setRules] = useState<CommonRules | null>(null)
   const [departments, setDepartments] = useState<DepartmentSource[]>([])
   const [error, setError] = useState(false)
-  const [year, setYear] = useState(2026)
-  const [department, setDepartment] = useState('대순종학과')
+  const [year, setYear] = useState(profile?.admissionYear ?? 2026)
+  const [department, setDepartment] = useState(profile?.department ?? '대순종학과')
   const [path, setPath] = useState('ADVANCED_MAJOR')
-  const [studentType, setStudentType] = useState<StudentType>('DOMESTIC')
+  const [studentType, setStudentType] = useState<StudentType>(profile?.studentType === 'DOMESTIC' ? 'DOMESTIC' : 'OTHER')
   const [completedCredits, setCompletedCredits] = useState(0)
   const [liberalCredits, setLiberalCredits] = useState(0)
   const [majorCredits, setMajorCredits] = useState(0)
@@ -33,10 +33,10 @@ export function RequirementsPage({ catalog, onBack, onAddCourse }: Props) {
       .then(([loadedRules, loadedDepartments]) => {
         setRules(loadedRules)
         setDepartments(loadedDepartments.departments)
-        if (loadedDepartments.departments[0]) setDepartment(loadedDepartments.departments[0].academicUnit)
+        if (!profile && loadedDepartments.departments[0]) setDepartment(loadedDepartments.departments[0].academicUnit)
       })
       .catch(() => setError(true))
-  }, [])
+  }, [profile])
   const applicable = useMemo(() => applicableRules(rules?.rules ?? [], year, path, department, studentType), [department, path, rules, studentType, year])
   const names = completedNames.split(/[\n,]/).map((value) => value.trim()).filter(Boolean)
   const requiredCourses = applicable.find((rule) => rule.kind === 'REQUIRED_COURSE_GROUP')?.courses ?? []

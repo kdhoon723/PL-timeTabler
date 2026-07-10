@@ -1,0 +1,1471 @@
+{
+  "schemaVersion": 1,
+  "asOf": "2026-07-10",
+  "cohortAdmissionYear": 2026,
+  "source": "https://www.daejin.ac.kr/bbs/daejin/188/458095/artclView.do",
+  "method": "official-handbook-coordinate-extraction-reviewed-against-merged-cells",
+  "programs": [
+    {
+      "academicUnit": "대순종학과",
+      "status": "AVAILABLE",
+      "manualReviewReason": null,
+      "handbookPages": [
+        38
+      ],
+      "courses": [
+        {
+          "courseCode": "045016",
+          "name": "대순진리회역사",
+          "grade": 1,
+          "semesters": [
+            2
+          ],
+          "handbookPage": 38
+        },
+        {
+          "courseCode": "045024",
+          "name": "전경통독",
+          "grade": 2,
+          "semesters": [
+            1
+          ],
+          "handbookPage": 38
+        }
+      ]
+    },
+    {
+      "academicUnit": "영어영문학과",
+      "status": "AVAILABLE",
+      "manualReviewReason": null,
+      "handbookPages": [
+        40
+      ],
+      "courses": []
+    },
+    {
+      "academicUnit": "역사문화콘텐츠학과",
+      "status": "AVAILABLE",
+      "manualReviewReason": null,
+      "handbookPages": [
+        41
+      ],
+      "courses": []
+    },
+    {
+      "academicUnit": "문예콘텐츠창작학과",
+      "status": "AVAILABLE",
+      "manualReviewReason": null,
+      "handbookPages": [
+        42
+      ],
+      "courses": []
+    },
+    {
+      "academicUnit": "미술만화게임학부 공통",
+      "status": "AVAILABLE",
+      "manualReviewReason": null,
+      "handbookPages": [
+        43
+      ],
+      "courses": []
+    },
+    {
+      "academicUnit": "현대미술전공",
+      "status": "AVAILABLE",
+      "manualReviewReason": null,
+      "handbookPages": [
+        44
+      ],
+      "courses": [
+        {
+          "courseCode": "825636",
+          "name": "평면졸업작품연구Ⅱ",
+          "grade": 4,
+          "semesters": [
+            2
+          ],
+          "handbookPage": 44
+        },
+        {
+          "courseCode": "825637",
+          "name": "캡스톤디자인(입체졸업작품연구Ⅱ)",
+          "grade": 4,
+          "semesters": [
+            2
+          ],
+          "handbookPage": 44
+        }
+      ]
+    },
+    {
+      "academicUnit": "만화게임그래픽전공",
+      "status": "AVAILABLE",
+      "manualReviewReason": null,
+      "handbookPages": [
+        45
+      ],
+      "courses": []
+    },
+    {
+      "academicUnit": "시각디자인학과",
+      "status": "AVAILABLE",
+      "manualReviewReason": null,
+      "handbookPages": [
+        46
+      ],
+      "courses": [
+        {
+          "courseCode": "812614",
+          "name": "지역기반프로모션디자인Ⅱ",
+          "grade": 3,
+          "semesters": [
+            2
+          ],
+          "handbookPage": 46
+        },
+        {
+          "courseCode": "815020",
+          "name": "타이포그래피디자인Ⅱ",
+          "grade": 3,
+          "semesters": [
+            2
+          ],
+          "handbookPage": 46
+        },
+        {
+          "courseCode": "815021",
+          "name": "웹인터페이스디자인Ⅱ",
+          "grade": 3,
+          "semesters": [
+            2
+          ],
+          "handbookPage": 46
+        }
+      ]
+    },
+    {
+      "academicUnit": "산업디자인학과",
+      "status": "AVAILABLE",
+      "manualReviewReason": null,
+      "handbookPages": [
+        47
+      ],
+      "courses": [
+        {
+          "courseCode": "811501",
+          "name": "기초제품디자인",
+          "grade": 2,
+          "semesters": [
+            1
+          ],
+          "handbookPage": 47
+        },
+        {
+          "courseCode": "811511",
+          "name": "기초공간디자인",
+          "grade": 2,
+          "semesters": [
+            1
+          ],
+          "handbookPage": 47
+        }
+      ]
+    },
+    {
+      "academicUnit": "영화영상학과",
+      "status": "AVAILABLE",
+      "manualReviewReason": null,
+      "handbookPages": [
+        48
+      ],
+      "courses": [
+        {
+          "courseCode": "855125",
+          "name": "캡스톤디자인(영화제작실습Ⅰ)",
+          "grade": 3,
+          "semesters": [
+            1
+          ],
+          "handbookPage": 48
+        },
+        {
+          "courseCode": "855126",
+          "name": "캡스톤디자인(영화제작실습Ⅱ)",
+          "grade": 3,
+          "semesters": [
+            2
+          ],
+          "handbookPage": 48
+        }
+      ]
+    },
+    {
+      "academicUnit": "연기예술학과",
+      "status": "AVAILABLE",
+      "manualReviewReason": null,
+      "handbookPages": [
+        49
+      ],
+      "courses": [
+        {
+          "courseCode": "851213",
+          "name": "화술Ⅰ",
+          "grade": 2,
+          "semesters": [
+            1
+          ],
+          "handbookPage": 49
+        },
+        {
+          "courseCode": "851237",
+          "name": "카메라연기Ⅱ",
+          "grade": 3,
+          "semesters": [
+            2
+          ],
+          "handbookPage": 49
+        },
+        {
+          "courseCode": "854031",
+          "name": "아시아연극",
+          "grade": 3,
+          "semesters": [
+            2
+          ],
+          "handbookPage": 49
+        },
+        {
+          "courseCode": "857503",
+          "name": "공연과영상실습",
+          "grade": 4,
+          "semesters": [
+            1
+          ],
+          "handbookPage": 49
+        }
+      ]
+    },
+    {
+      "academicUnit": "실용음악학과",
+      "status": "AVAILABLE",
+      "manualReviewReason": null,
+      "handbookPages": [
+        50,
+        51
+      ],
+      "courses": [
+        {
+          "courseCode": "862500",
+          "name": "전공실기기초(보컬,송라이팅,미디작곡)1",
+          "grade": 1,
+          "semesters": [
+            1
+          ],
+          "handbookPage": 50
+        },
+        {
+          "courseCode": "862504",
+          "name": "전공실기기초(보컬,송라이팅,미디작곡)2",
+          "grade": 1,
+          "semesters": [
+            2
+          ],
+          "handbookPage": 50
+        },
+        {
+          "courseCode": "862507",
+          "name": "전공실기심화(보컬,송라이팅,미디작곡)1",
+          "grade": 2,
+          "semesters": [
+            1
+          ],
+          "handbookPage": 50
+        },
+        {
+          "courseCode": "862512",
+          "name": "전공실기심화(보컬,송라이팅,미디작곡)2",
+          "grade": 2,
+          "semesters": [
+            2
+          ],
+          "handbookPage": 50
+        },
+        {
+          "courseCode": "862517",
+          "name": "전공실기심화(보컬,송라이팅,미디작곡)3",
+          "grade": 3,
+          "semesters": [
+            1
+          ],
+          "handbookPage": 50
+        },
+        {
+          "courseCode": "862522",
+          "name": "전공실기심화(보컬,송라이팅,미디작곡)4",
+          "grade": 3,
+          "semesters": [
+            2
+          ],
+          "handbookPage": 50
+        }
+      ]
+    },
+    {
+      "academicUnit": "글로벌경제학과",
+      "status": "AVAILABLE",
+      "manualReviewReason": null,
+      "handbookPages": [
+        54
+      ],
+      "courses": [
+        {
+          "courseCode": "112093",
+          "name": "미시경제학",
+          "grade": 2,
+          "semesters": [
+            1
+          ],
+          "handbookPage": 54
+        },
+        {
+          "courseCode": "112094",
+          "name": "거시경제학",
+          "grade": 2,
+          "semesters": [
+            1
+          ],
+          "handbookPage": 54
+        }
+      ]
+    },
+    {
+      "academicUnit": "경영학과",
+      "status": "AVAILABLE",
+      "manualReviewReason": null,
+      "handbookPages": [
+        55
+      ],
+      "courses": [
+        {
+          "courseCode": "122013",
+          "name": "경영통계학",
+          "grade": 1,
+          "semesters": [
+            1
+          ],
+          "handbookPage": 55
+        },
+        {
+          "courseCode": "121001",
+          "name": "회계원리",
+          "grade": 1,
+          "semesters": [
+            2
+          ],
+          "handbookPage": 55
+        }
+      ]
+    },
+    {
+      "academicUnit": "국제통상학과",
+      "status": "AVAILABLE",
+      "manualReviewReason": null,
+      "handbookPages": [
+        56
+      ],
+      "courses": [
+        {
+          "courseCode": "131011",
+          "name": "국제통상실무I",
+          "grade": 2,
+          "semesters": [
+            1
+          ],
+          "handbookPage": 56
+        },
+        {
+          "courseCode": "132036",
+          "name": "국제경영론",
+          "grade": 2,
+          "semesters": [
+            2
+          ],
+          "handbookPage": 56
+        }
+      ]
+    },
+    {
+      "academicUnit": "국제지역학전공",
+      "status": "AVAILABLE",
+      "manualReviewReason": null,
+      "handbookPages": [
+        57
+      ],
+      "courses": [
+        {
+          "courseCode": "252505",
+          "name": "글로벌경제",
+          "grade": 2,
+          "semesters": [
+            1
+          ],
+          "handbookPage": 57
+        },
+        {
+          "courseCode": "252606",
+          "name": "동북아와국제관계",
+          "grade": 3,
+          "semesters": [
+            2
+          ],
+          "handbookPage": 57
+        }
+      ]
+    },
+    {
+      "academicUnit": "중국학전공",
+      "status": "AVAILABLE",
+      "manualReviewReason": null,
+      "handbookPages": [
+        58
+      ],
+      "courses": [
+        {
+          "courseCode": "262002",
+          "name": "중국어문법",
+          "grade": 3,
+          "semesters": [
+            2
+          ],
+          "handbookPage": 58
+        },
+        {
+          "courseCode": "264049",
+          "name": "차이나마케팅사례연구",
+          "grade": 3,
+          "semesters": [
+            2
+          ],
+          "handbookPage": 58
+        }
+      ]
+    },
+    {
+      "academicUnit": "공공인재법학과",
+      "status": "AVAILABLE",
+      "manualReviewReason": null,
+      "handbookPages": [
+        60
+      ],
+      "courses": [
+        {
+          "courseCode": "161003",
+          "name": "헌법I",
+          "grade": 1,
+          "semesters": [
+            1
+          ],
+          "handbookPage": 60
+        },
+        {
+          "courseCode": "161001",
+          "name": "민법총칙",
+          "grade": 1,
+          "semesters": [
+            2
+          ],
+          "handbookPage": 60
+        }
+      ]
+    },
+    {
+      "academicUnit": "행정정보학과",
+      "status": "AVAILABLE",
+      "manualReviewReason": null,
+      "handbookPages": [
+        61
+      ],
+      "courses": [
+        {
+          "courseCode": "172001",
+          "name": "행정학원론",
+          "grade": 1,
+          "semesters": [
+            1
+          ],
+          "handbookPage": 61
+        },
+        {
+          "courseCode": "175026",
+          "name": "재무행정관리",
+          "grade": 2,
+          "semesters": [
+            2
+          ],
+          "handbookPage": 61
+        }
+      ]
+    },
+    {
+      "academicUnit": "사회복지학과",
+      "status": "AVAILABLE",
+      "manualReviewReason": null,
+      "handbookPages": [
+        62
+      ],
+      "courses": []
+    },
+    {
+      "academicUnit": "아동학과",
+      "status": "AVAILABLE",
+      "manualReviewReason": null,
+      "handbookPages": [
+        63
+      ],
+      "courses": []
+    },
+    {
+      "academicUnit": "미디어커뮤니케이션학과",
+      "status": "AVAILABLE",
+      "manualReviewReason": null,
+      "handbookPages": [
+        64
+      ],
+      "courses": [
+        {
+          "courseCode": "215007",
+          "name": "미디어커뮤니케이션이론",
+          "grade": 2,
+          "semesters": [
+            2
+          ],
+          "handbookPage": 64
+        },
+        {
+          "courseCode": "214017",
+          "name": "미디어조사방법론",
+          "grade": 3,
+          "semesters": [
+            1
+          ],
+          "handbookPage": 64
+        }
+      ]
+    },
+    {
+      "academicUnit": "문헌정보학과",
+      "status": "AVAILABLE",
+      "manualReviewReason": null,
+      "handbookPages": [
+        65
+      ],
+      "courses": [
+        {
+          "courseCode": "221005",
+          "name": "문헌분류론",
+          "grade": 2,
+          "semesters": [
+            1
+          ],
+          "handbookPage": 65
+        },
+        {
+          "courseCode": "221006",
+          "name": "목록편성론",
+          "grade": 2,
+          "semesters": [
+            2
+          ],
+          "handbookPage": 65
+        }
+      ]
+    },
+    {
+      "academicUnit": "의생명과학과",
+      "status": "AVAILABLE",
+      "manualReviewReason": null,
+      "handbookPages": [
+        68
+      ],
+      "courses": []
+    },
+    {
+      "academicUnit": "간호학과",
+      "status": "AVAILABLE",
+      "manualReviewReason": null,
+      "handbookPages": [
+        70,
+        71
+      ],
+      "courses": [
+        {
+          "courseCode": "771002",
+          "name": "간호학개론",
+          "grade": 1,
+          "semesters": [
+            1
+          ],
+          "handbookPage": 70
+        },
+        {
+          "courseCode": "771083",
+          "name": "간호용어",
+          "grade": 1,
+          "semesters": [
+            2
+          ],
+          "handbookPage": 70
+        },
+        {
+          "courseCode": "771070",
+          "name": "비판적사고와간호과정",
+          "grade": 2,
+          "semesters": [
+            1
+          ],
+          "handbookPage": 70
+        },
+        {
+          "courseCode": "771084",
+          "name": "기본간호학Ⅰ",
+          "grade": 2,
+          "semesters": [
+            1
+          ],
+          "handbookPage": 70
+        },
+        {
+          "courseCode": "771085",
+          "name": "기본간호학실습Ⅰ",
+          "grade": 2,
+          "semesters": [
+            1
+          ],
+          "handbookPage": 70
+        },
+        {
+          "courseCode": "771022",
+          "name": "성인간호학1",
+          "grade": 2,
+          "semesters": [
+            2
+          ],
+          "handbookPage": 70
+        },
+        {
+          "courseCode": "771023",
+          "name": "아동간호학1",
+          "grade": 2,
+          "semesters": [
+            2
+          ],
+          "handbookPage": 70
+        },
+        {
+          "courseCode": "771086",
+          "name": "기본간호학Ⅱ",
+          "grade": 2,
+          "semesters": [
+            2
+          ],
+          "handbookPage": 70
+        },
+        {
+          "courseCode": "771087",
+          "name": "기본간호학실습Ⅱ",
+          "grade": 2,
+          "semesters": [
+            2
+          ],
+          "handbookPage": 70
+        },
+        {
+          "courseCode": "771027",
+          "name": "성인간호학2",
+          "grade": 3,
+          "semesters": [
+            1
+          ],
+          "handbookPage": 70
+        },
+        {
+          "courseCode": "771028",
+          "name": "여성건강간호학1",
+          "grade": 3,
+          "semesters": [
+            1
+          ],
+          "handbookPage": 70
+        },
+        {
+          "courseCode": "771029",
+          "name": "아동간호학2",
+          "grade": 3,
+          "semesters": [
+            1
+          ],
+          "handbookPage": 70
+        },
+        {
+          "courseCode": "771030",
+          "name": "정신간호학1",
+          "grade": 3,
+          "semesters": [
+            1
+          ],
+          "handbookPage": 70
+        },
+        {
+          "courseCode": "771032",
+          "name": "성인간호학실습1",
+          "grade": 3,
+          "semesters": [
+            1
+          ],
+          "handbookPage": 70
+        },
+        {
+          "courseCode": "771033",
+          "name": "여성건강간호학실습1",
+          "grade": 3,
+          "semesters": [
+            1
+          ],
+          "handbookPage": 70
+        },
+        {
+          "courseCode": "771034",
+          "name": "아동간호학실습1",
+          "grade": 3,
+          "semesters": [
+            1
+          ],
+          "handbookPage": 70
+        },
+        {
+          "courseCode": "771036",
+          "name": "성인간호학3",
+          "grade": 3,
+          "semesters": [
+            2
+          ],
+          "handbookPage": 70
+        },
+        {
+          "courseCode": "771037",
+          "name": "여성건강간호학2",
+          "grade": 3,
+          "semesters": [
+            2
+          ],
+          "handbookPage": 70
+        },
+        {
+          "courseCode": "771038",
+          "name": "아동간호학3",
+          "grade": 3,
+          "semesters": [
+            2
+          ],
+          "handbookPage": 70
+        },
+        {
+          "courseCode": "771039",
+          "name": "지역사회간호학1",
+          "grade": 3,
+          "semesters": [
+            2
+          ],
+          "handbookPage": 70
+        },
+        {
+          "courseCode": "771040",
+          "name": "정신간호학2",
+          "grade": 3,
+          "semesters": [
+            2
+          ],
+          "handbookPage": 70
+        },
+        {
+          "courseCode": "771041",
+          "name": "간호연구",
+          "grade": 3,
+          "semesters": [
+            2
+          ],
+          "handbookPage": 70
+        },
+        {
+          "courseCode": "771042",
+          "name": "시뮬레이션실습1",
+          "grade": 3,
+          "semesters": [
+            2
+          ],
+          "handbookPage": 70
+        },
+        {
+          "courseCode": "771043",
+          "name": "성인간호학실습2",
+          "grade": 3,
+          "semesters": [
+            2
+          ],
+          "handbookPage": 70
+        },
+        {
+          "courseCode": "771044",
+          "name": "여성건강간호학실습2",
+          "grade": 3,
+          "semesters": [
+            2
+          ],
+          "handbookPage": 70
+        },
+        {
+          "courseCode": "771045",
+          "name": "아동간호학실습2",
+          "grade": 3,
+          "semesters": [
+            2
+          ],
+          "handbookPage": 70
+        },
+        {
+          "courseCode": "771059",
+          "name": "정신간호학실습1",
+          "grade": 3,
+          "semesters": [
+            2
+          ],
+          "handbookPage": 70
+        },
+        {
+          "courseCode": "771024",
+          "name": "간호정보학",
+          "grade": 4,
+          "semesters": [
+            1
+          ],
+          "handbookPage": 70
+        },
+        {
+          "courseCode": "771047",
+          "name": "성인간호학4",
+          "grade": 4,
+          "semesters": [
+            1
+          ],
+          "handbookPage": 70
+        },
+        {
+          "courseCode": "771048",
+          "name": "지역사회간호학2",
+          "grade": 4,
+          "semesters": [
+            1
+          ],
+          "handbookPage": 70
+        },
+        {
+          "courseCode": "771052",
+          "name": "시뮬레이션실습2",
+          "grade": 4,
+          "semesters": [
+            1
+          ],
+          "handbookPage": 70
+        },
+        {
+          "courseCode": "771053",
+          "name": "성인간호학실습3",
+          "grade": 4,
+          "semesters": [
+            1
+          ],
+          "handbookPage": 70
+        },
+        {
+          "courseCode": "771058",
+          "name": "지역사회간호학실습1",
+          "grade": 4,
+          "semesters": [
+            1
+          ],
+          "handbookPage": 71
+        },
+        {
+          "courseCode": "771062",
+          "name": "정신간호학실습2",
+          "grade": 4,
+          "semesters": [
+            1
+          ],
+          "handbookPage": 71
+        },
+        {
+          "courseCode": "771064",
+          "name": "노인간호학실습",
+          "grade": 4,
+          "semesters": [
+            1
+          ],
+          "handbookPage": 71
+        },
+        {
+          "courseCode": "771065",
+          "name": "노인간호학",
+          "grade": 4,
+          "semesters": [
+            1
+          ],
+          "handbookPage": 71
+        },
+        {
+          "courseCode": "771077",
+          "name": "간호관리학Ⅰ",
+          "grade": 4,
+          "semesters": [
+            1
+          ],
+          "handbookPage": 71
+        },
+        {
+          "courseCode": "772601",
+          "name": "안전과간호",
+          "grade": 4,
+          "semesters": [
+            1
+          ],
+          "handbookPage": 71
+        },
+        {
+          "courseCode": "771051",
+          "name": "간호윤리와전문직",
+          "grade": 4,
+          "semesters": [
+            2
+          ],
+          "handbookPage": 71
+        },
+        {
+          "courseCode": "771055",
+          "name": "성인간호학5",
+          "grade": 4,
+          "semesters": [
+            2
+          ],
+          "handbookPage": 71
+        },
+        {
+          "courseCode": "771056",
+          "name": "보건의료법규",
+          "grade": 4,
+          "semesters": [
+            2
+          ],
+          "handbookPage": 71
+        },
+        {
+          "courseCode": "771057",
+          "name": "통합역량실습",
+          "grade": 4,
+          "semesters": [
+            2
+          ],
+          "handbookPage": 71
+        },
+        {
+          "courseCode": "771060",
+          "name": "간호관리학실습",
+          "grade": 4,
+          "semesters": [
+            2
+          ],
+          "handbookPage": 71
+        },
+        {
+          "courseCode": "771061",
+          "name": "지역사회간호학실습2",
+          "grade": 4,
+          "semesters": [
+            2
+          ],
+          "handbookPage": 71
+        },
+        {
+          "courseCode": "771073",
+          "name": "성인간호학실습4",
+          "grade": 4,
+          "semesters": [
+            2
+          ],
+          "handbookPage": 71
+        },
+        {
+          "courseCode": "771078",
+          "name": "간호관리학Ⅱ",
+          "grade": 4,
+          "semesters": [
+            2
+          ],
+          "handbookPage": 71
+        }
+      ]
+    },
+    {
+      "academicUnit": "스포츠건강과학과",
+      "status": "AVAILABLE",
+      "manualReviewReason": null,
+      "handbookPages": [
+        72
+      ],
+      "courses": [
+        {
+          "courseCode": "762005",
+          "name": "운동처방론",
+          "grade": 2,
+          "semesters": [
+            1
+          ],
+          "handbookPage": 72
+        },
+        {
+          "courseCode": "762047",
+          "name": "스포츠마케팅",
+          "grade": 3,
+          "semesters": [
+            2
+          ],
+          "handbookPage": 72
+        }
+      ]
+    },
+    {
+      "academicUnit": "식품영양학과",
+      "status": "AVAILABLE",
+      "manualReviewReason": null,
+      "handbookPages": [
+        73
+      ],
+      "courses": [
+        {
+          "courseCode": "751006",
+          "name": "영양학I",
+          "grade": 3,
+          "semesters": [
+            1
+          ],
+          "handbookPage": 73
+        },
+        {
+          "courseCode": "751007",
+          "name": "식품화학I",
+          "grade": 3,
+          "semesters": [
+            1
+          ],
+          "handbookPage": 73
+        }
+      ]
+    },
+    {
+      "academicUnit": "보건경영학과",
+      "status": "AVAILABLE",
+      "manualReviewReason": null,
+      "handbookPages": [
+        74
+      ],
+      "courses": [
+        {
+          "courseCode": "755008",
+          "name": "병원경영학",
+          "grade": 2,
+          "semesters": [
+            1
+          ],
+          "handbookPage": 74
+        },
+        {
+          "courseCode": "755012",
+          "name": "보건의료정보관리학",
+          "grade": 2,
+          "semesters": [
+            2
+          ],
+          "handbookPage": 74
+        }
+      ]
+    },
+    {
+      "academicUnit": "스마트모빌리티전공",
+      "status": "AVAILABLE",
+      "manualReviewReason": null,
+      "handbookPages": [
+        76
+      ],
+      "courses": [
+        {
+          "courseCode": "650015",
+          "name": "융합임베디드시스템Ⅰ",
+          "grade": 3,
+          "semesters": [
+            1
+          ],
+          "handbookPage": 76
+        },
+        {
+          "courseCode": "650021",
+          "name": "융합임베디드시스템Ⅱ",
+          "grade": 3,
+          "semesters": [
+            2
+          ],
+          "handbookPage": 76
+        }
+      ]
+    },
+    {
+      "academicUnit": "컴퓨터공학전공",
+      "status": "AVAILABLE",
+      "manualReviewReason": null,
+      "handbookPages": [
+        77
+      ],
+      "courses": [
+        {
+          "courseCode": "561099",
+          "name": "컴퓨터시스템구조",
+          "grade": 2,
+          "semesters": [
+            2
+          ],
+          "handbookPage": 77
+        },
+        {
+          "courseCode": "561041",
+          "name": "운영체제론",
+          "grade": 3,
+          "semesters": [
+            1
+          ],
+          "handbookPage": 77
+        }
+      ]
+    },
+    {
+      "academicUnit": "AI빅데이터전공",
+      "status": "AVAILABLE",
+      "manualReviewReason": null,
+      "handbookPages": [
+        78
+      ],
+      "courses": [
+        {
+          "courseCode": "567027",
+          "name": "캡스톤디자인(빅데이터분석)",
+          "grade": 4,
+          "semesters": [
+            1
+          ],
+          "handbookPage": 78
+        },
+        {
+          "courseCode": "567028",
+          "name": "딥러닝의이해및실습",
+          "grade": 4,
+          "semesters": [
+            1
+          ],
+          "handbookPage": 78
+        }
+      ]
+    },
+    {
+      "academicUnit": "스마트융합보안학과",
+      "status": "AVAILABLE",
+      "manualReviewReason": null,
+      "handbookPages": [
+        79
+      ],
+      "courses": [
+        {
+          "courseCode": "577503",
+          "name": "정보보호개론",
+          "grade": 1,
+          "semesters": [
+            2
+          ],
+          "handbookPage": 79
+        },
+        {
+          "courseCode": "576009",
+          "name": "현대암호학",
+          "grade": 2,
+          "semesters": [
+            1
+          ],
+          "handbookPage": 79
+        }
+      ]
+    },
+    {
+      "academicUnit": "전기공학과",
+      "status": "AVAILABLE",
+      "manualReviewReason": null,
+      "handbookPages": [
+        82
+      ],
+      "courses": [
+        {
+          "courseCode": "525106",
+          "name": "기초회로실험",
+          "grade": 2,
+          "semesters": [
+            1
+          ],
+          "handbookPage": 82
+        },
+        {
+          "courseCode": "525109",
+          "name": "아날로그회로실험실습",
+          "grade": 2,
+          "semesters": [
+            2
+          ],
+          "handbookPage": 82
+        }
+      ]
+    },
+    {
+      "academicUnit": "화학공학과",
+      "status": "AVAILABLE",
+      "manualReviewReason": null,
+      "handbookPages": [
+        83
+      ],
+      "courses": [
+        {
+          "courseCode": "605022",
+          "name": "화학공정공학",
+          "grade": 2,
+          "semesters": [
+            2
+          ],
+          "handbookPage": 83
+        },
+        {
+          "courseCode": "601023",
+          "name": "화공열역학",
+          "grade": 3,
+          "semesters": [
+            1
+          ],
+          "handbookPage": 83
+        }
+      ]
+    },
+    {
+      "academicUnit": "건축공학과",
+      "status": "AVAILABLE",
+      "manualReviewReason": null,
+      "handbookPages": [
+        84
+      ],
+      "courses": [
+        {
+          "courseCode": "545030",
+          "name": "캡스톤디자인(건축공학종합설계Ⅰ)",
+          "grade": 4,
+          "semesters": [
+            1
+          ],
+          "handbookPage": 84
+        },
+        {
+          "courseCode": "545031",
+          "name": "캡스톤디자인(건축공학종합설계Ⅱ)",
+          "grade": 4,
+          "semesters": [
+            2
+          ],
+          "handbookPage": 84
+        }
+      ]
+    },
+    {
+      "academicUnit": "스마트건설환경공학과",
+      "status": "AVAILABLE",
+      "manualReviewReason": null,
+      "handbookPages": [
+        86
+      ],
+      "courses": [
+        {
+          "courseCode": "672501",
+          "name": "스마트건설환경공학개론",
+          "grade": 1,
+          "semesters": [
+            1
+          ],
+          "handbookPage": 86
+        },
+        {
+          "courseCode": "672503",
+          "name": "스마트건설환경공학과미래사회",
+          "grade": 1,
+          "semesters": [
+            2
+          ],
+          "handbookPage": 86
+        }
+      ]
+    },
+    {
+      "academicUnit": "데이터경영산업공학과",
+      "status": "AVAILABLE",
+      "manualReviewReason": null,
+      "handbookPages": [
+        90
+      ],
+      "courses": [
+        {
+          "courseCode": "611045",
+          "name": "인간공학",
+          "grade": 3,
+          "semesters": [
+            1
+          ],
+          "handbookPage": 90
+        },
+        {
+          "courseCode": "615020",
+          "name": "캡스톤디자인(생산시스템)",
+          "grade": 4,
+          "semesters": [
+            1
+          ],
+          "handbookPage": 90
+        }
+      ]
+    },
+    {
+      "academicUnit": "반도체융합공학과",
+      "status": "AVAILABLE",
+      "manualReviewReason": null,
+      "handbookPages": [
+        91
+      ],
+      "courses": []
+    },
+    {
+      "academicUnit": "IT기계공학과",
+      "status": "AVAILABLE",
+      "manualReviewReason": null,
+      "handbookPages": [
+        94
+      ],
+      "courses": [
+        {
+          "courseCode": "571007",
+          "name": "기계설계",
+          "grade": 3,
+          "semesters": [
+            2
+          ],
+          "handbookPage": 94
+        },
+        {
+          "courseCode": "575010",
+          "name": "캡스톤디자인(기계공학)",
+          "grade": 4,
+          "semesters": [
+            1
+          ],
+          "handbookPage": 94
+        }
+      ]
+    },
+    {
+      "academicUnit": "공학자율학부",
+      "status": "MANUAL_REVIEW",
+      "manualReviewReason": "2026 중앙 편람에 독립 전공표 없음; 학부 홈페이지 교육과정 확인. 진입 후 선택 학과 기준 적용",
+      "handbookPages": [],
+      "courses": []
+    },
+    {
+      "academicUnit": "자율전공학부",
+      "status": "AVAILABLE",
+      "manualReviewReason": null,
+      "handbookPages": [
+        96
+      ],
+      "courses": [
+        {
+          "courseCode": "302500",
+          "name": "전공탐색및설계Ⅰ",
+          "grade": 1,
+          "semesters": [
+            1
+          ],
+          "handbookPage": 96
+        },
+        {
+          "courseCode": "302501",
+          "name": "전공탐색및설계Ⅱ",
+          "grade": 1,
+          "semesters": [
+            2
+          ],
+          "handbookPage": 96
+        }
+      ]
+    },
+    {
+      "academicUnit": "휴먼케어평생교육학과(야)",
+      "status": "AVAILABLE",
+      "manualReviewReason": null,
+      "handbookPages": [
+        98
+      ],
+      "courses": []
+    },
+    {
+      "academicUnit": "사회복지상담학과(야)",
+      "status": "AVAILABLE",
+      "manualReviewReason": null,
+      "handbookPages": [
+        99
+      ],
+      "courses": []
+    },
+    {
+      "academicUnit": "드론산업학과(야)",
+      "status": "AVAILABLE",
+      "manualReviewReason": null,
+      "handbookPages": [
+        100
+      ],
+      "courses": []
+    },
+    {
+      "academicUnit": "한국학과",
+      "status": "AVAILABLE",
+      "manualReviewReason": null,
+      "handbookPages": [
+        102
+      ],
+      "courses": []
+    },
+    {
+      "academicUnit": "국제경영학과",
+      "status": "AVAILABLE",
+      "manualReviewReason": null,
+      "handbookPages": [
+        103
+      ],
+      "courses": []
+    }
+  ]
+}

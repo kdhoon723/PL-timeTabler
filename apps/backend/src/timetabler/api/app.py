@@ -11,7 +11,9 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from timetabler import __version__
 from timetabler.api.rate_limit import SlidingWindowRateLimiter
-from timetabler.api.routes import catalog, health, optimizations
+from timetabler.api.routes import auth, catalog, health, optimizations
+from timetabler.auth.mailer import OtpMailer, build_otp_mailer
+from timetabler.auth.service import AuthService
 from timetabler.catalog.repository import CatalogRepository
 from timetabler.config import Settings, get_settings
 from timetabler.db.session import Database
@@ -20,11 +22,16 @@ from timetabler.jobs.store import OptimizationJobStore
 logger = logging.getLogger("timetabler.api")
 
 
-def create_app(settings: Settings | None = None) -> FastAPI:
+def create_app(
+    settings: Settings | None = None,
+    *,
+    otp_mailer: OtpMailer | None = None,
+) -> FastAPI:
     resolved = settings or get_settings()
 
     @asynccontextmanager
     async def lifespan(app: FastAPI) -> AsyncIterator[None]:
+        resolved.validate_auth_configuration(external_mailer=otp_mailer is not None)
         catalog_repository = CatalogRepository(
             resolved.data_root,
             validate_checksums=resolved.catalog_validate_checksums,
@@ -40,6 +47,11 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         app.state.optimization_rate_limiter = SlidingWindowRateLimiter(
             limit=resolved.optimization_rate_limit_requests,
             window_seconds=resolved.optimization_rate_limit_window_seconds,
+        )
+        app.state.auth_service = AuthService(
+            database.session_factory,
+            resolved,
+            otp_mailer or build_otp_mailer(resolved),
         )
         try:
             yield
@@ -69,6 +81,11 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         started = time.monotonic()
         response = await call_next(request)
         response.headers["X-Request-ID"] = request_id
+        if request.url.path.startswith("/api/v1/auth/"):
+            response.headers["Cache-Control"] = "no-store, private"
+            response.headers["Pragma"] = "no-cache"
+            vary = response.headers.get("Vary")
+            response.headers["Vary"] = f"{vary}, Cookie" if vary else "Cookie"
         logger.info(
             "request completed method=%s path=%s status=%s duration_ms=%.2f request_id=%s",
             request.method,
@@ -80,6 +97,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         return response
 
     app.include_router(health.router, prefix="/api/v1")
+    app.include_router(auth.router, prefix="/api/v1")
     app.include_router(catalog.router, prefix="/api/v1")
     app.include_router(optimizations.router, prefix="/api/v1")
     return app

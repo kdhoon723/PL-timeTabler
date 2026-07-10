@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { emptyDraft } from '../state/draft'
 import type { Section } from '../types'
-import { createOptimizationJob } from './client'
+import { createOptimizationJob, startEmailOtp } from './client'
 
 afterEach(() => vi.unstubAllGlobals())
 
@@ -28,5 +28,20 @@ describe('optimizer API request mapping', () => {
     const body = JSON.parse(String((fetchMock.mock.calls[0]?.[1] as RequestInit).body)) as Record<string, unknown>
     expect(body).toMatchObject({ targetCredits: 6, lockedSectionIds: ['A-1'] })
     expect(body.preferences).toMatchObject({ gapWeightPercent: 90, minimizeChanges: false })
+  })
+})
+
+describe('school email auth request mapping', () => {
+  it('sends only the numeric student number and keeps the session cookie same-origin', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(new Response(JSON.stringify({ message: 'accepted' }), { status: 202, headers: { 'Content-Type': 'application/json' } }))
+    vi.stubGlobal('fetch', fetchMock)
+
+    await startEmailOtp('20260001')
+
+    expect(fetchMock).toHaveBeenCalledWith('/api/v1/auth/otp/start', expect.objectContaining({
+      method: 'POST',
+      credentials: 'same-origin',
+      body: JSON.stringify({ studentNumber: '20260001' }),
+    }))
   })
 })

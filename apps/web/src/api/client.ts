@@ -1,11 +1,19 @@
 import { timeToMinutes } from '../domain/time'
-import type { Catalog, CommonRules, DepartmentSources, DraftSnapshot, OptimizationJob, Section } from '../types'
+import type { AuthSession, Catalog, CommonRules, DepartmentSources, DraftSnapshot, MajorRequiredCourses, OptimizationJob, Section } from '../types'
 
 const CATALOG_CACHE_KEY = 'pl-timetabler:catalog:v1'
 
 async function jsonFetch<T>(url: string, init?: RequestInit): Promise<T> {
-  const response = await fetch(url, { ...init, headers: { 'Content-Type': 'application/json', ...init?.headers } })
-  if (!response.ok) throw new Error(`${response.status} ${response.statusText}`)
+  const response = await fetch(url, { credentials: 'same-origin', ...init, headers: { 'Content-Type': 'application/json', ...init?.headers } })
+  if (!response.ok) {
+    let detail = `${response.status} ${response.statusText}`
+    try {
+      const body = await response.json() as { detail?: string }
+      if (typeof body.detail === 'string') detail = body.detail
+    } catch { /* keep the HTTP status */ }
+    throw new Error(detail)
+  }
+  if (response.status === 204) return undefined as T
   return response.json() as Promise<T>
 }
 
@@ -96,6 +104,26 @@ export async function loadCommonRules(): Promise<CommonRules> {
 
 export function loadDepartmentSources(): Promise<DepartmentSources> {
   return jsonFetch<DepartmentSources>('/data/department-sources-2026.json')
+}
+
+export function loadMajorRequiredCourses(): Promise<MajorRequiredCourses> {
+  return jsonFetch<MajorRequiredCourses>('/data/major-required-courses-2026.json')
+}
+
+export function loadAuthSession(): Promise<AuthSession> {
+  return jsonFetch<AuthSession>('/api/v1/auth/session')
+}
+
+export function startEmailOtp(studentNumber: string): Promise<{ message: string }> {
+  return jsonFetch('/api/v1/auth/otp/start', { method: 'POST', body: JSON.stringify({ studentNumber }) })
+}
+
+export function verifyEmailOtp(studentNumber: string, code: string): Promise<AuthSession> {
+  return jsonFetch('/api/v1/auth/otp/verify', { method: 'POST', body: JSON.stringify({ studentNumber, code }) })
+}
+
+export function logoutAuthSession(): Promise<void> {
+  return jsonFetch('/api/v1/auth/logout', { method: 'POST' })
 }
 
 export async function createOptimizationJob(draft: DraftSnapshot, sections: readonly Section[]): Promise<OptimizationJob> {

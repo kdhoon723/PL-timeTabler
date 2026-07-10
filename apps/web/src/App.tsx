@@ -1,18 +1,22 @@
 import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from 'react'
-import { loadCatalog } from './api/client'
+import { loadAuthSession, loadCatalog, loadCommonRules, loadDepartmentSources, loadMajorRequiredCourses } from './api/client'
 import { findAlternatives, findConflicts } from './domain/conflicts'
 import { computeMetrics } from './domain/metrics'
 import { encodeDraft } from './domain/share'
 import { exportTimetablePng } from './domain/exportImage'
+import { completeOnboardingWithoutProfile, hasCompletedOnboarding, loadAcademicProfile, saveAcademicProfile } from './domain/profile'
 import { draftReducer, itemsWithAppliedBackup, itemsWithCourseRole, loadSavedDraft, planItemsForCandidate } from './state/draft'
-import type { Candidate, CourseRole, Section } from './types'
+import type { AcademicProfile, AuthSession, Candidate, CommonRules, CourseRole, DepartmentSource, MajorRequiredCourses, Section } from './types'
 import { AppHeader } from './components/AppHeader'
+import { AuthSheet } from './components/AuthSheet'
 import { ConflictNotice } from './components/ConflictNotice'
 import { CourseSearchSheet } from './components/CourseSearchSheet'
+import { Onboarding } from './components/Onboarding'
 import { OptimizerPanel } from './components/OptimizerPanel'
 import { PlusIcon, SlidersIcon } from './components/Icons'
 import { PreferencesPanel } from './components/PreferencesPanel'
 import { RegistrationChecklist } from './components/RegistrationChecklist'
+import { RequiredCoursePanel } from './components/RequiredCoursePanel'
 import { RequirementsPage } from './components/RequirementsPage'
 import { SectionDetailSheet } from './components/SectionDetailSheet'
 import { SelectedCourseList } from './components/SelectedCourseList'
@@ -29,6 +33,14 @@ export default function App() {
   const [showTools, setShowTools] = useState(false)
   const [route, setRoute] = useState(location.pathname)
   const [toast, setToast] = useState<string | null>(null)
+  const [profile, setProfile] = useState<AcademicProfile | null>(() => loadAcademicProfile())
+  const [onboardingOpen, setOnboardingOpen] = useState(() => !hasCompletedOnboarding() && !new URLSearchParams(location.search).has('plan'))
+  const [profileEditorOpen, setProfileEditorOpen] = useState(false)
+  const [authOpen, setAuthOpen] = useState(false)
+  const [authSession, setAuthSession] = useState<AuthSession>({ available: false, authenticated: false, studentNumber: null, expiresAt: null })
+  const [commonRules, setCommonRules] = useState<CommonRules | null>(null)
+  const [departments, setDepartments] = useState<DepartmentSource[]>([])
+  const [majorRequired, setMajorRequired] = useState<MajorRequiredCourses | null>(null)
   const presentRef = useRef(state.present)
   presentRef.current = state.present
 
@@ -58,6 +70,12 @@ export default function App() {
 
   useEffect(() => { fetchCatalog() }, []) // initial catalog load only
   useEffect(() => {
+    loadAuthSession().then(setAuthSession).catch(() => { /* guest mode remains available */ })
+    loadCommonRules().then(setCommonRules).catch(() => { /* requirements UI shows its fallback state */ })
+    loadDepartmentSources().then((value) => setDepartments(value.departments)).catch(() => { /* profile can be edited after a retry/reload */ })
+    loadMajorRequiredCourses().then(setMajorRequired).catch(() => { /* never guess major-required courses */ })
+  }, [])
+  useEffect(() => {
     try { localStorage.setItem('pl-timetabler:draft:v1', JSON.stringify(state.present)) } catch { setToast('브라우저 저장 공간이 부족해 자동 저장하지 못했습니다.') }
   }, [state.present])
   useEffect(() => {
@@ -75,8 +93,11 @@ export default function App() {
       return
     }
     const sameCourse = state.present.items.find((item) => sectionById.get(item.sectionId)?.courseCode === section.courseCode && item.role !== 'backup' && item.role !== 'exclude')
-    if (sameCourse && role !== 'backup' && role !== 'exclude') dispatch({ type: 'SWAP', fromId: sameCourse.sectionId, toId: section.id })
-    else dispatch({ type: 'ADD', item: { sectionId: section.id, role, locked: false } })
+    if (sameCourse && role !== 'backup' && role !== 'exclude') {
+      dispatch({ type: 'ITEMS', items: state.present.items.map((item) => item.sectionId === sameCourse.sectionId ? { ...item, sectionId: section.id, role: role === 'must' || item.role === 'must' ? 'must' : item.role } : item) })
+    } else if (state.present.items.some((item) => item.sectionId === section.id)) {
+      dispatch({ type: 'ITEMS', items: itemsWithCourseRole(section.id, role, state.present.items, sectionById) })
+    } else dispatch({ type: 'ADD', item: { sectionId: section.id, role, locked: false } })
     setToast(`${section.name} ${section.sectionCode}분반을 추가했습니다.`)
   }
   const removeSection = () => {
@@ -100,15 +121,24 @@ export default function App() {
   }
   const exportImage = () => exportTimetablePng(activeSections, state.present.semester)
 
-  if (route === '/requirements') return <><RequirementsPage catalog={catalog} onBack={() => navigate('/')} onAddCourse={(section) => { addSection(section, 'must'); navigate('/') }} /><Toast message={toast} onClose={() => setToast(null)} /></>
+  const completeProfile = (next: AcademicProfile) => {
+    try { saveAcademicProfile(next) } catch { setToast('학적 정보를 브라우저에 저장하지 못했습니다.') }
+    setProfile(next); setOnboardingOpen(false); setProfileEditorOpen(false); setToast(`${next.department} 기준을 적용했습니다.`)
+  }
+  const skipOnboarding = () => {
+    try { completeOnboardingWithoutProfile() } catch { /* the current visit can still continue */ }
+    setOnboardingOpen(false)
+  }
+
+  if (route === '/requirements') return <><RequirementsPage catalog={catalog} profile={profile} onBack={() => navigate('/')} onAddCourse={(section) => { addSection(section, 'must'); navigate('/') }} /><Toast message={toast} onClose={() => setToast(null)} /></>
 
   return <div className="app-shell">
-    <AppHeader credits={metrics.credits} canUndo={!!state.past.length} canRedo={!!state.future.length} onUndo={() => dispatch({ type: 'UNDO' })} onRedo={() => dispatch({ type: 'REDO' })} onShare={share} onNavigate={navigate} />
+    <AppHeader credits={metrics.credits} profile={profile} authSession={authSession} canUndo={!!state.past.length} canRedo={!!state.future.length} onUndo={() => dispatch({ type: 'UNDO' })} onRedo={() => dispatch({ type: 'REDO' })} onShare={share} onNavigate={navigate} onProfile={() => setProfileEditorOpen(true)} onAccount={() => setAuthOpen(true)} />
     {catalogError && <div className="global-error" role="alert"><span>{catalogError}</span><button type="button" onClick={fetchCatalog}>다시 시도</button></div>}
     {catalogMeta && <div className="data-status"><span>{catalogMeta.offline ? '저장된 데이터 사용 중' : '최신 데이터 연결됨'}</span><span>2026-1 · {catalogMeta.updatedAt} 기준</span></div>}
     <main className="editor-layout">
       <aside className="desktop-search"><button type="button" className="primary-button full-button" onClick={() => setSearchOpen(true)}><PlusIcon />과목 추가</button><SelectedCourseList items={state.present.items} sectionById={sectionById} onSelect={(section) => setSelectedId(section.id)} /></aside>
-      <div className="editor-main"><ConflictNotice conflicts={conflicts} onOpen={setSelectedId} /><TimetableGrid sections={activeSections} conflicts={conflicts} lockedIds={new Set(state.present.items.filter((item) => item.locked).map((item) => item.sectionId))} onSelect={(section) => setSelectedId(section.id)} />
+      <div className="editor-main"><RequiredCoursePanel profile={profile} rules={commonRules} majorRequired={majorRequired} catalog={catalog} items={state.present.items} sectionById={sectionById} onEditProfile={() => setProfileEditorOpen(true)} onAddRequired={(section) => addSection(section, 'must')} /><ConflictNotice conflicts={conflicts} onOpen={setSelectedId} /><TimetableGrid sections={activeSections} conflicts={conflicts} lockedIds={new Set(state.present.items.filter((item) => item.locked).map((item) => item.sectionId))} onSelect={(section) => setSelectedId(section.id)} />
         <div className="mobile-summary"><SelectedCourseList items={state.present.items} sectionById={sectionById} onSelect={(section) => setSelectedId(section.id)} /></div>
       </div>
       <aside className={`tools-panel ${showTools ? 'mobile-open' : ''}`}><div className="mobile-tools-header"><h2>자동 생성과 준비</h2><button type="button" onClick={() => setShowTools(false)}>닫기</button></div><PreferencesPanel preferences={state.present.preferences} onChange={(preferences) => dispatch({ type: 'PREFERENCES', preferences })} /><OptimizerPanel draft={state.present} sections={catalog} onApply={applyCandidate} /><RegistrationChecklist items={state.present.items} sectionById={sectionById} onApplyBackup={applyBackup} onMessage={setToast} /><section className="export-panel"><h2>내보내기</h2><div><button type="button" className="secondary-button" onClick={exportImage}>PNG 저장</button><button type="button" className="secondary-button" onClick={() => print()}>인쇄·PDF</button></div></section><p className="source-copy">대진대학교 공개 개설과목 · 데이터 {catalogMeta?.version.slice(0, 12) ?? '확인 중'}</p></aside>
@@ -116,6 +146,8 @@ export default function App() {
     <div className="mobile-action-bar"><button type="button" className="secondary-button" onClick={() => setShowTools(true)}><SlidersIcon />자동 생성</button><button type="button" className="primary-button" onClick={() => setSearchOpen(true)}><PlusIcon />과목 추가</button></div>
     <CourseSearchSheet open={searchOpen} sections={catalog} items={state.present.items} onClose={() => setSearchOpen(false)} onAdd={addSection} />
     <SectionDetailSheet section={selectedSection} role={selectedItem?.role ?? 'want'} locked={selectedItem?.locked ?? false} alternatives={alternatives} onClose={() => setSelectedId(null)} onRole={(role) => selectedSection && dispatch({ type: 'ITEMS', items: itemsWithCourseRole(selectedSection.id, role, state.present.items, sectionById) })} onLock={() => selectedSection && dispatch({ type: 'PATCH_ITEM', sectionId: selectedSection.id, patch: { locked: !selectedItem?.locked } })} onRemove={removeSection} onSwap={swapSection} />
+    {(onboardingOpen || profileEditorOpen) && <Onboarding departments={departments} initialProfile={profile} mode={profileEditorOpen ? 'EDIT' : 'FIRST_RUN'} authAvailable={authSession.available} onComplete={completeProfile} onSkip={profileEditorOpen ? () => setProfileEditorOpen(false) : skipOnboarding} onLogin={() => setAuthOpen(true)} />}
+    <AuthSheet open={authOpen} session={authSession} onSession={setAuthSession} onClose={() => setAuthOpen(false)} />
     <Toast message={toast} onClose={() => setToast(null)} onUndo={state.past.length ? () => dispatch({ type: 'UNDO' }) : undefined} />
   </div>
 }

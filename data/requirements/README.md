@@ -13,6 +13,7 @@ requirements/
 └── normalized/
     ├── sources.json
     ├── common-graduation-rules.json
+    ├── major-required-courses-2026.json
     ├── department-source-coverage-2026.csv
     ├── graduation-transition-2026.csv
     ├── graduation-standardized-requirements-2026.csv
@@ -23,6 +24,7 @@ requirements/
 ## 커버리지
 
 - 2026 현재 교육과정 단위: 46/46
+- 2026 편람 전공필수 정규화: 46개 단위 상태를 모두 보존하며, 45개 표 수록 단위 중 전공필수가 있는 31개 단위, 113과목
 - 학과별 개별 교육과정 URL: 44/46, 나머지 2개는 중앙 편람 원문 확보
 - 현재 독립 졸업심사 단위: 44/44
 - 졸업심사 원천의 현재·종전·융합 단위: 66개
@@ -42,6 +44,8 @@ requirements/
 5. 원문 메타데이터가 충돌하면 자동 보정하지 않고 검수 대상으로 둔다.
 6. 공개 자료로 확정할 수 없는 개인별 승인·증빙·포털 판정은 `UNKNOWN`으로 처리한다.
 7. 서비스 문구는 `졸업 확정`이 아니라 `예상 졸업요건 점검`을 사용한다.
+8. `major-required-courses-2026.json`은 편람의 `전필` 병합 셀을 `scripts/extract-major-required.py`로 복원하며, 현재 학기 개설 여부는 별도 카탈로그 코드 일치로 판단한다.
+9. 이 snapshot은 2026 신입학 cohort에만 자동 적용한다. 편입학·다른 입학연도는 `UNKNOWN`으로 남기며, 중앙 편람에 독립 전공표가 없는 `공학자율학부`는 명시적인 `MANUAL_REVIEW` 레코드로 보존한다.
 
 ## 데이터 제한
 

@@ -1,5 +1,5 @@
-const CACHE = 'pl-timetabler-v2'
-const SHELL = ['/', '/manifest.webmanifest', '/icon.svg', '/data/catalog-2026-1.json', '/data/common-graduation-rules.json', '/data/department-sources-2026.json']
+const CACHE = 'pl-timetabler-v3'
+const SHELL = ['/', '/manifest.webmanifest', '/icon.svg', '/data/catalog-2026-1.json', '/data/common-graduation-rules.json', '/data/department-sources-2026.json', '/data/major-required-courses-2026.json']
 
 self.addEventListener('install', (event) => {
   event.waitUntil((async () => {

@@ -1,6 +1,48 @@
 {
   "components": {
     "schemas": {
+      "AuthSessionRead": {
+        "additionalProperties": false,
+        "properties": {
+          "authenticated": {
+            "title": "Authenticated",
+            "type": "boolean"
+          },
+          "available": {
+            "title": "Available",
+            "type": "boolean"
+          },
+          "expiresAt": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expiresat"
+          },
+          "studentNumber": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Studentnumber"
+          }
+        },
+        "required": [
+          "available",
+          "authenticated"
+        ],
+        "title": "AuthSessionRead",
+        "type": "object"
+      },
       "CandidateMetrics": {
         "additionalProperties": false,
         "properties": {
@@ -514,6 +556,62 @@
         "title": "OptimizationResult",
         "type": "object"
       },
+      "OtpStartRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "studentNumber": {
+            "maxLength": 12,
+            "minLength": 6,
+            "pattern": "^\\d{6,12}$",
+            "title": "Studentnumber",
+            "type": "string"
+          }
+        },
+        "required": [
+          "studentNumber"
+        ],
+        "title": "OtpStartRequest",
+        "type": "object"
+      },
+      "OtpStartResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "message": {
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "message"
+        ],
+        "title": "OtpStartResponse",
+        "type": "object"
+      },
+      "OtpVerifyRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "code": {
+            "maxLength": 6,
+            "minLength": 6,
+            "pattern": "^\\d{6}$",
+            "title": "Code",
+            "type": "string"
+          },
+          "studentNumber": {
+            "maxLength": 12,
+            "minLength": 6,
+            "pattern": "^\\d{6,12}$",
+            "title": "Studentnumber",
+            "type": "string"
+          }
+        },
+        "required": [
+          "studentNumber",
+          "code"
+        ],
+        "title": "OtpVerifyRequest",
+        "type": "object"
+      },
       "ReadinessStatus": {
         "additionalProperties": false,
         "properties": {
@@ -784,6 +882,123 @@
   },
   "openapi": "3.1.0",
   "paths": {
+    "/api/v1/auth/logout": {
+      "post": {
+        "operationId": "logout_api_v1_auth_logout_post",
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Logout",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/api/v1/auth/otp/start": {
+      "post": {
+        "operationId": "start_otp_api_v1_auth_otp_start_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OtpStartRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OtpStartResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Start Otp",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/api/v1/auth/otp/verify": {
+      "post": {
+        "operationId": "verify_otp_api_v1_auth_otp_verify_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OtpVerifyRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthSessionRead"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Verify Otp",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/api/v1/auth/session": {
+      "get": {
+        "operationId": "current_session_api_v1_auth_session_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthSessionRead"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Current Session",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
     "/api/v1/catalog/{semester}": {
       "get": {
         "operationId": "catalog_page_api_v1_catalog__semester__get",

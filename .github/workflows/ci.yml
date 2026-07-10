@@ -21,8 +21,8 @@ jobs:
         with:
           python-version: "3.12"
       - run: uv --directory apps/backend sync --frozen
-      - run: uv --directory apps/backend run ruff format --check src tests
-      - run: uv --directory apps/backend run ruff check src tests
+      - run: uv --directory apps/backend run ruff format --check src tests ../../scripts/extract-major-required.py
+      - run: uv --directory apps/backend run ruff check src tests ../../scripts/extract-major-required.py
       - run: uv --directory apps/backend run mypy src
       - run: uv --directory apps/backend run pytest -q
       - run: uv --directory apps/backend run timetabler-validate-data

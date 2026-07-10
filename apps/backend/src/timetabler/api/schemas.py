@@ -19,6 +19,26 @@ class ReadinessStatus(APIModel):
     database: str
 
 
+class OtpStartRequest(APIModel):
+    student_number: str = Field(min_length=6, max_length=12, pattern=r"^\d{6,12}$")
+
+
+class OtpVerifyRequest(APIModel):
+    student_number: str = Field(min_length=6, max_length=12, pattern=r"^\d{6,12}$")
+    code: str = Field(min_length=6, max_length=6, pattern=r"^\d{6}$")
+
+
+class OtpStartResponse(APIModel):
+    message: str
+
+
+class AuthSessionRead(APIModel):
+    available: bool
+    authenticated: bool
+    student_number: str | None = None
+    expires_at: datetime | None = None
+
+
 class OptimizationJobStatus(StrEnum):
     QUEUED = "QUEUED"
     RUNNING = "RUNNING"

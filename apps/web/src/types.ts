@@ -141,3 +141,50 @@ export interface DepartmentSources {
   source: string
   departments: DepartmentSource[]
 }
+
+export type EntryType = 'FRESHMAN' | 'TRANSFER'
+export type SectionGroup = 'ODD' | 'EVEN' | 'UNKNOWN'
+export type StudentClassification = 'DOMESTIC' | 'INTERNATIONAL' | 'UNKNOWN'
+
+export interface AcademicProfile {
+  schemaVersion: 1
+  department: string
+  admissionYear: number
+  currentGrade: 1 | 2 | 3 | 4
+  entryType: EntryType
+  studentType: StudentClassification
+  sectionGroup: SectionGroup
+  updatedAt: string
+}
+
+export interface MajorRequiredCourse {
+  courseCode: string
+  name: string
+  grade: number | null
+  semesters: number[]
+  handbookPage: number
+}
+
+export interface MajorRequiredProgram {
+  academicUnit: string
+  status: 'AVAILABLE' | 'MANUAL_REVIEW'
+  manualReviewReason: string | null
+  handbookPages: number[]
+  courses: MajorRequiredCourse[]
+}
+
+export interface MajorRequiredCourses {
+  schemaVersion: number
+  asOf: string
+  cohortAdmissionYear: number
+  source: string
+  method: string
+  programs: MajorRequiredProgram[]
+}
+
+export interface AuthSession {
+  available: boolean
+  authenticated: boolean
+  studentNumber: string | null
+  expiresAt: string | null
+}

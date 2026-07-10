@@ -129,6 +129,8 @@ db :5432 ──────── PostgreSQL ◀──── optimizer worker + 
 - `POST /optimizations`: 후보과목·고정과목·학점·선호조건으로 작업 생성
 - `GET /optimizations/{id}`: 작업 상태, 후보, 설명 조회
 - `DELETE /optimizations/{id}`: 대기·실행 작업 취소 요청
+- `POST /auth/otp/start`, `POST /auth/otp/verify`: 선택형 학교 이메일 OTP 시작·검증
+- `GET /auth/session`, `POST /auth/logout`: 서버 세션 조회·폐기와 로그인 기능 활성화 상태
 
 졸업요건 출처는 현재 검증된 정적 snapshot으로 배포하고, 시간표 공유는 개인정보를 서버에 남기지 않는 URL payload로 처리한다. 서버 저장형 이수내역·공유가 필요해질 때만 동의·삭제·만료 정책과 함께 `/curricula`, `/shares` API를 추가한다.
 
@@ -164,6 +166,18 @@ FastAPI가 생성한 OpenAPI 3.1 문서를 CI에서 snapshot으로 검증하고 
 - `optimization_candidates`: 선택 분반, 목적함수 구성값, 변경 설명
 
 개인 이수내역은 기본적으로 브라우저에 저장한다. 서버 저장 또는 성적표 가져오기를 추가할 때는 명시적 동의·삭제·암호화 정책을 먼저 정의한다.
+
+### 선택형 인증
+
+- 로그인은 편집기의 hard dependency가 아니며 `auth_enabled=false`일 때 API는 비활성 상태를 명시하고 UI는 로그인 행동을 숨긴다.
+- 서버가 숫자 학번으로 학교 이메일을 생성하므로 클라이언트가 임의 주소를 제출할 수 없다.
+- OTP는 CSPRNG 6자리, HMAC digest 저장, 5분 만료, 5회 실패, 60초 재전송, 계정·IP별 DB 기반 rate limit을 고정한다.
+- cooldown으로 실제 발송되지 않은 요청은 발송 제한량에 포함하지 않는다. OTP 식별 레코드는 24시간, 만료·폐기 세션 식별 레코드는 7일 뒤 인증 요청 시 정리하며 정리용 인덱스를 유지한다.
+- 모든 인증 API 응답은 `Cache-Control: no-store, private`, `Pragma: no-cache`, `Vary: Cookie`로 개인 인증 상태의 캐싱을 막는다.
+- 새 challenge는 이전 미사용 challenge를 폐기하고, 성공한 challenge는 한 번만 소비한다.
+- 세션은 32-byte 이상 opaque token의 HMAC digest만 DB에 저장하고 `__Host-` prefix, `Secure`, `HttpOnly`, `SameSite=Lax`, `Path=/` 쿠키로 전달한다.
+- 운영 활성화에는 32바이트 이상 HMAC secret과 Resend API key·검증된 발신 주소가 모두 필요하다. 이 조건이 없으면 API 시작 시 인증 기능을 켤 수 없다.
+- 학교 이메일 소유 확인은 공식 재학 증명으로 표현하지 않는다.
 
 ## 최적화 모델
 
