@@ -1,61 +1,68 @@
-import type { Catalog, CommonRules, DraftSnapshot, OptimizationJob } from '../types'
+import type { components } from "./schema";
 
-const CATALOG_CACHE_KEY = 'pl-timetabler:catalog:v1'
+export type Semester = components["schemas"]["Semester"];
+export type CatalogPage = components["schemas"]["CatalogPage"];
+export type Section = components["schemas"]["Section"];
+export type Session = components["schemas"]["Session"];
+export type OptimizationCreate = components["schemas"]["OptimizationCreate"];
+export type OptimizationJob = components["schemas"]["OptimizationJobRead"];
+export type OptimizationCandidate = components["schemas"]["OptimizationCandidate"];
 
-async function jsonFetch<T>(url: string, init?: RequestInit): Promise<T> {
-  const response = await fetch(url, { ...init, headers: { 'Content-Type': 'application/json', ...init?.headers } })
-  if (!response.ok) throw new Error(`${response.status} ${response.statusText}`)
-  return response.json() as Promise<T>
-}
+const API_BASE = import.meta.env.VITE_API_BASE_URL ?? "/api/v1";
 
-function isCatalog(value: unknown): value is Catalog {
-  return !!value && typeof value === 'object' && 'sections' in value && Array.isArray(value.sections)
-}
-
-export async function loadCatalog(semester = '2026-1'): Promise<{ catalog: Catalog; offline: boolean }> {
-  for (const url of [`/api/v1/catalog?semester=${encodeURIComponent(semester)}`, `/data/catalog-${semester}.json`]) {
-    try {
-      const catalog = await jsonFetch<Catalog>(url)
-      if (!isCatalog(catalog)) throw new Error('카탈로그 형식이 올바르지 않습니다.')
-      try { localStorage.setItem(CATALOG_CACHE_KEY, JSON.stringify(catalog)) } catch { /* cache is best effort */ }
-      return { catalog, offline: url.startsWith('/data/') }
-    } catch { /* use next source */ }
+export class ApiError extends Error {
+  constructor(
+    message: string,
+    readonly status: number,
+  ) {
+    super(message);
   }
-  try {
-    const cached: unknown = JSON.parse(localStorage.getItem(CATALOG_CACHE_KEY) ?? 'null')
-    if (isCatalog(cached)) return { catalog: cached, offline: true }
-  } catch { /* no usable cache */ }
-  throw new Error('강의 데이터를 불러오지 못했습니다. 네트워크를 확인한 뒤 다시 시도해 주세요.')
 }
 
-export async function loadCommonRules(): Promise<CommonRules> {
-  try { return await jsonFetch<CommonRules>('/api/v1/requirements/common') }
-  catch { return jsonFetch<CommonRules>('/data/common-graduation-rules.json') }
+async function request<T>(path: string, init?: RequestInit): Promise<T> {
+  const response = await fetch(`${API_BASE}${path}`, {
+    ...init,
+    headers: {
+      Accept: "application/json",
+      ...(init?.body ? { "Content-Type": "application/json" } : {}),
+      ...init?.headers,
+    },
+  });
+  if (!response.ok) {
+    let detail = `요청을 완료하지 못했습니다. (${response.status})`;
+    try {
+      const payload = (await response.json()) as { detail?: unknown };
+      if (typeof payload.detail === "string") detail = payload.detail;
+    } catch {
+      // The status code remains the reliable fallback when an upstream proxy returns HTML.
+    }
+    throw new ApiError(detail, response.status);
+  }
+  return (await response.json()) as T;
 }
 
-export async function createOptimizationJob(draft: DraftSnapshot): Promise<OptimizationJob> {
-  const raw = await jsonFetch<unknown>('/api/v1/optimizations', { method: 'POST', body: JSON.stringify({
-    semester: draft.semester,
-    dataVersion: draft.dataVersion,
-    items: draft.items,
-    preferences: draft.preferences,
-    candidateCount: 3,
-    seed: 42,
-  }) })
-  return normalizeJob(raw)
+export function fetchSemesters(signal?: AbortSignal): Promise<Semester[]> {
+  return request<Semester[]>("/semesters", { signal });
 }
 
-export async function getOptimizationJob(id: string): Promise<OptimizationJob> {
-  return normalizeJob(await jsonFetch<unknown>(`/api/v1/optimizations/${encodeURIComponent(id)}`))
+export function fetchCatalog(semester: string, signal?: AbortSignal): Promise<CatalogPage> {
+  return request<CatalogPage>(`/catalog/${encodeURIComponent(semester)}?limit=2000`, { signal });
 }
 
-function normalizeJob(raw: unknown): OptimizationJob {
-  const value = raw as { id: string; status: string; result?: { candidates?: Array<Record<string, unknown>>; reasons?: string[] }; errorMessage?: string }
-  const result = value.result
-  const status = value.status === 'OPTIMAL' || value.status === 'FEASIBLE' ? 'SUCCEEDED' : value.status as OptimizationJob['status']
-  return { id: value.id, status, candidates: (result?.candidates ?? []).map((c) => { const metrics = (c.metrics ?? {}) as Record<string, number>; return { id: `${value.id}-${c.rank}`, rank: c.rank as number, status: 'OPTIMAL', sectionIds: (c.sectionIds ?? []) as string[], score: ((c.scoreComponents as Record<string, number> | undefined)?.weighted ?? 0), reasons: (c.explanation ?? []) as string[], unmetPreferences: (c.unmetPreferences ?? []) as string[], metrics: { credits: metrics.totalCredits ?? 0, campusDays: metrics.campusDays ?? 0, totalGapMinutes: metrics.gapMinutes ?? 0, earliest: null, latest: null, dailyMinutes: {} } } }), relaxationSuggestions: result?.reasons ?? [], message: value.errorMessage }
+export function createOptimization(input: OptimizationCreate): Promise<OptimizationJob> {
+  return request<OptimizationJob>("/optimizations", {
+    method: "POST",
+    body: JSON.stringify(input),
+  });
 }
 
-export async function cancelOptimizationJob(id: string): Promise<void> {
-  await jsonFetch(`/api/v1/optimization-jobs/${encodeURIComponent(id)}`, { method: 'DELETE' })
+export function fetchOptimization(jobId: string): Promise<OptimizationJob> {
+  return request<OptimizationJob>(`/optimizations/${encodeURIComponent(jobId)}`);
 }
+
+export function cancelOptimization(jobId: string): Promise<OptimizationJob> {
+  return request<OptimizationJob>(`/optimizations/${encodeURIComponent(jobId)}`, {
+    method: "DELETE",
+  });
+}
+

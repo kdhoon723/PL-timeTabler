@@ -1,52 +1,120 @@
-import { useEffect, useState } from 'react'
-import { cancelOptimizationJob, createOptimizationJob, getOptimizationJob } from '../api/client'
-import type { Candidate, DraftSnapshot, OptimizationJob } from '../types'
-import { CheckIcon, SlidersIcon } from './Icons'
+import { useState } from "react";
 
-interface Props { draft: DraftSnapshot; onApply: (candidate: Candidate) => void }
-const DONE = new Set(['SUCCEEDED', 'INFEASIBLE', 'TIME_LIMIT', 'CANCELLED', 'FAILED'])
+import {
+  createOptimization,
+  fetchOptimization,
+  type OptimizationJob,
+  type Section,
+} from "../api/client";
+import { summarizeTimetable } from "../domain/timetable";
 
-export function OptimizerPanel({ draft, onApply }: Props) {
-  const [job, setJob] = useState<OptimizationJob | null>(null)
-  const [busy, setBusy] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+const TERMINAL = new Set(["OPTIMAL", "FEASIBLE", "INFEASIBLE", "TIME_LIMIT", "FAILED", "CANCELLED"]);
 
-  useEffect(() => {
-    if (!job || DONE.has(job.status)) return
-    const timer = window.setTimeout(async () => {
-      try { setJob(await getOptimizationJob(job.id)) }
-      catch { setError('자동 생성 상태를 확인하지 못했습니다. 잠시 후 다시 시도해 주세요.') }
-    }, 900)
-    return () => window.clearTimeout(timer)
-  }, [job])
+interface OptimizerPanelProps {
+  semester: string;
+  datasetVersion: string;
+  selected: readonly Section[];
+  lockedIds: ReadonlySet<string>;
+  onApply: (ids: readonly string[]) => void;
+}
+
+function wait(milliseconds: number): Promise<void> {
+  return new Promise((resolve) => window.setTimeout(resolve, milliseconds));
+}
+
+export function OptimizerPanel({
+  semester,
+  datasetVersion,
+  selected,
+  lockedIds,
+  onApply,
+}: OptimizerPanelProps) {
+  const [job, setJob] = useState<OptimizationJob | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+  const summary = summarizeTimetable(selected);
 
   const generate = async () => {
-    setBusy(true); setError(null)
-    try { setJob(await createOptimizationJob(draft)) }
-    catch { setError('자동 생성 서버에 연결하지 못했습니다. 수동 편집 내용은 그대로 보존됩니다.') }
-    finally { setBusy(false) }
-  }
-  const cancel = async () => {
-    if (!job) return
-    try { await cancelOptimizationJob(job.id); setJob({ ...job, status: 'CANCELLED' }) } catch { setError('취소 요청을 처리하지 못했습니다.') }
-  }
+    if (selected.length === 0) return;
+    setSubmitting(true);
+    setError(null);
+    try {
+      const required = selected
+        .filter((section) => lockedIds.has(section.id))
+        .map((section) => section.courseCode);
+      const candidates = selected
+        .filter((section) => !lockedIds.has(section.id))
+        .map((section) => section.courseCode);
+      let current = await createOptimization({
+        semester,
+        datasetVersion,
+        requiredCourseCodes: required,
+        candidateCourseCodes: candidates,
+        excludedCourseCodes: [],
+        lockedSectionIds: [...lockedIds],
+        selectedSectionIds: selected.map((section) => section.id),
+        minCredits: Math.max(0, summary.credits - 3),
+        maxCredits: Math.min(30, summary.credits + 3),
+        preferences: {
+          preferredDaysOff: [],
+          minimizeCampusDays: true,
+          minimizeGapMinutes: true,
+        },
+        candidateCount: 3,
+        seed: 0,
+        timeLimitSeconds: 3,
+      });
+      setJob(current);
+      for (let attempt = 0; attempt < 20 && !TERMINAL.has(current.status); attempt += 1) {
+        await wait(800);
+        current = await fetchOptimization(current.id);
+        setJob(current);
+      }
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : "자동 생성을 시작하지 못했습니다.");
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
-  return <section className="optimizer-panel" aria-labelledby="optimizer-title">
-    <div className="section-heading"><div><h2 id="optimizer-title">조건에 맞는 시간표</h2><p>잠근 분반과 필수 과목을 유지해 서로 다른 후보를 만듭니다.</p></div></div>
-    {!job && <button type="button" className="primary-button full-button" onClick={generate} disabled={busy}><SlidersIcon />{busy ? '요청 중…' : '시간표 3개 만들기'}</button>}
-    {job && !DONE.has(job.status) && <div className="job-status" role="status"><span className="spinner" aria-hidden="true"/><div><strong>{job.status === 'QUEUED' ? '대기 중' : '후보 생성 중'}</strong><p>가짜 진행률 없이 실제 작업 상태만 표시합니다.</p></div><button type="button" onClick={cancel}>취소</button></div>}
-    {error && <div className="inline-error" role="alert">{error}</div>}
-    {job?.status === 'INFEASIBLE' && <div className="infeasible" role="alert"><strong>모든 조건을 동시에 만족하는 시간표가 없습니다.</strong><ul>{job.relaxationSuggestions.map((suggestion) => <li key={suggestion}>{suggestion}</li>)}</ul><button type="button" className="secondary-button" onClick={generate}>조건을 바꾼 뒤 다시 생성</button></div>}
-    {job?.status === 'TIME_LIMIT' && !job.candidates.length && <div className="inline-error">제한 시간 안에 후보를 찾지 못했습니다. 후보 과목 수를 줄이거나 조건을 완화해 주세요.</div>}
-    {!!job?.candidates.length && <div className="candidate-list" aria-label="자동 생성 후보">
-      {job.candidates.slice(0, 3).map((candidate, index) => <article className="candidate" key={candidate.id}>
-        <div className="candidate-heading"><div><span>후보 {index + 1}</span><h3>{candidate.metrics.campusDays}일 등교 · {candidate.metrics.credits}학점</h3></div><strong>{candidate.metrics.totalGapMinutes}분 공강</strong></div>
-        <dl><div><dt>첫 수업</dt><dd>{candidate.metrics.earliest ?? '없음'}</dd></div><div><dt>마지막 수업</dt><dd>{candidate.metrics.latest ?? '없음'}</dd></div></dl>
-        <ul className="reason-list">{candidate.reasons.slice(0, 3).map((reason) => <li key={reason}><CheckIcon />{reason}</li>)}</ul>
-        {!!candidate.unmetPreferences.length && <p className="unmet">미반영: {candidate.unmetPreferences.join(', ')}</p>}
-        <button type="button" className={index === 0 ? 'primary-button' : 'secondary-button'} onClick={() => onApply(candidate)}>이 후보 적용</button>
-      </article>)}
-    </div>}
-    {job && DONE.has(job.status) && <button type="button" className="text-button" onClick={generate}>새 조건으로 다시 만들기</button>}
-  </section>
+  return (
+    <section className="optimizer-panel" aria-labelledby="optimizer-heading">
+      <div className="section-heading-row">
+        <div>
+          <h2 id="optimizer-heading">현재 과목의 분반 개선</h2>
+          <p>잠근 분반은 유지하고 공강일과 빈 시간을 줄인 후보를 만듭니다.</p>
+        </div>
+        <button
+          className="secondary-button"
+          type="button"
+          disabled={selected.length === 0 || submitting}
+          onClick={() => void generate()}
+        >
+          {submitting ? "후보 생성 중" : "분반 후보 만들기"}
+        </button>
+      </div>
+      {error && <p className="inline-error" role="alert">{error}</p>}
+      {job && !TERMINAL.has(job.status) && <p className="job-status" aria-live="polite">작업 상태: {job.status}</p>}
+      {job?.result?.reasons.map((reason) => <p className="inline-error" key={reason}>{reason}</p>)}
+      {job?.result?.candidates && job.result.candidates.length > 0 && (
+        <ol className="candidate-list">
+          {job.result.candidates.map((candidate) => (
+            <li key={candidate.rank}>
+              <div>
+                <strong>{candidate.rank}안</strong>
+                <span>
+                  {candidate.metrics.totalCredits}학점 · 등교 {candidate.metrics.campusDays}일 · 빈 시간 {candidate.metrics.gapMinutes}분
+                </span>
+                {candidate.explanation.map((line) => <span key={line}>{line}</span>)}
+              </div>
+              <button className="primary-button" type="button" onClick={() => onApply(candidate.sectionIds)}>
+                이 후보 적용
+              </button>
+            </li>
+          ))}
+        </ol>
+      )}
+    </section>
+  );
 }
+
