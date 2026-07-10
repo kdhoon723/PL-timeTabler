@@ -1,15 +1,23 @@
-import { defineConfig, devices } from '@playwright/test'
+import { defineConfig, devices } from "@playwright/test";
 
 export default defineConfig({
-  testDir: '.',
-  testMatch: '**/*.spec.ts',
+  testDir: ".",
   fullyParallel: true,
   forbidOnly: true,
-  retries: 1,
-  reporter: [['list']],
-  use: { baseURL: process.env.PLAYWRIGHT_BASE_URL ?? 'http://127.0.0.1:4173', trace: 'retain-on-failure' },
+  retries: 0,
+  reporter: "list",
+  use: {
+    baseURL: "http://127.0.0.1:4173",
+    trace: "retain-on-failure",
+  },
+  webServer: {
+    command: "npm run dev -- --host 127.0.0.1 --port 4173",
+    cwd: "apps/web",
+    url: "http://127.0.0.1:4173",
+    reuseExistingServer: false,
+  },
   projects: [
-    { name: 'mobile-chromium', use: { ...devices['Pixel 5'] } },
-    { name: 'desktop-chromium', use: { ...devices['Desktop Chrome'] } },
+    { name: "mobile-chromium", use: { ...devices["Pixel 7"] } },
+    { name: "desktop-chromium", use: { ...devices["Desktop Chrome"] } },
   ],
-})
+});
