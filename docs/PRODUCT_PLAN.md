@@ -1,5 +1,7 @@
 # PL-timeTabler 제품 완성형 실행 계획
 
+> 구현 시작 판단, OR-Tools 대안·검증 게이트, P0/P1/P2 기능 우선순위는 [`IMPLEMENTATION_READINESS.md`](IMPLEMENTATION_READINESS.md)를 기준으로 한다.
+
 ## 1. 제품 정의
 
 ### 확정 방향

@@ -30,6 +30,7 @@
 - [`DESIGN.md`](DESIGN.md) — 모바일 우선 제품·UI/UX 설계 계약
 - [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — React·FastAPI·OR-Tools·PostgreSQL·Docker Compose 아키텍처
 - [`docs/PRODUCT_PLAN.md`](docs/PRODUCT_PLAN.md) — 완성형 제품 구현 단계와 출시 기준
+- [`docs/IMPLEMENTATION_READINESS.md`](docs/IMPLEMENTATION_READINESS.md) — 구현 시작 판단, OR-Tools 검증 게이트, 실용 기능 우선순위
 - [`docs/research/DAEJIN_GRADUATION_RULES.md`](docs/research/DAEJIN_GRADUATION_RULES.md) — 대진대 공통·학과별 졸업요건 공식 출처와 자동 판정 경계
 
 ## 다음 단계
