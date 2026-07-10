@@ -22,6 +22,11 @@
 
 데이터 구성과 출처는 [`data/README.md`](data/README.md)를 참고한다.
 
+## 문서
+
+- [`DESIGN.md`](DESIGN.md) — 모바일 우선 제품·UI/UX 설계 계약
+- [`docs/MVP_PLAN.md`](docs/MVP_PLAN.md) — MVP 구현 단계와 수용 기준
+
 ## 다음 단계
 
 1. 과목 데이터 정규화 및 시간 문자열 파서 작성
