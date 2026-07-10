@@ -73,7 +73,8 @@ describe('guided desktop section drag', () => {
 
   it('never makes locked, mobile-width, or candidate-preview blocks draggable', () => {
     const current = section('A-1', '알고리즘')
-    const common = { sections: [current], conflicts: [], onSelect: () => undefined, dragAlternativesById: new Map([[current.id, []]]) }
+    const alternative = { ...section('A-2', '알고리즘'), sectionCode: '02' }
+    const common = { sections: [current], conflicts: [], onSelect: () => undefined, dragAlternativesById: new Map([[current.id, [alternative]]]) }
     const { rerender } = render(<TimetableGrid {...common} lockedIds={new Set([current.id])} dragEnabled onReplace={() => undefined} />)
     expect(screen.getByRole('button', { name: /알고리즘 월/ })).toHaveAttribute('draggable', 'false')
 
@@ -83,7 +84,7 @@ describe('guided desktop section drag', () => {
     rerender(<TimetableGrid {...common} lockedIds={new Set()} dragEnabled previewStatusById={new Map([['A-1', 'kept']])} onReplace={() => undefined} />)
     expect(screen.getByLabelText(/미리보기에서 유지/)).toHaveAttribute('draggable', 'false')
 
-    rerender(<TimetableGrid {...common} lockedIds={new Set()} dragEnabled dragAlternativesById={new Map([[current.id, [{ ...section('A-2', '알고리즘'), sessions: [] }]]])} onReplace={() => undefined} />)
+    rerender(<TimetableGrid {...common} lockedIds={new Set()} dragEnabled dragAlternativesById={new Map([[current.id, [{ ...alternative, sessions: [] }]]])} onReplace={() => undefined} />)
     expect(screen.getByRole('button', { name: /알고리즘 월/ })).toHaveAttribute('draggable', 'false')
   })
 
