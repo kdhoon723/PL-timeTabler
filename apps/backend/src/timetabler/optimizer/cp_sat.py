@@ -19,9 +19,7 @@ from .scoring import build_candidate
 
 try:
     from ortools.sat.python import cp_model
-except (
-    ImportError
-):  # pragma: no cover - exercised only before backend dependencies install
+except ImportError:  # pragma: no cover - exercised only before backend dependencies install
     cp_model = None  # type: ignore[assignment]
 
 
@@ -159,8 +157,7 @@ class CpSatOptimizer:
             )
 
         total_credits = sum(
-            section.credits * variables[section.section_id]
-            for section in request.sections
+            section.credits * variables[section.section_id] for section in request.sections
         )
         model.add(total_credits >= request.min_credits)
         model.add(total_credits <= request.max_credits)
@@ -211,16 +208,13 @@ class CpSatOptimizer:
                 model.add(last == 0).only_enforce_if(selected.Not())
                 first_options.append(first)
                 last_options.append(last)
-                duration_terms.append(
-                    (session.end_minute - session.start_minute) * selected
-                )
+                duration_terms.append((session.end_minute - session.start_minute) * selected)
 
                 if request.preferences.earliest_start_minute is not None:
                     terms.append(
                         max(
                             0,
-                            request.preferences.earliest_start_minute
-                            - session.start_minute,
+                            request.preferences.earliest_start_minute - session.start_minute,
                         )
                         * weights.early_minute
                         * selected
@@ -242,9 +236,9 @@ class CpSatOptimizer:
             model.add_min_equality(first_start, first_options)
             model.add_max_equality(last_end, last_options)
             gap = model.new_int_var(0, 24 * 60, f"day_{day}_gap")
-            model.add(
-                gap == last_end - first_start - sum(duration_terms)
-            ).only_enforce_if(day_active)
+            model.add(gap == last_end - first_start - sum(duration_terms)).only_enforce_if(
+                day_active
+            )
             model.add(gap == 0).only_enforce_if(day_active.Not())
             terms.append(gap * weights.gap_minute)
 
@@ -312,9 +306,7 @@ class CpSatOptimizer:
             both = model.new_bool_var(f"move_{left.section_id}_{right.section_id}")
             model.add(both <= variables[left.section_id])
             model.add(both <= variables[right.section_id])
-            model.add(
-                both >= variables[left.section_id] + variables[right.section_id] - 1
-            )
+            model.add(both >= variables[left.section_id] + variables[right.section_id] - 1)
             terms.append(both * transitions * weight)
         return terms
 
@@ -333,6 +325,5 @@ class CpSatOptimizer:
             for section in request.sections
         ]
         model.add(
-            sum(matching_literals)
-            <= len(request.sections) - request.minimum_candidate_difference
+            sum(matching_literals) <= len(request.sections) - request.minimum_candidate_difference
         )
