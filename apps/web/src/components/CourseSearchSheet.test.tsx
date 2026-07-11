@@ -1,7 +1,7 @@
 import { cleanup, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import type { Section } from '../types'
+import type { AcademicProfile, Section } from '../types'
 import { CourseSearchSheet } from './CourseSearchSheet'
 
 const section = (courseCode: string, sectionCode: string, name: string, day: '월' | '화' | null, start = '09:00'): Section => ({
@@ -28,7 +28,7 @@ afterEach(cleanup)
 
 describe('course search sheet', () => {
   it('renders at most 20 collapsed course rows and expands only one course at a time', async () => {
-    render(<CourseSearchSheet open sections={catalog} items={[]} onClose={() => undefined} onAdd={() => undefined} />)
+    render(<CourseSearchSheet open sections={catalog} items={[]} profile={null} onClose={() => undefined} onAdd={() => undefined} />)
 
     const courseRows = screen.getAllByRole('button', { name: /분반 보기/ })
     expect(courseRows).toHaveLength(20)
@@ -50,7 +50,7 @@ describe('course search sheet', () => {
       { sectionId: '100001-01', role: 'want' as const, locked: false },
       { sectionId: '922601-01', role: 'want' as const, locked: false },
     ]
-    render(<CourseSearchSheet open sections={catalog} items={items} onClose={() => undefined} onAdd={onAdd} />)
+    render(<CourseSearchSheet open sections={catalog} items={items} profile={null} onClose={() => undefined} onAdd={onAdd} />)
 
     const input = screen.getByRole('textbox', { name: '과목명, 교수, 과목코드 검색' })
     await userEvent.type(input, 'AI시대')
@@ -65,9 +65,28 @@ describe('course search sheet', () => {
 
   it('marks a section that overlaps the current timetable as a conflict', async () => {
     const occupied = section('200001', '01', '기존과목', '화', '11:30')
-    render(<CourseSearchSheet open sections={[...catalog, occupied]} items={[{ sectionId: occupied.id, role: 'want', locked: false }]} onClose={() => undefined} onAdd={() => undefined} />)
+    render(<CourseSearchSheet open sections={[...catalog, occupied]} items={[{ sectionId: occupied.id, role: 'want', locked: false }]} profile={null} onClose={() => undefined} onAdd={() => undefined} />)
     await userEvent.type(screen.getByRole('textbox', { name: '과목명, 교수, 과목코드 검색' }), 'AI시대')
     await userEvent.click(screen.getByRole('button', { name: /AI시대의컴퓨팅사고.*분반 보기/ }))
     expect(screen.getByRole('button', { name: /01분반.*충돌.*추가/ })).toBeInTheDocument()
+  })
+
+  it('puts the saved department first and provides a one-tap major filter', async () => {
+    const profile: AcademicProfile = { schemaVersion: 1, department: '컴퓨터공학전공', admissionYear: 2026, currentGrade: 1, entryType: 'FRESHMAN', studentType: 'DOMESTIC', sectionGroup: 'UNKNOWN', updatedAt: '2026-07-11T00:00:00Z' }
+    const major = { ...section('350001', '01', '컴퓨터구조', '월'), category: '전공(AI융합대학/컴퓨터공학전공)' }
+    render(<CourseSearchSheet open sections={[...catalog, major]} items={[]} profile={profile} onClose={() => undefined} onAdd={() => undefined} />)
+
+    const shortcut = screen.getByRole('button', { name: /내 전공.*컴퓨터공학전공.*1개 분반/ })
+    const category = screen.getByRole('combobox', { name: '이수구분' })
+    expect(within(category).getAllByRole('option').slice(0, 2).map((option) => option.textContent)).toEqual(['전체', '내 전공 · 컴퓨터공학전공'])
+
+    await userEvent.click(shortcut)
+    expect(shortcut).toHaveAttribute('aria-pressed', 'true')
+    expect(category).toHaveValue('전공(AI융합대학/컴퓨터공학전공)')
+    expect(screen.getAllByRole('button', { name: /분반 보기/ })).toHaveLength(1)
+    expect(screen.getByRole('button', { name: /컴퓨터구조.*분반 보기/ })).toBeInTheDocument()
+
+    await userEvent.click(shortcut)
+    expect(category).toHaveValue('전체')
   })
 })

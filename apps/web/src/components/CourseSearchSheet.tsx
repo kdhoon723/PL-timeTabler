@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import type { Day, PlanItem, Section } from '../types'
+import type { AcademicProfile, Day, PlanItem, Section } from '../types'
 import { canPlace } from '../domain/conflicts'
 import { recommendedSection } from '../domain/requiredCourse'
 import { formatSession } from '../domain/time'
@@ -9,18 +9,41 @@ interface Props {
   open: boolean
   sections: Section[]
   items: PlanItem[]
+  profile: AcademicProfile | null
   onClose: () => void
   onAdd: (section: Section) => void
 }
 
-export function CourseSearchSheet({ open, sections, items, onClose, onAdd }: Props) {
+function normalizeAcademicUnit(value: string): string {
+  return value.normalize('NFKC').replace(/\([^)]*\)$/u, '').replace(/[\s·∙・,._-]/gu, '').replace(/공통$/u, '')
+}
+
+function academicUnitFromCategory(category: string): string | null {
+  if (!category.startsWith('전공(') || !category.endsWith(')')) return null
+  const slash = category.lastIndexOf('/')
+  return slash < 0 ? null : category.slice(slash + 1, -1)
+}
+
+export function CourseSearchSheet({ open, sections, items, profile, onClose, onAdd }: Props) {
   const dialogRef = useRef<HTMLDialogElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
   const [query, setQuery] = useState('')
   const [category, setCategory] = useState('전체')
   const [day, setDay] = useState<'전체' | Day>('전체')
   const [expandedCourseCode, setExpandedCourseCode] = useState<string | null>(null)
-  const categories = useMemo(() => ['전체', ...Array.from(new Set(sections.map((section) => section.category))).sort((a, b) => a.localeCompare(b, 'ko'))], [sections])
+  const preferredCategory = useMemo(() => {
+    if (!profile) return null
+    const department = normalizeAcademicUnit(profile.department)
+    return Array.from(new Set(sections.map((section) => section.category))).find((value) => {
+      const academicUnit = academicUnitFromCategory(value)
+      return academicUnit ? normalizeAcademicUnit(academicUnit) === department : false
+    }) ?? null
+  }, [profile, sections])
+  const preferredSectionCount = useMemo(() => preferredCategory ? sections.filter((section) => section.category === preferredCategory).length : 0, [preferredCategory, sections])
+  const categories = useMemo(() => {
+    const sorted = Array.from(new Set(sections.map((section) => section.category))).sort((a, b) => a.localeCompare(b, 'ko'))
+    return ['전체', ...(preferredCategory ? [preferredCategory] : []), ...sorted.filter((value) => value !== preferredCategory)]
+  }, [preferredCategory, sections])
   const selectedIds = useMemo(() => new Set(items.map((item) => item.sectionId)), [items])
   const activeSections = useMemo(() => {
     const sectionById = new Map(sections.map((section) => [section.id, section]))
@@ -35,6 +58,10 @@ export function CourseSearchSheet({ open, sections, items, onClose, onAdd }: Pro
       requestAnimationFrame(() => inputRef.current?.focus())
     } else if (!open && dialog.open) dialog.close()
   }, [open])
+
+  useEffect(() => {
+    if (!categories.includes(category)) setCategory('전체')
+  }, [categories, category])
 
   const groups = useMemo(() => {
     const normalized = query.trim().toLocaleLowerCase('ko')
@@ -59,8 +86,9 @@ export function CourseSearchSheet({ open, sections, items, onClose, onAdd }: Pro
     </div>
     <div className="search-controls">
       <label className="search-field"><span className="sr-only">과목명, 교수, 과목코드 검색</span><SearchIcon /><input ref={inputRef} value={query} onChange={(event) => { setQuery(event.target.value); setExpandedCourseCode(null) }} placeholder="과목명, 교수, 과목코드" /></label>
+      {profile && preferredCategory && <button type="button" className={`major-filter-shortcut ${category === preferredCategory ? 'selected' : ''}`} aria-pressed={category === preferredCategory} onClick={() => { setCategory((value) => value === preferredCategory ? '전체' : preferredCategory); setExpandedCourseCode(null) }}><span><small>내 전공</small><strong>{profile.department}</strong></span><span>{preferredSectionCount}개 분반</span></button>}
       <div className="filter-row">
-        <label><span>이수구분</span><select value={category} onChange={(event) => { setCategory(event.target.value); setExpandedCourseCode(null) }}>{categories.map((value) => <option value={value} key={value}>{value}</option>)}</select></label>
+        <label><span>이수구분</span><select value={category} onChange={(event) => { setCategory(event.target.value); setExpandedCourseCode(null) }}>{categories.map((value) => <option value={value} key={value}>{value === preferredCategory && profile ? `내 전공 · ${profile.department}` : value}</option>)}</select></label>
         <label><span>요일</span><select value={day} onChange={(event) => { setDay(event.target.value as '전체' | Day); setExpandedCourseCode(null) }}>{['전체', '월', '화', '수', '목', '금', '토'].map((value) => <option value={value} key={value}>{value}</option>)}</select></label>
       </div>
     </div>

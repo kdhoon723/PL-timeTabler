@@ -65,6 +65,22 @@ test.describe('responsive timetable editor', () => {
     await expect(page.getByRole('button', { name: /AI시대의컴퓨팅사고 화/ })).toBeVisible()
   })
 
+  test('prioritizes the saved department as a one-tap course filter', async ({ page }) => {
+    await page.addInitScript(() => {
+      localStorage.setItem('pl-timetabler:onboarding:v1', 'complete')
+      localStorage.setItem('pl-timetabler:profile:v1', JSON.stringify({ schemaVersion: 1, department: '컴퓨터공학전공', admissionYear: 2026, currentGrade: 1, entryType: 'FRESHMAN', studentType: 'DOMESTIC', sectionGroup: 'UNKNOWN', updatedAt: '2026-07-11T00:00:00Z' }))
+    })
+    await page.goto('/')
+    await page.getByRole('button', { name: /과목 추가/ }).last().click()
+
+    const shortcut = page.getByRole('button', { name: /내 전공.*컴퓨터공학전공.*25개 분반/ })
+    await expect(shortcut).toBeVisible()
+    await expect(page.getByRole('combobox', { name: '이수구분' }).locator('option').nth(1)).toHaveText('내 전공 · 컴퓨터공학전공')
+    await shortcut.click()
+    await expect(shortcut).toHaveAttribute('aria-pressed', 'true')
+    await expect(page.locator('.course-group').first()).toContainText('전공(AI융합대학/컴퓨터공학전공)')
+  })
+
   test('saves accelerated progression for manual review without authorizing automatic requirements', async ({ page }) => {
     await page.goto('/')
     await expect(page.getByRole('heading', { name: /원하는 시간표/ })).toBeVisible()
