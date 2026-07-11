@@ -22,7 +22,7 @@ data/
 
 ### `courses/courses-2026-1.json`
 
-- 출처: `/home/kdhoon/projects/DJSS/scraper/data/courses_20260203.json`
+- 출처 snapshot: `DJSS/scraper/data/courses_20260203.json`
 - 1,576개 분반의 과목 카탈로그
 - 필드: `category`, `curiNo`, `clssNo`, `cousNm`, `profNm`, `lectTm`, `pnt`
 - 시간표 최적화, 전공·교양 필터, 학점 계산의 기준 데이터
@@ -30,18 +30,18 @@ data/
 
 ### `courses/courses-2026-1.csv`
 
-- 출처: `/home/kdhoon/projects/DJSS/scraper/data/courses_20260203.csv`
+- 출처 snapshot: `DJSS/scraper/data/courses_20260203.csv`
 - JSON과 동일한 1,576개 분반을 표 형태로 확인하거나 분석할 때 사용한다.
 
 ### `courses/courses-lookup-2026-1.json`
 
-- 출처: `/home/kdhoon/projects/DJSS/frontend/app/data/courses-lookup.json`
+- 출처 snapshot: `DJSS/frontend/app/data/courses-lookup.json`
 - 과목 검색과 자동완성을 위한 경량 데이터
 - `category`가 없으므로 최적화 기준 데이터가 아니라 검색 인덱스 용도로 사용한다.
 
 ### `classrooms/classroom-sessions-2026-1.json`
 
-- 출처: `/home/kdhoon/projects/DJGongsil/app/public/data.json`
+- 출처 snapshot: `DJGongsil/app/public/data.json`
 - 325개 강의실과 1,693개 수업 세션
 - 건물, 강의실, 수용인원, 요일, 시작·종료시간 포함
 - 과목 데이터와 `(curiNo, clssNo)`를 결합키로 사용한다.
@@ -71,3 +71,7 @@ data/
 - 수집 원본을 갱신할 때는 `manifest.json`의 레코드 수와 체크섬도 함께 갱신한다.
 - 브라우저 fallback은 수동으로 편집하지 않고 `uv --directory apps/backend run timetabler-export-static-catalog`로 canonical API snapshot에서 생성한다.
 - 내부 식별자, 계정 정보, 쿠키 등 시간표 생성에 필요하지 않은 값은 이 프로젝트에 복사하지 않는다.
+
+`DJSS`와 `DJGongsil` 표기는 이 저장소를 준비할 때 사용한 별도 수집·정규화 프로젝트의 snapshot 식별자다. 로컬 절대경로가 아니며, 학교 원문과 공식 근거 URL은 `requirements/normalized/sources.json` 및 연구 문서에 보존한다.
+
+이 데이터는 공개 강의정보와 공식 문서를 기반으로 한 참고용 snapshot이다. 학교의 최신 시스템 상태와 다를 수 있고 공식 수강신청·졸업 판정을 대체하지 않는다. 원문 자료의 권리와 이용 조건은 각 제공기관에 있다.

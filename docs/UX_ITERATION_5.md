@@ -8,7 +8,7 @@ The previous timetable palette used six low-saturation colors selected from a co
 
 ## Reference
 
-The existing DJPic project (`/home/kdhoon/projects/DJPic/popup.js`) uses an Everytime-inspired palette and assigns colors to unique course names in the order they first appear. PL-timeTabler adopts that interaction principle without copying DJPic's presentation structure.
+The sibling DJPic project's `popup.js` uses an Everytime-inspired palette and assigns colors to unique course names in the order they first appear. PL-timeTabler adopts that interaction principle without copying DJPic's presentation structure.
 
 ## Product decision
 

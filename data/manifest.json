@@ -4,28 +4,28 @@
   "datasets": [
     {
       "path": "data/courses/courses-2026-1.json",
-      "source": "/home/kdhoon/projects/DJSS/scraper/data/courses_20260203.json",
+      "source": "DJSS/scraper/data/courses_20260203.json",
       "records": 1576,
       "sha256": "7c89a022ecbb8823b4ca2e490fdf717ef76f830fdbc0ca35943d909786498b7b",
       "transform": "Kept category, curiNo, clssNo, cousNm, profNm, lectTm, pnt; removed empno, tlsn, tlsnLmt."
     },
     {
       "path": "data/courses/courses-2026-1.csv",
-      "source": "/home/kdhoon/projects/DJSS/scraper/data/courses_20260203.csv",
+      "source": "DJSS/scraper/data/courses_20260203.csv",
       "records": 1576,
       "sha256": "3f66dcc282f33952eee8f683202ec0f74319f4737238ef5ede420d6ba1caf4b4",
       "transform": "Copied without modification."
     },
     {
       "path": "data/courses/courses-lookup-2026-1.json",
-      "source": "/home/kdhoon/projects/DJSS/frontend/app/data/courses-lookup.json",
+      "source": "DJSS/frontend/app/data/courses-lookup.json",
       "records": 1576,
       "sha256": "9ebcd6e2a6bd604284dcacd1a379810cfc1a9c5e04dab5d777e3e2ed2705f54e",
       "transform": "Copied without modification."
     },
     {
       "path": "data/classrooms/classroom-sessions-2026-1.json",
-      "source": "/home/kdhoon/projects/DJGongsil/app/public/data.json",
+      "source": "DJGongsil/app/public/data.json",
       "rooms": 325,
       "sessions": 1693,
       "uniqueSections": 1342,

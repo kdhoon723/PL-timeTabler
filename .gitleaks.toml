@@ -1,0 +1,8 @@
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "Deterministic test-only HMAC value"
+regexTarget = "secret"
+regexes = ['''^test-secret-that-is-at-least-32-bytes-long$''']
+paths = ['''apps/backend/tests/test_auth\.py''']
