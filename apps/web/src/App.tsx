@@ -10,16 +10,17 @@ import { completeOnboardingWithoutProfile, hasCompletedOnboarding, loadAcademicP
 import { draftReducer, itemsWithAppliedBackup, itemsWithCourseRole, loadSavedDraft, planItemsForCandidate } from './state/draft'
 import type { AcademicProfile, AuthSession, Candidate, CommonRules, CourseRole, DepartmentSource, MajorRequiredCourses, Section } from './types'
 import { AppHeader } from './components/AppHeader'
+import { ApplicationListSheet } from './components/ApplicationListSheet'
 import { AuthSheet } from './components/AuthSheet'
 import { CandidatePreviewBar } from './components/CandidatePreviewBar'
 import { ConflictNotice } from './components/ConflictNotice'
-import { CourseSearchSheet } from './components/CourseSearchSheet'
+import { CourseSearchSheet, type CourseSearchMode } from './components/CourseSearchSheet'
+import { CourseEntryPanel } from './components/CourseEntryPanel'
 import { Onboarding } from './components/Onboarding'
 import { OptimizerPanel } from './components/OptimizerPanel'
 import { PlusIcon, SlidersIcon } from './components/Icons'
 import { PreferencesPanel } from './components/PreferencesPanel'
-import { RegistrationChecklist } from './components/RegistrationChecklist'
-import { RequiredCoursePanel } from './components/RequiredCoursePanel'
+import { RequiredCourseSheet } from './components/RequiredCourseSheet'
 import { RequirementsPage } from './components/RequirementsPage'
 import { SectionDetailSheet } from './components/SectionDetailSheet'
 import { SelectedCourseList } from './components/SelectedCourseList'
@@ -42,9 +43,12 @@ function useMediaQuery(query: string): boolean {
 export default function App() {
   const [state, dispatch] = useReducer(draftReducer, undefined, () => ({ past: [], present: loadSavedDraft(), future: [] }))
   const [catalog, setCatalog] = useState<Section[]>([])
-  const [catalogMeta, setCatalogMeta] = useState<{ version: string; updatedAt: string; offline: boolean } | null>(null)
+  const [catalogMeta, setCatalogMeta] = useState<{ updatedAt: string; offline: boolean } | null>(null)
   const [catalogError, setCatalogError] = useState<string | null>(null)
   const [searchOpen, setSearchOpen] = useState(false)
+  const [searchMode, setSearchMode] = useState<CourseSearchMode>('ALL')
+  const [requiredOpen, setRequiredOpen] = useState(false)
+  const [applicationListOpen, setApplicationListOpen] = useState(false)
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [candidatePreview, setCandidatePreview] = useState<{ candidate: Candidate; generationFingerprint: string } | null>(null)
   const [showTools, setShowTools] = useState(false)
@@ -101,7 +105,7 @@ export default function App() {
     loadCatalog(presentRef.current.semester).then(({ catalog: loaded, offline }) => {
       setCandidatePreview(null)
       setCatalog(loaded.sections)
-      setCatalogMeta({ version: loaded.dataVersion, updatedAt: loaded.updatedAt, offline })
+      setCatalogMeta({ updatedAt: loaded.updatedAt, offline })
       const validIds = new Set(loaded.sections.map((section) => section.id))
       const current = presentRef.current
       const validItems = current.items.filter((item) => validIds.has(item.sectionId))
@@ -172,6 +176,18 @@ export default function App() {
   }, [state.future.length, state.past.length])
 
   const navigate = (path: string) => { history.pushState({}, '', path); setRoute(path); scrollTo({ top: 0, behavior: 'instant' }) }
+  const openCourseSearch = (mode: CourseSearchMode = 'ALL') => {
+    setSearchMode(mode)
+    setSearchOpen(true)
+  }
+  const browseFromRequired = (mode: CourseSearchMode) => {
+    setRequiredOpen(false)
+    requestAnimationFrame(() => openCourseSearch(mode))
+  }
+  const editProfileFromRequired = () => {
+    setRequiredOpen(false)
+    requestAnimationFrame(() => setProfileEditorOpen(true))
+  }
   const openTools = (trigger: HTMLButtonElement) => {
     toolsTriggerRef.current = trigger
     if (!toolsHistoryRef.current) {
@@ -269,21 +285,24 @@ export default function App() {
 
   if (route === '/requirements') return <><RequirementsPage catalog={catalog} profile={profile} onBack={() => navigate('/')} onAddCourse={(section) => { addSection(section, 'must'); navigate('/') }} /><Toast message={toast} onClose={() => setToast(null)} /></>
 
-  const toolsContent = <><PreferencesPanel preferences={state.present.preferences} onChange={(preferences) => dispatch({ type: 'PREFERENCES', preferences })} /><OptimizerPanel draft={state.present} draftFingerprint={draftFingerprint} sections={catalog} onPreview={previewCandidate} /><RegistrationChecklist items={state.present.items} sectionById={sectionById} onApplyBackup={applyBackup} onMessage={(message) => showToast(message)} /><section className="export-panel"><h2>내보내기</h2><div><button type="button" className="secondary-button" onClick={exportImage}>PNG 저장</button><button type="button" className="secondary-button" onClick={() => print()}>인쇄·PDF</button></div></section><details className="source-details"><summary>데이터 정보</summary><p>{state.present.semester} · {catalogMeta?.updatedAt ?? '확인 중'} 갱신</p><p>대진대학교 공개 개설과목 · 버전 {catalogMeta?.version.slice(0, 12) ?? '확인 중'}</p></details></>
+  const toolsContent = <><PreferencesPanel preferences={state.present.preferences} onChange={(preferences) => dispatch({ type: 'PREFERENCES', preferences })} /><OptimizerPanel draft={state.present} draftFingerprint={draftFingerprint} sections={catalog} onPreview={previewCandidate} /></>
+  const courseEntry = (compact = false) => <CourseEntryPanel compact={compact} hasProfile={!!profile} onRequired={() => setRequiredOpen(true)} onMajor={() => profile ? openCourseSearch('MAJOR') : setProfileEditorOpen(true)} onLiberal={() => openCourseSearch('LIBERAL')} onAll={() => openCourseSearch()} />
 
   return <div className="app-shell">
-    <AppHeader credits={metrics.credits} profile={profile} authSession={authSession} canUndo={!!state.past.length} canRedo={!!state.future.length} onUndo={() => dispatch({ type: 'UNDO' })} onRedo={() => dispatch({ type: 'REDO' })} onShare={share} onExportPng={exportImage} onExportPdf={() => print()} onNavigate={navigate} onProfile={() => setProfileEditorOpen(true)} onAccount={() => setAuthOpen(true)} />
+    <AppHeader credits={metrics.credits} profile={profile} authSession={authSession} canUndo={!!state.past.length} canRedo={!!state.future.length} applicationCount={activeSections.length} onUndo={() => dispatch({ type: 'UNDO' })} onRedo={() => dispatch({ type: 'REDO' })} onShare={share} onApplicationList={() => setApplicationListOpen(true)} onNavigate={navigate} onProfile={() => setProfileEditorOpen(true)} onAccount={() => setAuthOpen(true)} />
     {catalogError && <div className="global-error" role="alert"><span>{catalogError}</span><button type="button" onClick={fetchCatalog}>다시 시도</button></div>}
     {catalogMeta?.offline && <div className="data-status" role="status"><strong>저장된 데이터 사용 중</strong><span>{catalogMeta.updatedAt} 갱신본 · 연결 복구 후 자동 확인</span></div>}
     <main className="editor-layout">
-      <aside className="desktop-search"><button type="button" className="primary-button full-button" onClick={() => setSearchOpen(true)}><PlusIcon />과목 추가</button><SelectedCourseList items={state.present.items} sectionById={sectionById} onSelect={(section) => setSelectedId(section.id)} /></aside>
-      <div className="editor-main"><div className="tablet-editor-actions"><button type="button" className="primary-button" onClick={() => setSearchOpen(true)}><PlusIcon />과목 추가</button></div><RequiredCoursePanel profile={profile} rules={commonRules} majorRequired={majorRequired} catalog={catalog} items={state.present.items} sectionById={sectionById} onEditProfile={() => setProfileEditorOpen(true)} onAddRequired={(section) => addSection(section, 'must')} /><ConflictNotice conflicts={validCandidatePreview ? previewConflicts : conflicts} previewReadOnly={!!validCandidatePreview} onOpen={setSelectedId} />{validCandidatePreview && previewDiff && <CandidatePreviewBar candidate={validCandidatePreview.candidate} diff={previewDiff} containerRef={previewBarRef} onCancel={cancelCandidatePreview} onApply={applyCandidate} />}<TimetableGrid sections={gridSections} conflicts={validCandidatePreview ? previewConflicts : conflicts} lockedIds={new Set(state.present.items.filter((item) => item.locked).map((item) => item.sectionId))} onSelect={(section) => setSelectedId(section.id)} previewStatusById={previewStatusById} dragEnabled={isDesktopDrag && !validCandidatePreview} dragAlternativesById={dragAlternativesById} onReplace={dragReplaceSection} />
+      <aside className="desktop-search">{courseEntry()}<SelectedCourseList items={state.present.items} sectionById={sectionById} onSelect={(section) => setSelectedId(section.id)} /></aside>
+      <div className="editor-main"><div className="mobile-course-entry">{courseEntry(true)}</div>{activeSections.length > 0 && <button type="button" className="application-summary-bar" onClick={() => setApplicationListOpen(true)}><span>신청 목록 보기</span><strong>{activeSections.length}개 · {metrics.credits}학점</strong></button>}<ConflictNotice conflicts={validCandidatePreview ? previewConflicts : conflicts} previewReadOnly={!!validCandidatePreview} onOpen={setSelectedId} />{validCandidatePreview && previewDiff && <CandidatePreviewBar candidate={validCandidatePreview.candidate} diff={previewDiff} containerRef={previewBarRef} onCancel={cancelCandidatePreview} onApply={applyCandidate} />}<TimetableGrid sections={gridSections} conflicts={validCandidatePreview ? previewConflicts : conflicts} lockedIds={new Set(state.present.items.filter((item) => item.locked).map((item) => item.sectionId))} onSelect={(section) => setSelectedId(section.id)} previewStatusById={previewStatusById} dragEnabled={isDesktopDrag && !validCandidatePreview} dragAlternativesById={dragAlternativesById} onReplace={dragReplaceSection} />
         <div className="mobile-summary"><SelectedCourseList items={state.present.items} sectionById={sectionById} onSelect={(section) => setSelectedId(section.id)} /></div>
       </div>
-      {isDesktopTools ? <aside className="tools-panel" aria-label="자동 생성과 준비">{toolsContent}</aside> : <dialog className="tools-dialog" ref={toolsDialogRef} aria-labelledby="tools-dialog-title" onCancel={(event) => { event.preventDefault(); closeTools() }}><div className="mobile-tools-header"><h2 id="tools-dialog-title">자동 생성과 준비</h2><button ref={toolsCloseRef} type="button" onClick={() => closeTools()}>닫기</button></div>{toolsContent}</dialog>}
+      {isDesktopTools ? <aside className="tools-panel" aria-label="자동완성">{toolsContent}</aside> : <dialog className="tools-dialog" ref={toolsDialogRef} aria-labelledby="tools-dialog-title" onCancel={(event) => { event.preventDefault(); closeTools() }}><div className="mobile-tools-header"><h2 id="tools-dialog-title">자동완성</h2><button ref={toolsCloseRef} type="button" onClick={() => closeTools()}>닫기</button></div>{toolsContent}</dialog>}
     </main>
-    <div className="mobile-action-bar"><button type="button" className="secondary-button" onClick={(event) => openTools(event.currentTarget)}><SlidersIcon />자동 생성</button><button type="button" className="primary-button" onClick={() => setSearchOpen(true)}><PlusIcon />과목 추가</button></div>
-    <CourseSearchSheet open={searchOpen} sections={catalog} items={state.present.items} profile={profile} onClose={() => setSearchOpen(false)} onAdd={addSection} />
+    <div className="mobile-action-bar"><button type="button" className="secondary-button" onClick={(event) => openTools(event.currentTarget)}><SlidersIcon />자동완성</button><button type="button" className="primary-button" onClick={() => openCourseSearch()}><PlusIcon />과목 추가</button></div>
+    <CourseSearchSheet open={searchOpen} initialMode={searchMode} sections={catalog} items={state.present.items} profile={profile} onClose={() => setSearchOpen(false)} onAdd={addSection} />
+    <RequiredCourseSheet open={requiredOpen} profile={profile} rules={commonRules} majorRequired={majorRequired} catalog={catalog} items={state.present.items} sectionById={sectionById} onClose={() => setRequiredOpen(false)} onEditProfile={editProfileFromRequired} onAddRequired={(section) => addSection(section, 'must')} onBrowseMajor={() => browseFromRequired('MAJOR')} onBrowseLiberal={() => browseFromRequired('LIBERAL')} />
+    <ApplicationListSheet open={applicationListOpen} items={state.present.items} sectionById={sectionById} onApplyBackup={applyBackup} onMessage={(message) => showToast(message)} onExportPng={exportImage} onExportPdf={() => print()} onClose={() => setApplicationListOpen(false)} />
     <SectionDetailSheet section={selectedSection} role={selectedItem?.role ?? 'want'} locked={selectedItem?.locked ?? false} alternatives={alternatives} onClose={() => setSelectedId(null)} onRole={(role) => selectedSection && dispatch({ type: 'ITEMS', items: itemsWithCourseRole(selectedSection.id, role, state.present.items, sectionById) })} onLock={() => selectedSection && dispatch({ type: 'PATCH_ITEM', sectionId: selectedSection.id, patch: { locked: !selectedItem?.locked } })} onRemove={removeSection} onSwap={swapSection} />
     {(onboardingOpen || profileEditorOpen) && <Onboarding departments={departments} initialProfile={profile} mode={profileEditorOpen ? 'EDIT' : 'FIRST_RUN'} authAvailable={authSession.available} onComplete={completeProfile} onSkip={profileEditorOpen ? () => setProfileEditorOpen(false) : skipOnboarding} onLogin={() => setAuthOpen(true)} />}
     <AuthSheet open={authOpen} session={authSession} onSession={setAuthSession} onClose={() => setAuthOpen(false)} />

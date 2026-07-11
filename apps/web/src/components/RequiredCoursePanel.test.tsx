@@ -46,26 +46,31 @@ describe('required course progress', () => {
   const rules: CommonRules = { schemaVersion: 1, asOf: '2026-07-11', resultLabel: 'test', statuses: [], manualReviewReasons: [], rules: [{ id: 'required', admissionYears: { start: 2025 }, scope: { studentType: 'DOMESTIC', academicUnit: 'GENERAL_EXCEPTIONS_EXCLUDED' }, kind: 'REQUIRED_COURSE_GROUP', courses: [{ name: 'AI시대의컴퓨팅사고', credits: 2 }], sourceRefs: ['test'] }] }
 
   it('withholds automatic required-course options for an unconfirmed mismatch', async () => {
-    render(<RequiredCoursePanel profile={{ ...profile, currentGrade: 3, academicBasis: { ...profile.academicBasis!, gradeMismatchAcknowledged: true } }} rules={rules} majorRequired={majorRequired} catalog={catalog} items={[]} sectionById={new Map(catalog.map((value) => [value.id, value]))} onEditProfile={() => undefined} onAddRequired={() => undefined} />)
+    const onBrowseMajor = vi.fn()
+    render(<RequiredCoursePanel profile={{ ...profile, currentGrade: 3, academicBasis: { ...profile.academicBasis!, gradeMismatchAcknowledged: true } }} rules={rules} majorRequired={majorRequired} catalog={catalog} items={[]} sectionById={new Map(catalog.map((value) => [value.id, value]))} onEditProfile={() => undefined} onAddRequired={() => undefined} onBrowseMajor={onBrowseMajor} onBrowseLiberal={() => undefined} />)
 
     const toggle = screen.getByRole('button', { name: /필수 과목 먼저/ })
     expect(toggle).toHaveTextContent('0/0개')
     await userEvent.click(toggle)
-    expect(screen.getByText(/현재 학년이 일반 예상보다 높아 학과 확인 전에는 전공필수를 자동 판정하지 않습니다/)).toBeInTheDocument()
+    expect(screen.getByText('입학연도와 학년이 맞지 않아 필수과목을 표시하지 않았어요.')).toBeInTheDocument()
+    expect(screen.queryByText(/현재 학년이 일반 예상보다 높아 학과 확인 전에는/)).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: '시간표에 배치' })).not.toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: '2 전공선택' }))
+    expect(onBrowseMajor).toHaveBeenCalledOnce()
   })
 
   it('keeps basic timetable planning useful while academic-basis setup is absent', async () => {
     const onEditProfile = vi.fn()
-    render(<RequiredCoursePanel profile={{ ...profile, currentGrade: 3, academicBasis: null }} rules={rules} majorRequired={majorRequired} catalog={catalog} items={[]} sectionById={new Map(catalog.map((value) => [value.id, value]))} onEditProfile={onEditProfile} onAddRequired={() => undefined} />)
+    render(<RequiredCoursePanel profile={{ ...profile, currentGrade: 3, academicBasis: null }} rules={rules} majorRequired={majorRequired} catalog={catalog} items={[]} sectionById={new Map(catalog.map((value) => [value.id, value]))} onEditProfile={onEditProfile} onAddRequired={() => undefined} onBrowseMajor={() => undefined} onBrowseLiberal={() => undefined} />)
     await userEvent.click(screen.getByRole('button', { name: /필수 과목 먼저/ }))
-    expect(screen.getByText('필수과목 추천을 더 정확히')).toBeVisible()
-    await userEvent.click(screen.getByRole('button', { name: '입학연도 기준 추가' }))
+    expect(screen.getByText('입학연도를 추가할까요?')).toBeVisible()
+    expect(screen.getByRole('button', { name: '전공선택 찾기' })).toBeVisible()
+    await userEvent.click(screen.getByRole('button', { name: '입학연도 추가' }))
     expect(onEditProfile).toHaveBeenCalled()
   })
 
   it('starts collapsed with accurate course and credit progress plus a clear next action', async () => {
-    render(<RequiredCoursePanel profile={profile} rules={rules} majorRequired={majorRequired} catalog={catalog} items={[{ sectionId: operatingSystems.id, role: 'must', locked: false }]} sectionById={new Map(catalog.map((value) => [value.id, value]))} onEditProfile={() => undefined} onAddRequired={() => undefined} />)
+    render(<RequiredCoursePanel profile={profile} rules={rules} majorRequired={majorRequired} catalog={catalog} items={[{ sectionId: operatingSystems.id, role: 'must', locked: false }]} sectionById={new Map(catalog.map((value) => [value.id, value]))} onEditProfile={() => undefined} onAddRequired={() => undefined} onBrowseMajor={() => undefined} onBrowseLiberal={() => undefined} />)
 
     const toggle = screen.getByRole('button', { name: /필수 과목 먼저/ })
     expect(toggle).toHaveAttribute('aria-expanded', 'false')
@@ -81,7 +86,7 @@ describe('required course progress', () => {
 
   it('places a required section through the expanded keyboard/tap alternative', async () => {
     const onAddRequired = vi.fn()
-    render(<RequiredCoursePanel profile={profile} rules={rules} majorRequired={majorRequired} catalog={catalog} items={[]} sectionById={new Map(catalog.map((value) => [value.id, value]))} onEditProfile={() => undefined} onAddRequired={onAddRequired} />)
+    render(<RequiredCoursePanel profile={profile} rules={rules} majorRequired={majorRequired} catalog={catalog} items={[]} sectionById={new Map(catalog.map((value) => [value.id, value]))} onEditProfile={() => undefined} onAddRequired={onAddRequired} onBrowseMajor={() => undefined} onBrowseLiberal={() => undefined} />)
     await userEvent.click(screen.getByRole('button', { name: /필수 과목 먼저/ }))
     await userEvent.click(screen.getAllByRole('button', { name: '시간표에 배치' })[0]!)
     expect(onAddRequired).toHaveBeenCalled()

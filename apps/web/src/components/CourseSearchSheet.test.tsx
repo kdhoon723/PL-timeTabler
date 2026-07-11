@@ -89,4 +89,18 @@ describe('course search sheet', () => {
     await userEvent.click(shortcut)
     expect(category).toHaveValue('전체')
   })
+
+  it('opens directly on all liberal electives when the planner requests the liberal step', async () => {
+    const liberalElectives = [
+      { ...section('310001', '01', '인간과소통', '월'), category: '교양선택(제1영역:인간과소통)' },
+      { ...section('310002', '01', '과학과기술', '화'), category: '교양선택(제3영역:과학과기술)' },
+    ]
+    render(<CourseSearchSheet open initialMode="LIBERAL" sections={[...catalog, ...liberalElectives]} items={[]} profile={null} onClose={() => undefined} onAdd={() => undefined} />)
+
+    const category = await screen.findByRole('combobox', { name: '이수구분' })
+    expect(category).toHaveValue('교양선택 전체')
+    expect(screen.getAllByRole('button', { name: /분반 보기/ })).toHaveLength(2)
+    expect(screen.getByRole('button', { name: /인간과소통.*분반 보기/ })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /과학과기술.*분반 보기/ })).toBeInTheDocument()
+  })
 })

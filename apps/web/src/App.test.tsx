@@ -21,7 +21,7 @@ describe('catalog hydration', () => {
     let resolveCatalog!: (value: { catalog: Catalog; offline: boolean }) => void
     vi.mocked(loadCatalog).mockReturnValue(new Promise((resolve) => { resolveCatalog = resolve }))
     render(<App />)
-    fireEvent.click(screen.getByRole('button', { name: /자동 생성/ }))
+    fireEvent.click(screen.getByRole('button', { name: /자동완성/ }))
     fireEvent.change(screen.getByRole('spinbutton', { name: '목표 학점' }), { target: { value: '12' } })
 
     await act(async () => resolveCatalog({
@@ -31,8 +31,7 @@ describe('catalog hydration', () => {
 
     expect(screen.getByRole('spinbutton', { name: '목표 학점' })).toHaveValue(12)
     expect(screen.queryByText('최신 데이터 연결됨')).not.toBeInTheDocument()
-    expect(screen.getByText('데이터 정보')).toBeInTheDocument()
-    expect(screen.getByText('2026-1 · 2026-07-10 갱신')).toBeInTheDocument()
+    expect(screen.queryByText('데이터 정보')).not.toBeInTheDocument()
   })
 
   it('only raises a global data status when a saved catalog is being used', async () => {
@@ -60,9 +59,8 @@ describe('editor command recovery', () => {
 
   async function addSection() {
     render(<App />)
-    await screen.findByText('2026-1 · 2026-07-11 갱신')
     fireEvent.click(screen.getAllByRole('button', { name: /과목 추가/ }).at(-1)!)
-    fireEvent.click(screen.getByRole('button', { name: /AI시대의컴퓨팅사고.*분반 보기/ }))
+    fireEvent.click(await screen.findByRole('button', { name: /AI시대의컴퓨팅사고.*분반 보기/ }))
     fireEvent.click(screen.getByRole('button', { name: /01분반.*추가/ }))
     expect(screen.getByRole('button', { name: /AI시대의컴퓨팅사고 화/ })).toBeInTheDocument()
   }

@@ -8,17 +8,17 @@ interface Props {
   authSession: AuthSession
   canUndo: boolean
   canRedo: boolean
+  applicationCount: number
   onUndo: () => void
   onRedo: () => void
   onShare: () => void
-  onExportPng: () => void
-  onExportPdf: () => void
+  onApplicationList: () => void
   onNavigate: (path: string) => void
   onProfile: () => void
   onAccount: () => void
 }
 
-export function AppHeader({ credits, profile, authSession, canUndo, canRedo, onUndo, onRedo, onShare, onExportPng, onExportPdf, onNavigate, onProfile, onAccount }: Props) {
+export function AppHeader({ credits, profile, authSession, canUndo, canRedo, applicationCount, onUndo, onRedo, onShare, onApplicationList, onNavigate, onProfile, onAccount }: Props) {
   const [menuOpen, setMenuOpen] = useState(false)
   const menuButtonRef = useRef<HTMLButtonElement>(null)
   useEffect(() => {
@@ -43,6 +43,7 @@ export function AppHeader({ credits, profile, authSession, canUndo, canRedo, onU
       <button className="icon-button" type="button" onClick={onUndo} disabled={!canUndo} aria-label="실행 취소"><UndoIcon /></button>
       <button className="icon-button" type="button" onClick={onRedo} disabled={!canRedo} aria-label="다시 실행"><RedoIcon /></button>
       <button className="icon-button" type="button" onClick={onShare} aria-label="시간표 공유"><ShareIcon /></button>
+      {applicationCount > 0 && <button className="header-link" type="button" onClick={onApplicationList}>신청 목록</button>}
       <button className="header-link" type="button" onClick={() => onNavigate('/requirements')}>졸업요건</button>
       {authSession.available && <button className={`account-button ${authSession.authenticated ? 'authenticated' : ''}`} type="button" onClick={onAccount}>{authSession.authenticated ? '인증됨' : '로그인'}</button>}
     </nav>
@@ -52,9 +53,8 @@ export function AppHeader({ credits, profile, authSession, canUndo, canRedo, onU
         <button type="button" role="menuitem" onClick={run(onUndo)} disabled={!canUndo}>실행 취소</button>
         <button type="button" role="menuitem" onClick={run(onRedo)} disabled={!canRedo}>다시 실행</button>
         <button type="button" role="menuitem" onClick={run(onShare)}>시간표 공유</button>
+        {applicationCount > 0 && <button type="button" role="menuitem" onClick={run(onApplicationList)}>신청 목록</button>}
         <button type="button" role="menuitem" onClick={run(() => onNavigate('/requirements'))}>졸업요건</button>
-        <button type="button" role="menuitem" onClick={run(onExportPng)}>PNG 저장</button>
-        <button type="button" role="menuitem" onClick={run(onExportPdf)}>PDF 저장</button>
         <button type="button" role="menuitem" onClick={run(onProfile)}>{profile ? '학적 정보 변경' : '학과 설정'}</button>
         {authSession.available && <button type="button" role="menuitem" onClick={run(onAccount)}>{authSession.authenticated ? '계정 확인' : '로그인'}</button>}
       </div>}

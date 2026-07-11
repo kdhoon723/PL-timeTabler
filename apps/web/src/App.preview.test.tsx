@@ -44,13 +44,13 @@ describe('candidate preview integration', () => {
 
   it('returns from mobile tools to a non-mutating canvas preview, then applies with undo', async () => {
     render(<App />)
-    await screen.findByText('2026-1 · 2026-07-11 갱신')
-    fireEvent.click(screen.getByRole('button', { name: /자동 생성/ }))
-    expect(screen.getByRole('dialog', { name: '자동 생성과 준비' })).toBeInTheDocument()
+    await screen.findByRole('button', { name: /알고리즘 월/ })
+    fireEvent.click(screen.getByRole('button', { name: /자동완성/ }))
+    expect(screen.getByRole('dialog', { name: '자동완성' })).toBeInTheDocument()
 
     fireEvent.click(screen.getByRole('button', { name: '테스트 후보 미리보기' }))
 
-    await waitFor(() => expect(screen.queryByRole('dialog', { name: '자동 생성과 준비' })).not.toBeInTheDocument())
+    await waitFor(() => expect(screen.queryByRole('dialog', { name: '자동완성' })).not.toBeInTheDocument())
     expect(screen.getByRole('heading', { name: '후보 1 변경 내용' })).toBeInTheDocument()
     await waitFor(() => expect(screen.getByRole('region', { name: '후보 1 변경 내용' })).toHaveFocus())
     expect(screen.getByText('교체: 알고리즘 01분반 → 02분반')).toBeInTheDocument()
@@ -80,8 +80,8 @@ describe('candidate preview integration', () => {
 
   it('independently rejects a result generated for a different draft', async () => {
     render(<App />)
-    await screen.findByText('2026-1 · 2026-07-11 갱신')
-    fireEvent.click(screen.getByRole('button', { name: /자동 생성/ }))
+    await screen.findByRole('button', { name: /알고리즘 월/ })
+    fireEvent.click(screen.getByRole('button', { name: /자동완성/ }))
     fireEvent.click(screen.getByRole('button', { name: '오래된 테스트 후보 미리보기' }))
 
     expect(screen.queryByRole('heading', { name: '후보 2 변경 내용' })).not.toBeInTheDocument()
@@ -91,8 +91,8 @@ describe('candidate preview integration', () => {
 
   it('invalidates an open preview when a current course is added and never applies the old result', async () => {
     render(<App />)
-    await screen.findByText('2026-1 · 2026-07-11 갱신')
-    fireEvent.click(screen.getByRole('button', { name: /자동 생성/ }))
+    await screen.findByRole('button', { name: /알고리즘 월/ })
+    fireEvent.click(screen.getByRole('button', { name: /자동완성/ }))
     fireEvent.click(screen.getByRole('button', { name: '새 필수과목 없는 후보 미리보기' }))
     await screen.findByRole('heading', { name: '후보 3 변경 내용' })
 

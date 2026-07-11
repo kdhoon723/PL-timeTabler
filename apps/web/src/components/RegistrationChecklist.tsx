@@ -12,7 +12,7 @@ export function RegistrationChecklist({ items, sectionById, onApplyBackup, onMes
     onMessage('수강신청 체크리스트를 복사했습니다.')
   }
   return <section className="checklist-panel" aria-labelledby="checklist-title">
-    <div className="section-heading"><div><h2 id="checklist-title">수강신청 준비</h2><p>실패에 대비해 예비 과목을 미리 지정해 두세요.</p></div></div>
+    <div className="section-heading"><div><h2 id="checklist-title">신청할 과목</h2><p>최종 과목코드와 분반을 확인하세요.</p></div></div>
     <ol className="checklist">{active.map((section) => <li key={section.id}><span><strong>{section.courseCode}-{section.sectionCode}</strong>{section.name}</span><small>{section.professor ?? '교수 미정'}</small></li>)}</ol>
     {backups.length > 0 && <div className="backup-list"><h3>예비 과목</h3>{backups.map((section) => <div key={section.id}><span><strong>{section.name}</strong><small>{section.courseCode}-{section.sectionCode}</small></span><button type="button" onClick={() => onApplyBackup(section)}>시간표에 적용</button></div>)}</div>}
     <button type="button" className="secondary-button full-button" onClick={copy} disabled={!active.length}>과목코드·분반 복사</button>

@@ -7,12 +7,17 @@ import { CheckIcon, CloseIcon, SearchIcon } from './Icons'
 
 interface Props {
   open: boolean
+  initialMode?: CourseSearchMode
   sections: Section[]
   items: PlanItem[]
   profile: AcademicProfile | null
   onClose: () => void
   onAdd: (section: Section) => void
 }
+
+export type CourseSearchMode = 'ALL' | 'MAJOR' | 'LIBERAL'
+
+const LIBERAL_ELECTIVE_CATEGORY = '교양선택 전체'
 
 function normalizeAcademicUnit(value: string): string {
   return value.normalize('NFKC').replace(/\([^)]*\)$/u, '').replace(/[\s·∙・,._-]/gu, '').replace(/공통$/u, '')
@@ -24,9 +29,10 @@ function academicUnitFromCategory(category: string): string | null {
   return slash < 0 ? null : category.slice(slash + 1, -1)
 }
 
-export function CourseSearchSheet({ open, sections, items, profile, onClose, onAdd }: Props) {
+export function CourseSearchSheet({ open, initialMode = 'ALL', sections, items, profile, onClose, onAdd }: Props) {
   const dialogRef = useRef<HTMLDialogElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
+  const wasOpenRef = useRef(false)
   const [query, setQuery] = useState('')
   const [category, setCategory] = useState('전체')
   const [day, setDay] = useState<'전체' | Day>('전체')
@@ -42,7 +48,8 @@ export function CourseSearchSheet({ open, sections, items, profile, onClose, onA
   const preferredSectionCount = useMemo(() => preferredCategory ? sections.filter((section) => section.category === preferredCategory).length : 0, [preferredCategory, sections])
   const categories = useMemo(() => {
     const sorted = Array.from(new Set(sections.map((section) => section.category))).sort((a, b) => a.localeCompare(b, 'ko'))
-    return ['전체', ...(preferredCategory ? [preferredCategory] : []), ...sorted.filter((value) => value !== preferredCategory)]
+    const hasLiberalElectives = sorted.some((value) => value.startsWith('교양선택'))
+    return ['전체', ...(preferredCategory ? [preferredCategory] : []), ...(hasLiberalElectives ? [LIBERAL_ELECTIVE_CATEGORY] : []), ...sorted.filter((value) => value !== preferredCategory)]
   }, [preferredCategory, sections])
   const selectedIds = useMemo(() => new Set(items.map((item) => item.sectionId)), [items])
   const activeSections = useMemo(() => {
@@ -60,6 +67,21 @@ export function CourseSearchSheet({ open, sections, items, profile, onClose, onA
   }, [open])
 
   useEffect(() => {
+    if (open && !wasOpenRef.current) {
+      const initialCategory = initialMode === 'MAJOR' && preferredCategory
+        ? preferredCategory
+        : initialMode === 'LIBERAL'
+          ? LIBERAL_ELECTIVE_CATEGORY
+          : '전체'
+      setCategory(categories.includes(initialCategory) ? initialCategory : '전체')
+      setQuery('')
+      setDay('전체')
+      setExpandedCourseCode(null)
+    }
+    wasOpenRef.current = open
+  }, [categories, initialMode, open, preferredCategory])
+
+  useEffect(() => {
     if (!categories.includes(category)) setCategory('전체')
   }, [categories, category])
 
@@ -67,7 +89,10 @@ export function CourseSearchSheet({ open, sections, items, profile, onClose, onA
     const normalized = query.trim().toLocaleLowerCase('ko')
     const matched = sections.filter((section) => {
       const haystack = `${section.name} ${section.professor ?? ''} ${section.courseCode} ${section.category}`.toLocaleLowerCase('ko')
-      return (!normalized || haystack.includes(normalized)) && (category === '전체' || section.category === category) && (day === '전체' || section.sessions.some((session) => session.day === day))
+      const categoryMatches = category === '전체'
+        || category === LIBERAL_ELECTIVE_CATEGORY && section.category.startsWith('교양선택')
+        || section.category === category
+      return (!normalized || haystack.includes(normalized)) && categoryMatches && (day === '전체' || section.sessions.some((session) => session.day === day))
     })
     const grouped = new Map<string, Section[]>()
     for (const section of matched) grouped.set(section.courseCode, [...(grouped.get(section.courseCode) ?? []), section])
