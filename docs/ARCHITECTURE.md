@@ -226,7 +226,7 @@ FastAPI가 생성한 OpenAPI 3.1 문서를 CI에서 snapshot으로 검증하고 
 4. **데이터:** `pg_dump --format=custom`과 검증된 `pg_restore`
 5. **원문:** 졸업요건·카탈로그 source checksum과 parser version
 
-CI는 lint, typecheck, unit, contract, migration, parser fixture, E2E, 접근성, Compose healthcheck를 실행한다. 배포 이미지는 커밋 SHA로 태그하고 healthcheck 실패 시 이전 이미지로 되돌릴 수 있어야 한다.
+CI는 lint, typecheck, unit, contract, migration, parser fixture, E2E, 접근성, Compose healthcheck를 실행한다. 현재 `.github/workflows/ci.yml`의 `ubuntu-latest` 작업은 GitHub-hosted 임시 러너에서 실행되며 운영 서버에 배포하지 않는다. 운영은 이 서버의 Docker Compose와 Cloudflare Tunnel이 담당하고, CI의 Compose는 커밋을 깨끗한 별도 환경에서 검증한 뒤 폐기한다. 배포 이미지는 커밋 SHA로 태그하고 healthcheck 실패 시 이전 이미지로 되돌릴 수 있어야 한다.
 
 운영에서는 구조화 로그에 request/job ID를 포함하고, API latency·오류율·optimizer queue time·solve time·import 실패를 측정한다. 비밀값과 개인 이수내역은 로그에 남기지 않는다.
 

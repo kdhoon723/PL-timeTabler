@@ -82,7 +82,7 @@ jobs:
       - run: npx --prefix e2e playwright install --with-deps chromium
       - run: docker compose up -d --wait --wait-timeout 120
       - name: Production service-worker and optimizer E2E
-        run: npm test --prefix e2e -- --project=desktop-chromium
+        run: npm test --prefix e2e -- --project=desktop-1440
         env:
           E2E_LIVE: "1"
           E2E_BASE_URL: http://127.0.0.1:18080
