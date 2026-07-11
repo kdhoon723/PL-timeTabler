@@ -91,4 +91,18 @@ describe('required course progress', () => {
     await userEvent.click(screen.getAllByRole('button', { name: '시간표에 배치' })[0]!)
     expect(onAddRequired).toHaveBeenCalled()
   })
+
+  it('shows the available handbook cohort as a clearly marked reference instead of a data dead end', async () => {
+    const earlierProfile: AcademicProfile = {
+      ...profile,
+      academicBasis: { ...profile.academicBasis!, admissionYear: 2025, gradeMismatchAcknowledged: true },
+    }
+    render(<RequiredCoursePanel profile={earlierProfile} rules={rules} majorRequired={majorRequired} catalog={catalog} items={[]} sectionById={new Map(catalog.map((value) => [value.id, value]))} onEditProfile={() => undefined} onAddRequired={() => undefined} onBrowseMajor={() => undefined} onBrowseLiberal={() => undefined} initiallyExpanded />)
+
+    expect(screen.queryByText('이 입학연도 데이터는 아직 연결되지 않았어요.')).not.toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: '확인 가능한 2026 기준 · 1학년 전공필수' })).toBeVisible()
+    expect(screen.getByText('운영체제론')).toBeVisible()
+    expect(screen.getByText('참고')).toBeVisible()
+    expect(screen.getByText('입학연도별 차이가 있을 수 있어 참고용으로 보여드려요.')).toBeVisible()
+  })
 })

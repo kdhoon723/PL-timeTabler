@@ -12,13 +12,14 @@
 ## Brand
 
 - Personality: 빠르고 차분하며 정돈된 학사 도구. 유행을 과시하기보다 정보의 정확성과 조작의 명료함을 보여준다.
-- Trust signals: 데이터 학기·갱신일·공식 출처는 학사 근거를 확인하는 맥락에서만 제공하고, 저장본 사용·오류처럼 행동이 필요한 상태만 전역 알림으로 표시한다. 충돌 여부의 즉시 피드백, 추천 변경 이유, 되돌리기 가능한 작업을 제공한다.
+- Trust signals: 데이터 학기·갱신일·공식 출처는 학사 근거를 확인하는 맥락에서만 제공하고, 저장본 사용·오류처럼 행동이 필요한 상태만 전역 알림으로 표시한다. 일부 입학연도 근거가 비어 있어도 확인 가능한 최신 기준과 실제 개설 분반을 먼저 제공하고, 참고 범위는 해당 결과 가까이에 짧게 표시한다. 충돌 여부의 즉시 피드백, 추천 변경 이유, 되돌리기 가능한 작업을 제공한다.
 - Avoid: 건너뛸 수 없는 소개·회원가입 장벽, 보라색·청색 그라데이션, 유리 효과, 네온 광택, 과도한 둥근 카드, 장식용 차트, 반짝이 아이콘, 설명 없는 AI 추천
-- Theme decision: 제품 1.0은 완성도 높은 라이트 테마 하나만 제공한다. 다크 테마를 자동 반전으로 만들지 않으며 별도 설계·검증 전에는 노출하지 않는다.
+- Theme decision: 라이트·다크 테마를 모두 의미 기반 토큰으로 직접 설계하고, 기본값은 운영체제의 `prefers-color-scheme`을 따른다. 브라우저 자동 반전에는 의존하지 않으며 두 테마 모두 모바일·데스크톱에서 별도로 검증한다.
 
-### Fixed visual direction: Quiet Light
+### Fixed visual direction: Quiet System
 
-- 전체 인상은 `흰색`, `아주 옅은 중립 회색`, `짙은 회색 텍스트`, `하나의 차분한 파란색 accent`로 끝낸다.
+- 라이트는 `흰색`, `아주 옅은 중립 회색`, `짙은 회색 텍스트`를 사용하고, 다크는 `검정에 가까운 중립 canvas`, `한 단계 밝은 surface`, `고대비 밝은 텍스트`를 사용한다. 두 테마 모두 하나의 차분한 파란색 accent로 끝낸다.
+- 다크 테마는 라이트 색상의 산술 반전이 아니다. 상태색·과목색·border·focus·backdrop을 각각 조정하고, 브라우저 기본 컨트롤에도 `color-scheme`을 명시한다.
 - 브랜드를 드러내기 위한 별도 gradient, illustration, pattern, mascot, 장식 배경을 만들지 않는다.
 - 첫 방문 설정은 학과 선택의 효용과 두 행동만 보여주는 한 번의 작업형 화면으로 제한한다. `건너뛰고 바로 만들기`는 항상 같은 화면에 노출하며 마케팅 hero나 기능 나열을 넣지 않는다.
 - 정보 계층은 색상 수가 아니라 글자 크기·굵기·여백·정렬로 만든다.
@@ -202,6 +203,7 @@
 ### Motion and iconography
 
 - hover/press 120ms, 패널·시트 180~220ms의 ease-out 전환만 사용한다.
+- 모바일 바텀시트는 짧은 세로 이동과 backdrop opacity, 데스크톱 dialog는 미세한 scale만 사용한다. 콘텐츠 자체의 opacity를 낮춰 순간적으로 대비가 무너지지 않게 하며 레이아웃을 반복 계산하는 속성 대신 `transform`을 우선한다.
 - bounce, elastic spring, 배경 blob 이동, 숫자 카운트업 같은 장식 모션을 사용하지 않는다.
 - `prefers-reduced-motion`에서는 위치·크기 전환을 제거하고 즉시 상태를 바꾼다.
 - 단일 1.75~2px stroke 아이콘 체계만 사용한다. emoji, 3D 아이콘, 채움/선형 아이콘 혼용을 금지한다.
@@ -312,7 +314,7 @@
 - Optimization: API와 분리된 Python optimizer 프로세스에서 OR-Tools CP-SAT 실행
 - Data/storage: PostgreSQL + Alembic migration, 개인 편집 상태는 브라우저 저장 우선
 - Deployment: web/API/optimizer/DB/migration을 Docker Compose로 실행하며 개발 전용 차이는 별도 Compose 파일로 관리
-- Design-token constraints: semantic CSS custom property를 단일 원천으로 사용하고 컴포넌트 내부 raw color·임의 spacing·임의 z-index를 금지한다. light theme token만 우선 구현한다.
+- Design-token constraints: semantic CSS custom property를 단일 원천으로 사용하고 컴포넌트 내부 raw color·임의 spacing·임의 z-index를 금지한다. light/dark 상태색과 과목색도 토큰으로 관리한다.
 - Performance constraints: 과목 검색은 로컬 인덱스로 처리하고 강의실 상세는 필요할 때 로드
 - Compatibility constraints: 모바일 Safari와 Android Chrome을 우선 검증
 - Test/screenshot expectations: Playwright release gate는 390×844, 768×1024, 1440×900 실제 프로젝트를 사용한다. 360px/320px reflow는 추가 호환 점검으로 유지하며 empty, populated, conflict, search-open, generating, result-comparison, requirements-unknown 상태를 시각 회귀 대상으로 삼는다.

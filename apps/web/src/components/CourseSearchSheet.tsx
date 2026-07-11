@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { AcademicProfile, Day, PlanItem, Section } from '../types'
 import { canPlace } from '../domain/conflicts'
-import { recommendedSection } from '../domain/requiredCourse'
 import { formatSession } from '../domain/time'
 import { CheckIcon, CloseIcon, SearchIcon } from './Icons'
 
@@ -125,8 +124,6 @@ export function CourseSearchSheet({ open, initialMode = 'ALL', sections, items, 
         const expanded = expandedCourseCode === first.courseCode
         const currentSection = activeSections.find((section) => section.courseCode === first.courseCode)
         const comparisonSections = activeSections.filter((section) => section.id !== currentSection?.id)
-        const recommendationPool = currentSection ? group.filter((section) => section.id !== currentSection.id) : group
-        const suggested = recommendedSection(recommendationPool.length ? recommendationPool : group, comparisonSections)
         const titleId = `course-${first.courseCode}-title`
         const sectionsId = `course-${first.courseCode}-sections`
         return <section className="course-group" key={first.courseCode} aria-labelledby={titleId}>
@@ -140,12 +137,11 @@ export function CourseSearchSheet({ open, initialMode = 'ALL', sections, items, 
               const replacement = !!currentSection && !current
               const conflict = !current && !canPlace(section, comparisonSections)
               const timeUnknown = section.sessions.length === 0
-              const isSuggested = suggested?.id === section.id
               const action = current ? '현재 분반' : planned ? '계획에 있음' : replacement ? '교체' : '추가'
-              const states = [isSuggested ? '추천' : null, conflict ? '충돌' : null, timeUnknown ? '시간 미정' : null, action].filter((value): value is string => !!value)
+              const states = [conflict ? '충돌' : null, timeUnknown ? '시간 미정' : null, action].filter((value): value is string => !!value)
               return <button aria-label={`${section.sectionCode}분반 ${section.professor ?? '교수 미정'} ${states.join(' ')}`} className={`section-option ${planned ? 'selected' : ''} ${conflict ? 'conflict' : ''}`} type="button" key={section.id} onClick={() => onAdd(section)} disabled={current || planned}>
                 <span className="section-number">{section.sectionCode}분반</span>
-                <span><strong>{section.professor ?? '교수 미정'}</strong><small>{section.sessions.length ? section.sessions.map(formatSession).join(' / ') : '수업시간 미정'}</small><span className="section-statuses">{isSuggested && <span>추천</span>}{conflict && <span className="danger-text">충돌</span>}{timeUnknown && <span>시간 미정</span>}</span></span>
+                <span><strong>{section.professor ?? '교수 미정'}</strong><small>{section.sessions.length ? section.sessions.map(formatSession).join(' / ') : '수업시간 미정'}</small>{(conflict || timeUnknown) && <span className="section-statuses">{conflict && <span className="danger-text">충돌</span>}{timeUnknown && <span>시간 미정</span>}</span>}</span>
                 {current || planned ? <span className="selected-label"><CheckIcon />{action}</span> : <span className="add-label">{action}</span>}
               </button>
             })}

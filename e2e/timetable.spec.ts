@@ -33,6 +33,36 @@ async function seedDraft(page: Page, sectionId = '922601-01') {
 
 test.describe('responsive timetable editor', () => {
 
+  test('follows the system dark theme with intentional colors and reduced-motion support', async ({ page }) => {
+    await page.emulateMedia({ colorScheme: 'dark', reducedMotion: 'no-preference' })
+    await openEditor(page)
+
+    const theme = await page.evaluate(() => {
+      const root = getComputedStyle(document.documentElement)
+      const body = getComputedStyle(document.body)
+      return {
+        colorScheme: root.colorScheme,
+        canvas: root.getPropertyValue('--canvas').trim(),
+        surface: root.getPropertyValue('--surface').trim(),
+        text: root.getPropertyValue('--text').trim(),
+        bodyColor: body.color,
+      }
+    })
+    expect(theme).toMatchObject({ colorScheme: 'dark', canvas: '#0f1115', surface: '#171a20', text: '#f3f4f6' })
+    expect(theme.bodyColor).toBe('rgb(243, 244, 246)')
+    await expect(page.locator('meta[name="theme-color"][media*="dark"]')).toHaveAttribute('content', '#0f1115')
+
+    await page.getByRole('button', { name: /과목 추가/ }).last().click()
+    const sheet = page.getByRole('dialog', { name: '과목 추가' })
+    await expect(sheet).toBeVisible()
+    expect(await sheet.evaluate((element) => getComputedStyle(element).transitionDuration)).not.toBe('0s')
+    const darkA11y = await new AxeBuilder({ page }).analyze()
+    expect(darkA11y.violations.filter((violation) => violation.impact === 'serious' || violation.impact === 'critical')).toEqual([])
+
+    await page.emulateMedia({ colorScheme: 'dark', reducedMotion: 'reduce' })
+    expect(Number.parseFloat(await sheet.evaluate((element) => getComputedStyle(element).transitionDuration))).toBeLessThanOrEqual(0.00001)
+  })
+
   test('keeps first-run focus inside the accessible setup dialog', async ({ page }) => {
     await page.goto('/')
     const dialog = page.getByRole('dialog')

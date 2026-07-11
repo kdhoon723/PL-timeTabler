@@ -44,7 +44,7 @@ describe('course search sheet', () => {
     expect(courseRows[1]).toHaveAttribute('aria-expanded', 'true')
   })
 
-  it('announces suggested, conflicting, time-unknown, current, and replacement sections', async () => {
+  it('announces only actionable section states without a generic recommendation label', async () => {
     const onAdd = vi.fn()
     const items = [
       { sectionId: '100001-01', role: 'want' as const, locked: false },
@@ -58,7 +58,8 @@ describe('course search sheet', () => {
 
     const dialog = screen.getByRole('dialog', { name: '과목 추가' })
     expect(within(dialog).getByRole('button', { name: /01분반.*현재 분반/ })).toBeDisabled()
-    const replacement = within(dialog).getByRole('button', { name: /02분반.*추천.*시간 미정.*교체/ })
+    const replacement = within(dialog).getByRole('button', { name: /02분반.*시간 미정.*교체/ })
+    expect(replacement).not.toHaveAccessibleName(/추천/)
     await userEvent.click(replacement)
     expect(onAdd).toHaveBeenCalledWith(catalog[1])
   })
@@ -69,6 +70,7 @@ describe('course search sheet', () => {
     await userEvent.type(screen.getByRole('textbox', { name: '과목명, 교수, 과목코드 검색' }), 'AI시대')
     await userEvent.click(screen.getByRole('button', { name: /AI시대의컴퓨팅사고.*분반 보기/ }))
     expect(screen.getByRole('button', { name: /01분반.*충돌.*추가/ })).toBeInTheDocument()
+    expect(screen.queryByText('충돌 없음')).not.toBeInTheDocument()
   })
 
   it('puts the saved department first and provides a one-tap major filter', async () => {
