@@ -97,7 +97,7 @@ a { color: var(--accent); }
 .grid-line { position: absolute; left: 0; right: 0; border-top: 1px solid var(--border); }
 .grid-line.minor { border-color: var(--grid-minor); }
 .day-line { position: absolute; top: 0; bottom: 0; border-left: 1px solid var(--border); }
-.course-block { position: absolute; z-index: 2; min-width: 0; padding: 4px; overflow: hidden; color-scheme: only light; text-align: left; border: 1px solid var(--course-border); border-radius: 4px; color: var(--course-text); transition: transform 120ms ease-out, opacity 120ms ease-out, border-color 120ms ease-out, box-shadow 120ms ease-out; animation: course-enter 160ms ease-out; }
+.course-block { position: absolute; z-index: 2; min-width: 0; padding: 4px; overflow: hidden; text-align: left; border: 1px solid var(--course-border); border-radius: 4px; color: var(--course-text); transition: transform 120ms ease-out, opacity 120ms ease-out, border-color 120ms ease-out, box-shadow 120ms ease-out; animation: course-enter 160ms ease-out; }
 .course-block strong, .course-block span { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .course-block strong { font-size: 11px; line-height: 14px; font-weight: 700; }
 .course-block span { font-size: 10px; line-height: 13px; font-weight: 500; }

@@ -127,13 +127,17 @@ test.describe('responsive timetable editor', () => {
     const light = await measureContrast()
     expect(new Set(light.map(({ background }) => background)).size).toBe(3)
     expect(Math.min(...light.map(({ contrast }) => contrast))).toBeGreaterThanOrEqual(5)
+    expect(light.every(({ colorScheme }) => colorScheme === 'light')).toBe(true)
 
     await page.emulateMedia({ colorScheme: 'dark' })
+    const autoDark = await page.context().newCDPSession(page)
+    await autoDark.send('Emulation.setAutoDarkModeOverride', { enabled: true })
     const dark = await measureContrast()
     expect(new Set(dark.map(({ background }) => background)).size).toBe(3)
     expect(Math.min(...dark.map(({ contrast }) => contrast))).toBeGreaterThanOrEqual(5)
     expect(dark.map(({ background }) => background)).toEqual(light.map(({ background }) => background))
-    expect(dark.every(({ opacity, filter, mixBlendMode, colorScheme }) => opacity === '1' && filter === 'none' && mixBlendMode === 'normal' && colorScheme === 'light only')).toBe(true)
+    expect(dark.every(({ opacity, filter, mixBlendMode, colorScheme }) => opacity === '1' && filter === 'none' && mixBlendMode === 'normal' && colorScheme === 'dark')).toBe(true)
+    await autoDark.detach()
   })
 
   test('keeps first-run focus inside the accessible setup dialog', async ({ page }) => {

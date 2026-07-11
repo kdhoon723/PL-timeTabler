@@ -26,7 +26,7 @@
 ### Galaxy and browser auto-dark protection
 
 - 문서 전체는 `color-scheme: light dark`와 `prefers-color-scheme` 기반의 명시적 라이트·다크 테마를 유지한다.
-- 과목 블록은 `color-scheme: only light`로 브라우저의 추가 자동 다크 변환 대상에서 제외한다.
+- 과목 블록은 루트의 작성자 색상 체계를 상속한다. 라이트에서는 `light`, 다크에서는 `dark`로 계산돼야 하며 다크 환경에서 `only light`를 사용하지 않는다. 일부 Chromium 계열 브라우저는 `only light` 지원이 비활성화된 경우 이를 `light`로 취급해 밝은 색면과 검정 글자를 강제로 어둡게 변환한다.
 - 과목 블록에는 opacity·filter·blend mode를 적용하지 않는다. 다크 모드의 구분은 불투명 색면과 밝은 경계선으로 만든다.
 - Galaxy 기기 자체가 원인이라고 단정하지 않는다. Samsung Internet의 force-dark 모드, Chromium 계열 Auto Dark, 또는 이전 CSS 캐시가 색을 재변환할 수 있으므로 작성자 테마와 요소 단위 opt-out을 함께 제공한다.
 
@@ -34,12 +34,14 @@
 
 - 입력 배열이 섞여 있어도 월요일의 이른 과목이 `course-0`, 월요일의 다음 과목이 `course-1`, 화요일 과목이 그다음 색을 받는다.
 - 라이트·다크의 각 과목 블록은 같은 불투명 RGB를 사용한다.
-- 모든 과목 블록은 `opacity: 1`, `filter: none`, `mix-blend-mode: normal`, 계산된 `color-scheme: light only`를 유지한다.
+- 모든 과목 블록은 `opacity: 1`, `filter: none`, `mix-blend-mode: normal`을 유지하고, 계산된 `color-scheme`은 라이트에서 `light`, 다크에서 `dark`여야 한다.
 - 데스크톱·태블릿·모바일 Playwright 프로젝트에서 색 순서·명암비·다크 변환 방지를 검증한다.
 - 필수과목 시트에는 번호형 작성 순서와 전공선택·교양선택 이동 버튼이 없고, 실제 필수과목 및 배치 행동이 바로 보인다.
 
 ## References
 
 - Samsung Internet, [Dark Mode in Samsung Internet](https://developer.samsung.com/internet/blog/en/2020/12/15/dark-mode-in-samsung-internet)
+- Naver Whale Help, [다크 모드](https://help.whale.naver.com/ko/desktop/darkmode/)
 - Chrome Developers, [Auto Dark Theme](https://developer.chrome.com/blog/auto-dark-theme)
+- Chromium, [Implement color-scheme override per spec](https://chromium.googlesource.com/chromium/src/+/9a69785f81c63534ca6526e4a3fb2b162d9763cb)
 - web.dev, [Improved dark mode default styling with the color-scheme CSS property and the corresponding meta tag](https://web.dev/articles/color-scheme)
