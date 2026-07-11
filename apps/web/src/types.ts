@@ -146,15 +146,19 @@ export type EntryType = 'FRESHMAN' | 'TRANSFER'
 export type SectionGroup = 'ODD' | 'EVEN' | 'UNKNOWN'
 export type StudentClassification = 'DOMESTIC' | 'INTERNATIONAL' | 'UNKNOWN'
 
-export interface AcademicProfile {
-  schemaVersion: 1
-  department: string
+export interface AcademicBasis {
   admissionYear: number
-  currentGrade: 1 | 2 | 3 | 4
   entryType: EntryType
   studentType: StudentClassification
   sectionGroup: SectionGroup
   gradeMismatchAcknowledged?: boolean
+}
+
+export interface AcademicProfile {
+  schemaVersion: 2
+  department: string
+  currentGrade: 1 | 2 | 3 | 4
+  academicBasis: AcademicBasis | null
   updatedAt: string
 }
 

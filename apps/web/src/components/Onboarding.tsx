@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { KeyboardEvent } from 'react'
-import { ACTIVE_SEMESTER, academicProgression, createAcademicProfile, expectedFreshmanGrade } from '../domain/profile'
-import type { AcademicProfile, DepartmentSource, EntryType, SectionGroup, StudentClassification } from '../types'
+import { ACTIVE_SEMESTER, ACTIVE_SEMESTER_YEAR, academicProgression, createAcademicProfile, expectedFreshmanGrade, supportsSectionGroup } from '../domain/profile'
+import type { AcademicBasis, AcademicProfile, DepartmentSource, EntryType, SectionGroup, StudentClassification } from '../types'
 
 interface Props {
   departments: DepartmentSource[]
@@ -17,17 +17,22 @@ type Step = 'WELCOME' | 'DEPARTMENT' | 'DETAILS'
 
 export function Onboarding({ departments, initialProfile, mode, authAvailable, onComplete, onSkip, onLogin }: Props) {
   const dialogRef = useRef<HTMLDialogElement>(null)
-  const [step, setStep] = useState<Step>(mode === 'EDIT' ? 'DEPARTMENT' : 'WELCOME')
+  const initialBasis = initialProfile?.academicBasis
+  const [step, setStep] = useState<Step>(mode === 'EDIT' ? 'DETAILS' : 'WELCOME')
   const [query, setQuery] = useState('')
   const [department, setDepartment] = useState(initialProfile?.department ?? '')
-  const [admissionYear, setAdmissionYear] = useState(initialProfile?.admissionYear ?? 2026)
   const [currentGrade, setCurrentGrade] = useState<1 | 2 | 3 | 4>(initialProfile?.currentGrade ?? 1)
-  const [entryType, setEntryType] = useState<EntryType>(initialProfile?.entryType ?? 'FRESHMAN')
-  const [studentType, setStudentType] = useState<StudentClassification>(initialProfile?.studentType ?? 'UNKNOWN')
-  const [sectionGroup, setSectionGroup] = useState<SectionGroup>(initialProfile?.sectionGroup ?? 'UNKNOWN')
-  const [gradeMismatchAcknowledged, setGradeMismatchAcknowledged] = useState(initialProfile?.gradeMismatchAcknowledged ?? false)
-  const gradeProfile = { admissionYear, currentGrade, entryType }
-  const progression = academicProgression(gradeProfile)
+  const [useAcademicBasis, setUseAcademicBasis] = useState(mode === 'EDIT' && !!initialBasis)
+  const [admissionYear, setAdmissionYear] = useState(initialBasis?.admissionYear ?? ACTIVE_SEMESTER_YEAR)
+  const [entryType, setEntryType] = useState<EntryType>(initialBasis?.entryType ?? 'FRESHMAN')
+  const [studentType, setStudentType] = useState<StudentClassification>(initialBasis?.studentType ?? 'UNKNOWN')
+  const [sectionGroup, setSectionGroup] = useState<SectionGroup>(initialBasis?.sectionGroup ?? 'UNKNOWN')
+  const [gradeMismatchAcknowledged, setGradeMismatchAcknowledged] = useState(initialBasis?.gradeMismatchAcknowledged ?? false)
+  const transferSelected = entryType === 'TRANSFER'
+  const basisEnabled = mode === 'EDIT' ? useAcademicBasis : transferSelected
+  const draftBasis: AcademicBasis | null = basisEnabled ? { admissionYear, entryType, studentType, sectionGroup, gradeMismatchAcknowledged: gradeMismatchAcknowledged || undefined } : null
+  const draftProfile: AcademicProfile = { schemaVersion: 2, department, currentGrade, academicBasis: draftBasis, updatedAt: initialProfile?.updatedAt ?? '' }
+  const progression = academicProgression(draftProfile)
   const gradeMismatch = progression === 'DELAYED' || progression === 'ACCELERATED'
   const delayedProgression = progression === 'DELAYED'
   const expectedGrade = expectedFreshmanGrade(admissionYear)
@@ -44,9 +49,14 @@ export function Onboarding({ departments, initialProfile, mode, authAvailable, o
     }
   }, [])
 
-  const finish = (group = sectionGroup) => {
+  const finish = () => {
     if (delayedProgression && !gradeMismatchAcknowledged) return
-    onComplete(createAcademicProfile({ department, admissionYear, currentGrade, entryType, studentType, sectionGroup: group, gradeMismatchAcknowledged: delayedProgression ? true : undefined }))
+    onComplete(createAcademicProfile({ department, currentGrade, academicBasis: draftBasis }))
+  }
+
+  const setTransfer = (selected: boolean) => {
+    setEntryType(selected ? 'TRANSFER' : 'FRESHMAN')
+    setGradeMismatchAcknowledged(false)
   }
 
   const keepFocusInside = (event: KeyboardEvent<HTMLDialogElement>) => {
@@ -65,12 +75,19 @@ export function Onboarding({ departments, initialProfile, mode, authAvailable, o
     }
   }
 
+  const admissionYearField = <label><span>{transferSelected ? '대진대 편입학년도' : '입학연도'}</span><select value={admissionYear} onChange={(event) => { setAdmissionYear(Number(event.target.value)); setGradeMismatchAcknowledged(false) }}>{Array.from({ length: 15 }, (_, index) => ACTIVE_SEMESTER_YEAR - index).map((year) => <option value={year} key={year}>{year}학년도</option>)}</select><small className="field-help">입학연도별 필수과목 범위를 확인할 때만 사용해요.</small></label>
+
+  const transferField = <div className={`transfer-disclosure ${transferSelected ? 'selected' : ''}`}>
+    <label><input type="checkbox" checked={transferSelected} onChange={(event) => setTransfer(event.target.checked)} /><span><strong>혹시 편입생인가요?</strong><small>해당하는 경우에만 선택해 주세요.</small></span></label>
+    {transferSelected && <div className="transfer-options"><strong>편입 기준으로 안내할게요</strong><p>인정학점과 대체 이수 과목은 학생마다 달라 필수과목을 임의로 확정하지 않아요. 세부 인정 내역은 졸업요건에서 따로 확인할 수 있어요.</p></div>}
+  </div>
+
   return <dialog ref={dialogRef} className="onboarding" aria-labelledby="onboarding-title" onKeyDown={keepFocusInside} onCancel={(event) => { event.preventDefault(); onSkip() }}>
     <div className="onboarding-frame">
       {step !== 'WELCOME' && <header className="onboarding-header">{step === 'DETAILS' || mode === 'FIRST_RUN' ? <button type="button" className="text-button" onClick={() => setStep(step === 'DETAILS' ? 'DEPARTMENT' : 'WELCOME')}>← 이전</button> : <span aria-hidden="true" />}<span>{step === 'DEPARTMENT' ? '1 / 2' : '2 / 2'}</span><button type="button" className="text-button" onClick={onSkip}>{mode === 'EDIT' ? '닫기' : '건너뛰기'}</button></header>}
       {step === 'WELCOME' && <section className="welcome-step">
         <div className="welcome-brand" aria-hidden="true">PL</div>
-        <div><p className="eyebrow">대진대학교 시간표 도우미</p><h1 id="onboarding-title">원하는 시간표를<br />더 쉽게 만들어 보세요</h1><p>학과와 학년을 알려주면 공식 자료로 확인 가능한 필수 과목부터 연결해 드려요. 과목은 확인한 뒤 직접 추가합니다.</p></div>
+        <div><p className="eyebrow">대진대학교 시간표 도우미</p><h1 id="onboarding-title">원하는 시간표를<br />더 쉽게 만들어 보세요</h1><p>학과와 학년을 알려주면 전공 과목부터 빠르게 찾을 수 있어요. 과목은 확인한 뒤 직접 추가합니다.</p></div>
         <div className="onboarding-actions"><button autoFocus type="button" className="primary-button" onClick={() => setStep('DEPARTMENT')}>학과 선택하고 시작</button><button type="button" className="secondary-button" onClick={onSkip}>건너뛰고 바로 만들기</button>{authAvailable && <button type="button" className="text-button login-entry" onClick={onLogin}>학교 이메일로 로그인</button>}<small>로그인하지 않아도 모든 시간표 기능을 사용할 수 있어요.</small></div>
       </section>}
       {step === 'DEPARTMENT' && <section className="onboarding-step">
@@ -82,16 +99,16 @@ export function Onboarding({ departments, initialProfile, mode, authAvailable, o
         </div>
       </section>}
       {step === 'DETAILS' && <section className="onboarding-step details-step">
-        <div><p className="eyebrow">추천 범위를 정확하게</p><h1 id="onboarding-title">현재 학적 정보를 알려주세요</h1><p>입학연도와 전형에 맞는 범위만 판단하고, 불확실한 요건은 확인 필요로 안내합니다.</p></div>
+        <div><p className="eyebrow">이번 학기 기준으로</p><h1 id="onboarding-title">몇 학년 시간표를<br />준비할까요?</h1><p>전공 과목을 학년 수준에 맞게 찾는 데 사용해요. 다른 학년 과목도 언제든 검색할 수 있어요.</p></div>
         <div className="onboarding-fields">
-          <label><span>입학연도</span><select value={admissionYear} onChange={(event) => { setAdmissionYear(Number(event.target.value)); setGradeMismatchAcknowledged(false) }}>{Array.from({ length: 15 }, (_, index) => 2026 - index).map((year) => <option value={year} key={year}>{year}학년도</option>)}</select></label>
           <fieldset><legend>현재 학년</legend><div className="segmented-control">{([1, 2, 3, 4] as const).map((grade) => <button type="button" className={currentGrade === grade ? 'selected' : ''} aria-pressed={currentGrade === grade} key={grade} onClick={() => { setCurrentGrade(grade); setGradeMismatchAcknowledged(false) }}>{grade}학년</button>)}</div></fieldset>
-          <fieldset><legend>입학 구분</legend><div className="choice-cards"><button type="button" className={entryType === 'FRESHMAN' ? 'selected' : ''} aria-pressed={entryType === 'FRESHMAN'} onClick={() => { setEntryType('FRESHMAN'); setGradeMismatchAcknowledged(false) }}><strong>신입학</strong><small>입학연도 요건 점검에 사용</small></button><button type="button" className={entryType === 'TRANSFER' ? 'selected' : ''} aria-pressed={entryType === 'TRANSFER'} onClick={() => { setEntryType('TRANSFER'); setGradeMismatchAcknowledged(false) }}><strong>편입학</strong><small>인정학점은 별도 확인</small></button></div></fieldset>
-          {gradeMismatch && <div className="profile-consistency-warning" role="alert"><strong>입학연도와 현재 학년을 확인해 주세요</strong><p>{ACTIVE_SEMESTER.replace('-', '학년도 ')}학기 기준 신입학 {admissionYear}학번은 {expectedGrade ? `보통 ${expectedGrade}학년` : '일반적인 4년 재학 범위를 지난 학번'}입니다.</p>{progression === 'ACCELERATED' ? <p>현재 학년이 일반 예상보다 높아 학과 확인 전에는 필수과목을 자동 판정하지 않습니다. 프로필은 저장할 수 있습니다.</p> : <label><input type="checkbox" checked={gradeMismatchAcknowledged} onChange={(event) => setGradeMismatchAcknowledged(event.target.checked)} />휴학·복학 등으로 현재 {currentGrade}학년이 맞습니다.</label>}</div>}
-          <fieldset><legend>학생 구분</legend><div className="segmented-control section-group-control"><button type="button" className={studentType === 'UNKNOWN' ? 'selected' : ''} aria-pressed={studentType === 'UNKNOWN'} onClick={() => setStudentType('UNKNOWN')}>모름</button><button type="button" className={studentType === 'DOMESTIC' ? 'selected' : ''} aria-pressed={studentType === 'DOMESTIC'} onClick={() => setStudentType('DOMESTIC')}>국내학생</button><button type="button" className={studentType === 'INTERNATIONAL' ? 'selected' : ''} aria-pressed={studentType === 'INTERNATIONAL'} onClick={() => setStudentType('INTERNATIONAL')}>외국인·기타</button></div><p className="field-help">국내학생 전용 교양필수를 구분할 때 사용합니다. 모르면 자동 판정하지 않습니다.</p></fieldset>
-          <fieldset><legend>학번 끝자리 분반</legend><div className="segmented-control section-group-control"><button type="button" className={sectionGroup === 'UNKNOWN' ? 'selected' : ''} aria-pressed={sectionGroup === 'UNKNOWN'} onClick={() => setSectionGroup('UNKNOWN')}>모름·없음</button><button type="button" className={sectionGroup === 'ODD' ? 'selected' : ''} aria-pressed={sectionGroup === 'ODD'} onClick={() => setSectionGroup('ODD')}>홀수</button><button type="button" className={sectionGroup === 'EVEN' ? 'selected' : ''} aria-pressed={sectionGroup === 'EVEN'} onClick={() => setSectionGroup('EVEN')}>짝수</button></div><p className="field-help">학과에서 홀수·짝수 지정 분반을 안내받은 경우에만 선택하세요. 공식 분반표가 확인된 학과에서만 자동 배치에 적용됩니다.</p></fieldset>
+          {mode === 'FIRST_RUN' ? <>{transferField}{transferSelected && admissionYearField}</> : <div className={`academic-basis-disclosure ${useAcademicBasis ? 'selected' : ''}`}>
+            <label><input type="checkbox" checked={useAcademicBasis} onChange={(event) => { setUseAcademicBasis(event.target.checked); setGradeMismatchAcknowledged(false) }} /><span><strong>필수과목 추천을 더 정확히</strong><small>입학연도 기준을 추가하면 확인 가능한 필수과목만 안내해요.</small></span></label>
+            {useAcademicBasis && <div className="academic-basis-options">{admissionYearField}{transferField}<fieldset><legend>학생 구분</legend><div className="segmented-control section-group-control"><button type="button" className={studentType === 'UNKNOWN' ? 'selected' : ''} aria-pressed={studentType === 'UNKNOWN'} onClick={() => setStudentType('UNKNOWN')}>모름</button><button type="button" className={studentType === 'DOMESTIC' ? 'selected' : ''} aria-pressed={studentType === 'DOMESTIC'} onClick={() => setStudentType('DOMESTIC')}>국내학생</button><button type="button" className={studentType === 'INTERNATIONAL' ? 'selected' : ''} aria-pressed={studentType === 'INTERNATIONAL'} onClick={() => setStudentType('INTERNATIONAL')}>외국인·기타</button></div><p className="field-help">국내학생 전용 교양필수를 구분할 때 사용해요. 모르면 자동 판정하지 않아요.</p></fieldset>{supportsSectionGroup(department) && <fieldset><legend>학번 끝자리 분반</legend><div className="segmented-control section-group-control"><button type="button" className={sectionGroup === 'UNKNOWN' ? 'selected' : ''} aria-pressed={sectionGroup === 'UNKNOWN'} onClick={() => setSectionGroup('UNKNOWN')}>모름·없음</button><button type="button" className={sectionGroup === 'ODD' ? 'selected' : ''} aria-pressed={sectionGroup === 'ODD'} onClick={() => setSectionGroup('ODD')}>홀수</button><button type="button" className={sectionGroup === 'EVEN' ? 'selected' : ''} aria-pressed={sectionGroup === 'EVEN'} onClick={() => setSectionGroup('EVEN')}>짝수</button></div></fieldset>}</div>}
+          </div>}
+          {gradeMismatch && <div className="profile-consistency-warning" role="alert"><strong>입학연도와 현재 학년을 확인해 주세요</strong><p>{ACTIVE_SEMESTER.replace('-', '학년도 ')}학기 기준 신입학 {admissionYear}학번은 {expectedGrade ? `보통 ${expectedGrade}학년` : '일반적인 4년 재학 범위를 지난 학번'}입니다.</p>{progression === 'ACCELERATED' ? <p>현재 학년이 일반 예상보다 높아 학과 확인 전에는 필수과목을 자동 판정하지 않습니다. 설정은 저장할 수 있습니다.</p> : <label><input type="checkbox" checked={gradeMismatchAcknowledged} onChange={(event) => setGradeMismatchAcknowledged(event.target.checked)} />휴학·복학 등으로 현재 {currentGrade}학년이 맞습니다.</label>}</div>}
         </div>
-        <div className="onboarding-actions"><button type="button" className="primary-button" disabled={delayedProgression && !gradeMismatchAcknowledged} onClick={() => finish()}>시간표 만들기</button><small>저장한 정보는 이 브라우저에서 언제든 바꿀 수 있어요.</small></div>
+        <div className="onboarding-actions"><button type="button" className="primary-button" disabled={delayedProgression && !gradeMismatchAcknowledged} onClick={finish}>{mode === 'EDIT' ? '설정 저장' : `${currentGrade}학년 시간표 만들기`}</button><small>저장한 정보는 이 브라우저에서 언제든 바꿀 수 있어요.</small></div>
       </section>}
     </div>
   </dialog>

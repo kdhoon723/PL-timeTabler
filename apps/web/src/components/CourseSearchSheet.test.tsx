@@ -72,7 +72,7 @@ describe('course search sheet', () => {
   })
 
   it('puts the saved department first and provides a one-tap major filter', async () => {
-    const profile: AcademicProfile = { schemaVersion: 1, department: '컴퓨터공학전공', admissionYear: 2026, currentGrade: 1, entryType: 'FRESHMAN', studentType: 'DOMESTIC', sectionGroup: 'UNKNOWN', updatedAt: '2026-07-11T00:00:00Z' }
+    const profile: AcademicProfile = { schemaVersion: 2, department: '컴퓨터공학전공', currentGrade: 1, academicBasis: null, updatedAt: '2026-07-11T00:00:00Z' }
     const major = { ...section('350001', '01', '컴퓨터구조', '월'), category: '전공(AI융합대학/컴퓨터공학전공)' }
     render(<CourseSearchSheet open sections={[...catalog, major]} items={[]} profile={profile} onClose={() => undefined} onAdd={() => undefined} />)
 
