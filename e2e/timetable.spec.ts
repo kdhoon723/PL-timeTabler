@@ -79,6 +79,62 @@ test.describe('responsive timetable editor', () => {
     expect(Number.parseFloat(await sheet.evaluate((element) => getComputedStyle(element).transitionDuration))).toBeLessThanOrEqual(0.00001)
   })
 
+  test('keeps insertion-ordered course colors vivid and readable in both themes', async ({ page }) => {
+    await page.addInitScript(() => {
+      localStorage.setItem('pl-timetabler:onboarding:v1', 'complete')
+      localStorage.setItem('pl-timetabler:draft:v1', JSON.stringify({
+        schemaVersion: 1,
+        semester: '2026-1',
+        dataVersion: 'color-seed',
+        items: ['001022-01', '004317-01', '004421-01'].map((sectionId) => ({ sectionId, role: 'want', locked: false })),
+        preferences: { targetCredits: 9, minCredits: 2, maxCredits: 21, preferredFreeDays: [], avoidBefore: null, avoidAfter: null, minLunchMinutes: 60, maxDailyMinutes: 360, compactness: 70, minimizeChanges: true },
+        updatedAt: '2026-07-11T00:00:00.000Z',
+      }))
+    })
+    await page.emulateMedia({ colorScheme: 'light' })
+    await page.goto('/')
+    const blocks = page.locator('.course-block')
+    await expect(blocks).toHaveCount(3)
+    await expect(blocks.nth(0)).toHaveClass(/course-0/)
+    await expect(blocks.nth(1)).toHaveClass(/course-1/)
+    await expect(blocks.nth(2)).toHaveClass(/course-2/)
+
+    const measureContrast = async () => blocks.evaluateAll((elements) => {
+      const luminance = (rgb: string) => {
+        const channels = rgb.match(/[\d.]+/g)?.slice(0, 3).map(Number) ?? [0, 0, 0]
+        const [r, g, b] = channels.map((value) => {
+          const normalized = value / 255
+          return normalized <= .04045 ? normalized / 12.92 : ((normalized + .055) / 1.055) ** 2.4
+        })
+        return .2126 * r! + .7152 * g! + .0722 * b!
+      }
+      return elements.map((element) => {
+        const style = getComputedStyle(element)
+        const foreground = luminance(style.color)
+        const background = luminance(style.backgroundColor)
+        return {
+          background: style.backgroundColor,
+          contrast: (Math.max(foreground, background) + .05) / (Math.min(foreground, background) + .05),
+          opacity: style.opacity,
+          filter: style.filter,
+          mixBlendMode: style.mixBlendMode,
+        }
+      })
+    })
+
+    await expect.poll(async () => (await measureContrast()).every(({ opacity }) => opacity === '1')).toBe(true)
+    const light = await measureContrast()
+    expect(new Set(light.map(({ background }) => background)).size).toBe(3)
+    expect(Math.min(...light.map(({ contrast }) => contrast))).toBeGreaterThanOrEqual(5)
+
+    await page.emulateMedia({ colorScheme: 'dark' })
+    const dark = await measureContrast()
+    expect(new Set(dark.map(({ background }) => background)).size).toBe(3)
+    expect(Math.min(...dark.map(({ contrast }) => contrast))).toBeGreaterThanOrEqual(5)
+    expect(dark.map(({ background }) => background)).not.toEqual(light.map(({ background }) => background))
+    expect(dark.every(({ opacity, filter, mixBlendMode }) => opacity === '1' && filter === 'none' && mixBlendMode === 'normal')).toBe(true)
+  })
+
   test('keeps first-run focus inside the accessible setup dialog', async ({ page }) => {
     await page.goto('/')
     const dialog = page.getByRole('dialog')

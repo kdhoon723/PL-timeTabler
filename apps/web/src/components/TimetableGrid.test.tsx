@@ -19,6 +19,18 @@ const section = (id: string, name: string): Section => ({
 afterEach(cleanup)
 
 describe('timetable candidate preview', () => {
+  it('assigns vivid course colors by timetable insertion order', () => {
+    const first = section('Z-1', '첫 번째 과목')
+    const second = section('A-1', '두 번째 과목')
+    const third = section('M-1', '세 번째 과목')
+
+    render(<TimetableGrid sections={[first, second, third]} conflicts={[]} lockedIds={new Set()} onSelect={() => undefined} />)
+
+    expect(screen.getByRole('button', { name: /첫 번째 과목/ })).toHaveClass('course-0')
+    expect(screen.getByRole('button', { name: /두 번째 과목/ })).toHaveClass('course-1')
+    expect(screen.getByRole('button', { name: /세 번째 과목/ })).toHaveClass('course-2')
+  })
+
   it('announces and styles preview states without opening the saved-draft detail sheet', () => {
     const removed = section('A-1', '알고리즘')
     const added = section('B-1', '운영체제')

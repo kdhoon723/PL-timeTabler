@@ -9,8 +9,9 @@
   --grid-minor: #edf0f3; --accent-quiet: #f7f9fe; --accent-border-soft: #b8c7e8; --accent-divider: #dce4f4;
   --profile-warning-bg: #fff9ea; --profile-warning-border: #d9a441; --profile-warning-text: #5b4314;
   --toast-bg: #242830; --toast-text: #fff; --toast-action: #c9d7fb;
-  --course-border: rgba(22,24,29,.16); --course-0-bg: #e8eefc; --course-0-text: #18325e; --course-1-bg: #e8f3ec; --course-1-text: #17462e;
-  --course-2-bg: #f2edf8; --course-2-text: #493463; --course-3-bg: #f8eee8; --course-3-text: #62402b; --course-4-bg: #e8f2f5; --course-4-text: #234855; --course-5-bg: #f5f0e5; --course-5-text: #55482c;
+  --course-border: rgba(22,24,29,.28); --course-0-bg: #f28e8e; --course-0-text: #3e1111; --course-1-bg: #f3a973; --course-1-text: #3c1d0a;
+  --course-2-bg: #f7cf68; --course-2-text: #332700; --course-3-bg: #7bcd8a; --course-3-text: #0c2e14; --course-4-bg: #6cb0cf; --course-4-text: #0b2b3a; --course-5-bg: #768ad9; --course-5-text: #101a45;
+  --course-6-bg: #b382e6; --course-6-text: #28123f; --course-7-bg: #e37bb3; --course-7-text: #3d0e28; --course-8-bg: #6ccfa0; --course-8-text: #0c3020; --course-9-bg: #d19275; --course-9-text: #35190e;
   --shadow-faint: rgba(22,24,29,.06); --shadow-soft: rgba(22,24,29,.12); --shadow-medium: rgba(22,24,29,.13); --shadow-strong: rgba(22,24,29,.16); --shadow-heavy: rgba(22,24,29,.2);
   --elevated-shadow: 0 8px 24px var(--shadow-strong); --drop-target-layer: 7; --drop-chooser-layer: 8;
 }
@@ -25,8 +26,9 @@
     --grid-minor: #252a32; --accent-quiet: #1b253b; --accent-border-soft: #4f6595; --accent-divider: #344465;
     --profile-warning-bg: #352b16; --profile-warning-border: #846728; --profile-warning-text: #f1cf87;
     --toast-bg: #eceef2; --toast-text: #16181d; --toast-action: #244fba;
-    --course-border: rgba(255,255,255,.2); --course-0-bg: #243659; --course-0-text: #d8e5ff; --course-1-bg: #1f3b2f; --course-1-text: #ccebd8;
-    --course-2-bg: #382b46; --course-2-text: #eadcf7; --course-3-bg: #442e26; --course-3-text: #f3d9ca; --course-4-bg: #1f3a42; --course-4-text: #cfe9ef; --course-5-bg: #3d3422; --course-5-text: #f1e1b7;
+    --course-border: rgba(255,255,255,.42); --course-0-bg: #d96f72; --course-0-text: #2f0e10; --course-1-bg: #d98750; --course-1-text: #2e1607;
+    --course-2-bg: #dab54b; --course-2-text: #2a2100; --course-3-bg: #5ebb74; --course-3-text: #082b12; --course-4-bg: #4c9cbe; --course-4-text: #062532; --course-5-bg: #7489dc; --course-5-text: #0a102d;
+    --course-6-bg: #ad7be1; --course-6-text: #201032; --course-7-bg: #df6cab; --course-7-text: #350b25; --course-8-bg: #4fb886; --course-8-text: #072a1a; --course-9-bg: #b9775c; --course-9-text: #210c05;
     --shadow-faint: rgba(0,0,0,.2); --shadow-soft: rgba(0,0,0,.3); --shadow-medium: rgba(0,0,0,.38); --shadow-strong: rgba(0,0,0,.48); --shadow-heavy: rgba(0,0,0,.58);
   }
 }
@@ -99,8 +101,8 @@ a { color: var(--accent); }
 .day-line { position: absolute; top: 0; bottom: 0; border-left: 1px solid var(--border); }
 .course-block { position: absolute; z-index: 2; min-width: 0; padding: 4px; overflow: hidden; text-align: left; border: 1px solid var(--course-border); border-radius: 4px; color: var(--accent-ink); transition: transform 120ms ease-out, opacity 120ms ease-out, border-color 120ms ease-out, box-shadow 120ms ease-out; animation: course-enter 160ms ease-out; }
 .course-block strong, .course-block span { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.course-block strong { font-size: 11px; line-height: 14px; font-weight: 600; }
-.course-block span { font-size: 10px; line-height: 13px; }
+.course-block strong { font-size: 11px; line-height: 14px; font-weight: 700; }
+.course-block span { font-size: 10px; line-height: 13px; font-weight: 500; }
 .course-block .block-state { margin-top: 2px; font-weight: 600; }
 .course-block.conflict { z-index: 3; border: 2px solid var(--danger); }
 .course-block[aria-disabled="true"] { cursor: default; }
@@ -116,7 +118,7 @@ a { color: var(--accent); }
 .section-drop-slot.active { color: var(--on-accent); background: var(--accent); border-style: solid; }
 .section-drop-slot strong, .section-drop-slot span { display: block; overflow: hidden; font-size: 10px; line-height: 14px; text-overflow: ellipsis; white-space: nowrap; }
 .section-drop-chooser { position: relative; z-index: var(--drop-chooser-layer); margin: -4px 16px 16px; padding: 12px; border: 1px solid var(--accent); border-radius: 10px; background: var(--surface); box-shadow: var(--elevated-shadow); }.section-drop-chooser > div:first-child p { margin-top: 2px; color: var(--secondary); font-size: 13px; }.drop-choice-list { margin: 10px 0; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }.drop-choice-list button { display: flex; width: 100%; min-height: 52px; align-items: center; justify-content: space-between; gap: 12px; padding: 8px 10px; border: 0; background: var(--surface); text-align: left; }.drop-choice-list button + button { border-top: 1px solid var(--border); }.drop-choice-list button:hover { background: var(--subtle); }.drop-choice-list strong, .drop-choice-list small { display: block; }.drop-choice-list small { margin-top: 2px; color: var(--secondary); font-size: 12px; }.drop-choice-list button > span:last-child { color: var(--accent); font-size: 13px; font-weight: 600; }.section-drop-chooser > .secondary-button { width: 100%; }
-.course-0 { background: var(--course-0-bg); color: var(--course-0-text); }.course-1 { background: var(--course-1-bg); color: var(--course-1-text); }.course-2 { background: var(--course-2-bg); color: var(--course-2-text); }.course-3 { background: var(--course-3-bg); color: var(--course-3-text); }.course-4 { background: var(--course-4-bg); color: var(--course-4-text); }.course-5 { background: var(--course-5-bg); color: var(--course-5-text); }
+.course-0 { background: var(--course-0-bg); color: var(--course-0-text); }.course-1 { background: var(--course-1-bg); color: var(--course-1-text); }.course-2 { background: var(--course-2-bg); color: var(--course-2-text); }.course-3 { background: var(--course-3-bg); color: var(--course-3-text); }.course-4 { background: var(--course-4-bg); color: var(--course-4-text); }.course-5 { background: var(--course-5-bg); color: var(--course-5-text); }.course-6 { background: var(--course-6-bg); color: var(--course-6-text); }.course-7 { background: var(--course-7-bg); color: var(--course-7-text); }.course-8 { background: var(--course-8-bg); color: var(--course-8-text); }.course-9 { background: var(--course-9-bg); color: var(--course-9-text); }
 .status { display: inline-flex; align-items: center; gap: 4px; width: max-content; padding: 3px 8px; border-radius: 999px; font-size: 12px; font-weight: 600; }
 .status svg { width: 14px; height: 14px; }.status.danger { color: var(--danger); background: var(--danger-soft); }.status.success { color: var(--success); background: var(--success-soft); }.status.warning { color: var(--warning); background: var(--warning-soft); }.status.neutral { color: var(--secondary); background: var(--subtle); }
 .mobile-summary { border-top: 1px solid var(--border); }
