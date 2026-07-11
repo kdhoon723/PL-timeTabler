@@ -317,7 +317,7 @@ test.describe('production optimizer integration', () => {
 
   test('creates and applies three real OR-Tools candidates', async ({ page }) => {
     await openEditor(page)
-    await expect(page.getByText('최신 데이터 연결됨')).toBeVisible()
+    await expect(page.getByText('최신 데이터 연결됨')).toHaveCount(0)
     await page.getByRole('button', { name: /과목 추가/ }).last().click()
     const search = page.getByRole('textbox', { name: /과목명/ })
     for (const courseCode of ['005111', '927283', '927430', '922601', '005005']) {
@@ -330,6 +330,7 @@ test.describe('production optimizer integration', () => {
     await page.getByRole('button', { name: '과목 검색 닫기' }).click()
     const mobileTools = page.getByRole('button', { name: /자동 생성/ }).first()
     if (await mobileTools.isVisible()) await mobileTools.click()
+    await expect(page.getByText('데이터 정보')).toBeVisible()
     await page.getByText('세부 조건 조정').click()
     await page.getByRole('spinbutton', { name: '최소 학점' }).fill('9')
     await page.getByRole('spinbutton', { name: '최대 학점' }).fill('12')
