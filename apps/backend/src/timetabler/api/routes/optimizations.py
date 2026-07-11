@@ -54,6 +54,20 @@ async def create_optimization(
             status_code=422,
             detail={"lockedSectionsWithExcludedCourses": locked_excluded},
         )
+    unavailable_professors = [
+        constraint.model_dump(by_alias=True)
+        for constraint in body.professor_constraints
+        if not any(
+            section.course_code == constraint.course_code
+            and section.professor == constraint.professor
+            for section in section_ids.values()
+        )
+    ]
+    if unavailable_professors:
+        raise HTTPException(
+            status_code=422,
+            detail={"unavailableProfessorConstraints": unavailable_professors},
+        )
     client_key = client_key_from_headers(
         http_request.headers.get("CF-Connecting-IP"),
         http_request.client.host if http_request.client is not None else None,

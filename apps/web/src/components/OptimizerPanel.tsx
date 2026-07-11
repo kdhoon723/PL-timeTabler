@@ -95,8 +95,8 @@ export function OptimizerPanel({ draft, draftFingerprint, sections, onPreview }:
   }
 
   return <section className="optimizer-panel" aria-labelledby="optimizer-title">
-    <div className="section-heading"><div><h2 id="optimizer-title">조건에 맞는 시간표</h2><p>잠근 분반과 필수 과목을 유지해 서로 다른 후보를 만듭니다.</p></div></div>
-    {!job && <><button type="button" className="primary-button full-button" onClick={generate} disabled={busy || !canGenerate}><SlidersIcon />{busy ? '요청 중…' : '시간표 3개 만들기'}</button>{!canGenerate && <p className="helper-copy">최소 {draft.preferences.minCredits}학점을 채울 만큼 필수·희망·대체 과목을 먼저 추가해 주세요.</p>}</>}
+    <div className="section-heading"><div><h2 id="optimizer-title">조건에 맞는 시간표</h2><p>선택 유지 설정과 꼭 포함할 과목을 반영합니다.</p></div></div>
+    {!job && <><button type="button" className="primary-button full-button" onClick={generate} disabled={busy || !canGenerate}><SlidersIcon />{busy ? '요청 중…' : '시간표 3개 만들기'}</button>{!canGenerate && <p className="helper-copy">최소 {draft.preferences.minCredits}학점을 채울 만큼 꼭 포함·선호·예비 과목을 먼저 추가해 주세요.</p>}</>}
     {job && !DONE.has(job.status) && <div className="job-status" role="status"><span className="spinner" aria-hidden="true"/><div><strong>{job.status === 'QUEUED' ? '대기 중' : '후보 생성 중'}</strong><p>가짜 진행률 없이 실제 작업 상태만 표시합니다.</p></div><button type="button" onClick={cancel}>취소</button></div>}
     {error && <div className="inline-error" role="alert">{error}</div>}
     {staleNotice && <p className="stale-candidate-notice" role="status">{staleNotice}</p>}

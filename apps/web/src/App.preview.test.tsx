@@ -86,7 +86,7 @@ describe('candidate preview integration', () => {
 
     expect(screen.queryByRole('heading', { name: '후보 2 변경 내용' })).not.toBeInTheDocument()
     expect(await screen.findByText(/조건이 바뀌어 이 후보를 미리 볼 수 없습니다/)).toBeInTheDocument()
-    expect((JSON.parse(localStorage.getItem('pl-timetabler:draft:v1')!) as DraftSnapshot).items).toEqual([{ sectionId: 'A-1', role: 'want', locked: false }])
+    expect((JSON.parse(localStorage.getItem('pl-timetabler:draft:v1')!) as DraftSnapshot).items).toEqual([{ sectionId: 'A-1', role: 'want', locked: false, professorLocked: false }])
   })
 
   it('invalidates an open preview when a current course is added and never applies the old result', async () => {
@@ -101,14 +101,14 @@ describe('candidate preview integration', () => {
     fireEvent.click(screen.getByRole('button', { name: /01분반.*추가/ }))
     fireEvent.click(screen.getByRole('button', { name: '과목 검색 닫기' }))
     fireEvent.click(screen.getByRole('button', { name: /운영체제 화/ }))
-    fireEvent.click(screen.getByRole('radio', { name: '반드시' }))
-    fireEvent.click(screen.getByRole('button', { name: '분반 잠금' }))
+    fireEvent.click(screen.getByRole('radio', { name: '꼭 포함' }))
+    fireEvent.click(screen.getByRole('radio', { name: '현재 수업' }))
 
     await waitFor(() => expect(screen.queryByRole('button', { name: '후보 적용' })).not.toBeInTheDocument())
     const saved = JSON.parse(localStorage.getItem('pl-timetabler:draft:v1')!) as DraftSnapshot
     expect(saved.items).toEqual(expect.arrayContaining([
-      { sectionId: 'A-1', role: 'want', locked: false },
-      { sectionId: 'B-1', role: 'must', locked: true },
+      { sectionId: 'A-1', role: 'want', locked: false, professorLocked: false },
+      { sectionId: 'B-1', role: 'must', locked: true, professorLocked: false },
     ]))
     expect(saved.items.some((item) => item.sectionId === 'A-2')).toBe(false)
   })

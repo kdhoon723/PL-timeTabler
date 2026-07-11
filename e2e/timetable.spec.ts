@@ -97,7 +97,17 @@ test.describe('responsive timetable editor', () => {
     await page.getByRole('button', { name: '신청 목록 닫기' }).click()
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true)
     await page.reload()
-    await expect(page.getByRole('button', { name: /AI시대의컴퓨팅사고 화/ })).toBeVisible()
+    const courseBlock = page.getByRole('button', { name: /AI시대의컴퓨팅사고 화/ })
+    await expect(courseBlock).toBeVisible()
+    await courseBlock.click()
+    const detail = page.getByRole('dialog', { name: 'AI시대의컴퓨팅사고' })
+    await expect(detail.getByRole('radio', { name: '가능하면' })).toBeChecked()
+    await expect(detail.getByRole('radio', { name: '교수 유지' })).toBeVisible()
+    await expect(detail.getByRole('radio', { name: '현재 수업' })).toBeVisible()
+    expect(await detail.evaluate((element) => element.scrollWidth <= element.clientWidth)).toBe(true)
+    await detail.getByRole('radio', { name: '교수 유지' }).click()
+    await expect(detail.getByText(/교수님의 분반 안에서 시간을 맞춰요/)).toBeVisible()
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true)
   })
 
   test('prioritizes the saved department as a one-tap course filter', async ({ page }) => {
@@ -402,6 +412,10 @@ test.describe('production optimizer integration', () => {
       await course.getByRole('button', { name: /01분반.*추가/ }).click()
     }
     await page.getByRole('button', { name: '과목 검색 닫기' }).click()
+    await page.getByRole('button', { name: /AI시대의컴퓨팅사고 화/ }).click()
+    const detail = page.getByRole('dialog', { name: 'AI시대의컴퓨팅사고' })
+    await detail.getByRole('radio', { name: '교수 유지' }).click()
+    await page.getByRole('button', { name: '과목 상세 닫기' }).click()
     const mobileTools = page.getByRole('button', { name: /자동완성/ }).first()
     if (await mobileTools.isVisible()) await mobileTools.click()
     await expect(page.getByRole('heading', { name: '자동 생성 조건' })).toBeVisible()
@@ -409,7 +423,10 @@ test.describe('production optimizer integration', () => {
     await page.getByRole('spinbutton', { name: '최소 학점' }).fill('9')
     await page.getByRole('spinbutton', { name: '최대 학점' }).fill('12')
     await page.getByRole('spinbutton', { name: '목표 학점' }).fill('12')
+    const requestPromise = page.waitForRequest((request) => request.url().endsWith('/api/v1/optimizations') && request.method() === 'POST')
     await page.getByRole('button', { name: '시간표 3개 만들기' }).click()
+    const optimizationRequest = await requestPromise
+    expect(optimizationRequest.postDataJSON()).toMatchObject({ professorConstraints: [{ courseCode: '922601', professor: '김선경' }] })
 
     await expect(page.getByRole('article').filter({ hasText: '후보 1' })).toBeVisible({ timeout: 15_000 })
     await expect(page.getByRole('article').filter({ hasText: '후보 2' })).toBeVisible()
@@ -417,5 +434,6 @@ test.describe('production optimizer integration', () => {
     await page.getByRole('article').filter({ hasText: '후보 1' }).getByRole('button', { name: '후보 1 미리보기' }).click()
     await page.getByRole('button', { name: '후보 적용' }).click()
     await expect(page.getByText('자동 생성 후보를 적용했습니다.')).toBeVisible()
+    expect(await page.evaluate(() => JSON.parse(localStorage.getItem('pl-timetabler:draft:v1')!).items.some((item: { sectionId: string; professorLocked?: boolean }) => item.sectionId.startsWith('922601-') && item.professorLocked))).toBe(true)
   })
 })

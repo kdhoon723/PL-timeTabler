@@ -8,7 +8,7 @@ interface Props {
   onSelect: (section: Section) => void
 }
 
-const ROLE_LABEL = { must: '반드시', want: '희망', backup: '예비', exclude: '제외' }
+const ROLE_LABEL = { must: '꼭 포함', want: '선호', backup: '예비', exclude: '제외' }
 
 export function SelectedCourseList({ items, sectionById, onSelect }: Props) {
   const entries = items.map((item) => ({ item, section: sectionById.get(item.sectionId) })).filter((entry): entry is { item: PlanItem; section: Section } => !!entry.section)
@@ -18,7 +18,7 @@ export function SelectedCourseList({ items, sectionById, onSelect }: Props) {
       {entries.map(({ item, section }) => <li key={section.id}><button type="button" onClick={() => onSelect(section)}>
         <span className={`role-mark role-${item.role}`}>{ROLE_LABEL[item.role]}</span>
         <span className="selected-main"><strong>{section.name}</strong><small>{section.sectionCode}분반 · {section.professor ?? '교수 미정'} · {section.sessions.map(formatSession).join(' / ') || '시간 미정'}</small></span>
-        {item.locked && <span className="lock-label"><LockIcon />잠김</span>}
+        {(item.locked || item.professorLocked) && <span className="lock-label"><LockIcon />{item.locked ? '수업 유지' : '교수 유지'}</span>}
       </button></li>)}
     </ul>}
   </section>

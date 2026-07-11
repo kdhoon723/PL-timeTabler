@@ -27,8 +27,8 @@ describe('draft history', () => {
       { sectionId: 'B-1', role: 'backup' as const, locked: false },
     ]
     expect(planItemsForCandidate(['A-2', 'B-1'], items, new Map(sections.map((section) => [section.id, section])))).toEqual([
-      { sectionId: 'A-2', role: 'must', locked: false },
-      { sectionId: 'B-1', role: 'want', locked: false },
+      { sectionId: 'A-2', role: 'must', locked: false, professorLocked: false },
+      { sectionId: 'B-1', role: 'want', locked: false, professorLocked: false },
     ])
   })
   it('can clear a lock when an active item becomes a passive role', () => {
@@ -42,8 +42,8 @@ describe('draft history', () => {
     const sections = [make('A-1'), make('A-2')]
     const items = [{ sectionId: 'A-1', role: 'must' as const, locked: true }, { sectionId: 'A-2', role: 'backup' as const, locked: false }]
     expect(itemsWithAppliedBackup('A-2', items, new Map(sections.map((section) => [section.id, section])))).toEqual([
-      { sectionId: 'A-1', role: 'backup', locked: false },
-      { sectionId: 'A-2', role: 'must', locked: true },
+      { sectionId: 'A-1', role: 'backup', locked: false, professorLocked: false },
+      { sectionId: 'A-2', role: 'must', locked: true, professorLocked: false },
     ])
   })
   it('makes a course-level exclusion mutually exclusive with its active and backup sections', () => {
@@ -51,7 +51,7 @@ describe('draft history', () => {
     const sections = [make('A-1'), make('A-2')]
     const items = [{ sectionId: 'A-1', role: 'want' as const, locked: false }, { sectionId: 'A-2', role: 'backup' as const, locked: false }]
     expect(itemsWithCourseRole('A-2', 'exclude', items, new Map(sections.map((section) => [section.id, section])))).toEqual([
-      { sectionId: 'A-2', role: 'exclude', locked: false },
+      { sectionId: 'A-2', role: 'exclude', locked: false, professorLocked: false },
     ])
   })
   it('hydrates a catalog against the reducer current state without erasing edit history', () => {

@@ -68,6 +68,11 @@ class OptimizationPreferences(APIModel):
         return self
 
 
+class ProfessorConstraint(APIModel):
+    course_code: str = Field(min_length=1, max_length=32)
+    professor: str = Field(min_length=1, max_length=120)
+
+
 class OptimizationCreate(APIModel):
     semester: str = "2026-1"
     dataset_version: str
@@ -76,6 +81,7 @@ class OptimizationCreate(APIModel):
     excluded_course_codes: tuple[str, ...] = ()
     locked_section_ids: tuple[str, ...] = ()
     selected_section_ids: tuple[str, ...] = ()
+    professor_constraints: tuple[ProfessorConstraint, ...] = ()
     # The current Daejin catalog and optimizer use whole-credit units. Reject
     # fractional transport values instead of silently rounding relaxed bounds.
     min_credits: int = Field(default=12, ge=0, le=30, strict=True)
@@ -103,6 +109,9 @@ class OptimizationCreate(APIModel):
             raise ValueError("candidateCourseCodes and excludedCourseCodes must be disjoint")
         if len(required) != len(self.required_course_codes):
             raise ValueError("requiredCourseCodes contains duplicates")
+        professor_courses = [constraint.course_code for constraint in self.professor_constraints]
+        if len(set(professor_courses)) != len(professor_courses):
+            raise ValueError("professorConstraints contains duplicate course codes")
         return self
 
 

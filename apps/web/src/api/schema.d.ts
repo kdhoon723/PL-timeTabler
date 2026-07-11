@@ -303,6 +303,11 @@ export interface components {
             minCredits: number;
             preferences?: components["schemas"]["OptimizationPreferences"];
             /**
+             * Professorconstraints
+             * @default []
+             */
+            professorConstraints: components["schemas"]["ProfessorConstraint"][];
+            /**
              * Requiredcoursecodes
              * @default []
              */
@@ -431,6 +436,13 @@ export interface components {
             code: string;
             /** Studentnumber */
             studentNumber: string;
+        };
+        /** ProfessorConstraint */
+        ProfessorConstraint: {
+            /** Coursecode */
+            courseCode: string;
+            /** Professor */
+            professor: string;
         };
         /** ReadinessStatus */
         ReadinessStatus: {

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from timetabler.api.schemas import OptimizationCreate, OptimizationPreferences
+from timetabler.api.schemas import OptimizationCreate, OptimizationPreferences, ProfessorConstraint
 from timetabler.catalog.repository import CatalogRepository
 from timetabler.config import repository_root
 from timetabler.jobs.store import ClaimedJob
@@ -27,6 +27,7 @@ def test_worker_maps_course_intent_and_hard_constraints() -> None:
         excluded_course_codes=("927430",),
         locked_section_ids=("005111-01",),
         selected_section_ids=("005111-01", "927283-01", "927430-01"),
+        professor_constraints=(ProfessorConstraint(course_code="927283", professor="정연희"),),
         min_credits=5,
         max_credits=7,
         target_credits=6,
@@ -52,7 +53,10 @@ def test_worker_maps_course_intent_and_hard_constraints() -> None:
     assert normalized.locked_section_ids == frozenset({"005111-01"})
     assert normalized.current_section_ids == frozenset(request.selected_section_ids)
     assert normalized.excluded_section_ids == frozenset(
-        section.section_id for section in normalized.sections if section.course_id == "927430"
+        section.id
+        for section in catalog.snapshot.sections
+        if section.course_code == "927430"
+        or (section.course_code == "927283" and section.professor != "정연희")
     )
     assert normalized.preferences.preferred_days_off == frozenset({4})
     assert normalized.preferences.earliest_start_minute == 600

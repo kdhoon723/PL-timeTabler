@@ -111,6 +111,23 @@ def test_reject_locked_section_whose_course_is_excluded(client: TestClient) -> N
     assert response.json()["detail"] == {"lockedSectionsWithExcludedCourses": ["922601-01"]}
 
 
+def test_reject_unavailable_professor_constraint(client: TestClient) -> None:
+    semester = client.get("/api/v1/semesters").json()[0]
+    response = client.post(
+        "/api/v1/optimizations",
+        json={
+            "datasetVersion": semester["datasetVersion"],
+            "candidateCourseCodes": ["922601"],
+            "professorConstraints": [{"courseCode": "922601", "professor": "없는교수"}],
+        },
+    )
+
+    assert response.status_code == 422
+    assert response.json()["detail"] == {
+        "unavailableProfessorConstraints": [{"courseCode": "922601", "professor": "없는교수"}]
+    }
+
+
 def test_reject_fractional_credit_bounds_instead_of_rounding(client: TestClient) -> None:
     semester = client.get("/api/v1/semesters").json()[0]
     response = client.post(

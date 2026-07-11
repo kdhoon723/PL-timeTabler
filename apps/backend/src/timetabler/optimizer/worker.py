@@ -44,6 +44,7 @@ def _to_request(job: ClaimedJob, catalog: CatalogRepository) -> OptimizationRequ
         set(job.request.required_course_codes)
         | set(job.request.candidate_course_codes)
         | selected_course_codes
+        | {constraint.course_code for constraint in job.request.professor_constraints}
     )
     # An explicit intent pool is the normal production path.  Keeping the full
     # catalog fallback preserves existing API semantics for requests that only
@@ -56,6 +57,10 @@ def _to_request(job: ClaimedJob, catalog: CatalogRepository) -> OptimizationRequ
     sections = []
     excluded_section_ids: set[str] = set()
     excluded_course_codes = set(job.request.excluded_course_codes)
+    professor_constraints = {
+        constraint.course_code: constraint.professor
+        for constraint in job.request.professor_constraints
+    }
     required_course_codes = set(job.request.required_course_codes)
     for raw in raw_sections:
         if (
@@ -83,6 +88,9 @@ def _to_request(job: ClaimedJob, catalog: CatalogRepository) -> OptimizationRequ
             )
         )
         if raw.course_code in excluded_course_codes:
+            excluded_section_ids.add(raw.id)
+        constrained_professor = professor_constraints.get(raw.course_code)
+        if constrained_professor is not None and raw.professor != constrained_professor:
             excluded_section_ids.add(raw.id)
 
     required = frozenset(job.request.required_course_codes) | frozenset(

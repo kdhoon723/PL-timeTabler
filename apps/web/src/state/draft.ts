@@ -88,13 +88,22 @@ export function planItemsForCandidate(
     .filter((item) => item.role === 'must')
     .map((item) => sectionById.get(item.sectionId)?.courseCode)
     .filter((value): value is string => !!value))
+  const professorLocks = new Map(currentItems
+    .filter((item) => item.professorLocked)
+    .map((item) => {
+      const section = sectionById.get(item.sectionId)
+      return section?.professor ? [section.courseCode, section.professor] as const : null
+    })
+    .filter((value): value is readonly [string, string] => !!value))
   return sectionIds.map((sectionId) => {
     const current = currentById.get(sectionId)
-    const courseCode = sectionById.get(sectionId)?.courseCode
+    const section = sectionById.get(sectionId)
+    const courseCode = section?.courseCode
     return {
       sectionId,
       role: courseCode && mustCourseCodes.has(courseCode) ? 'must' : 'want',
       locked: current?.locked ?? false,
+      professorLocked: !!courseCode && professorLocks.get(courseCode) === section?.professor,
     }
   })
 }
@@ -110,19 +119,19 @@ export function itemsWithCourseRole(
   if (role === 'exclude') {
     return [
       ...currentItems.filter((item) => sectionById.get(item.sectionId)?.courseCode !== courseCode),
-      { sectionId, role, locked: false },
+      { sectionId, role, locked: false, professorLocked: false },
     ]
   }
   const withoutCourseExclusion = currentItems.filter((item) => !(item.role === 'exclude' && sectionById.get(item.sectionId)?.courseCode === courseCode))
   const isActiveRole = role === 'must' || role === 'want'
   const next = withoutCourseExclusion.map<PlanItem>((item) => {
-    if (item.sectionId === sectionId) return { ...item, role, locked: isActiveRole && item.locked }
+    if (item.sectionId === sectionId) return { ...item, role, locked: isActiveRole && item.locked, professorLocked: isActiveRole && item.professorLocked }
     if (isActiveRole && sectionById.get(item.sectionId)?.courseCode === courseCode && (item.role === 'must' || item.role === 'want')) {
-      return { ...item, role: 'backup', locked: false }
+      return { ...item, role: 'backup', locked: false, professorLocked: false }
     }
     return item
   })
-  return next.some((item) => item.sectionId === sectionId) ? next : [...next, { sectionId, role, locked: false }]
+  return next.some((item) => item.sectionId === sectionId) ? next : [...next, { sectionId, role, locked: false, professorLocked: false }]
 }
 
 export function itemsWithAppliedBackup(
@@ -136,8 +145,8 @@ export function itemsWithAppliedBackup(
     && sectionById.get(item.sectionId)?.courseCode === courseCode
     && (item.role === 'must' || item.role === 'want'))
   return currentItems.map((item) => {
-    if (item.sectionId === sectionId) return { ...item, role: active?.role ?? 'want', locked: active?.locked ?? false }
-    if (item.sectionId === active?.sectionId) return { ...item, role: 'backup', locked: false }
+    if (item.sectionId === sectionId) return { ...item, role: active?.role ?? 'want', locked: active?.locked ?? false, professorLocked: active?.professorLocked ?? false }
+    if (item.sectionId === active?.sectionId) return { ...item, role: 'backup', locked: false, professorLocked: false }
     return item
   })
 }

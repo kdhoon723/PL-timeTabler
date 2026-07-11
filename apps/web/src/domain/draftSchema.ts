@@ -96,6 +96,7 @@ export function normalizeDraftSnapshot(value: unknown): DraftSnapshot | null {
       sectionId: item.sectionId as string,
       role: item.role as PlanItem['role'],
       locked: (item.role === 'must' || item.role === 'want') && item.locked as boolean,
+      professorLocked: (item.role === 'must' || item.role === 'want') && item.locked !== true && item.professorLocked === true,
     })),
     preferences,
     updatedAt: value.updatedAt,

@@ -35,6 +35,7 @@ export interface PlanItem {
   sectionId: string
   role: CourseRole
   locked: boolean
+  professorLocked?: boolean
 }
 
 export interface Preferences {

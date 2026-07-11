@@ -145,6 +145,11 @@ export async function createOptimizationJob(draft: DraftSnapshot, sections: read
     excludedCourseCodes: courseCodes(new Set(['exclude'])).filter((courseCode) => !activeCourseCodes.has(courseCode)),
     selectedSectionIds,
     lockedSectionIds: draft.items.filter((item) => item.locked && (item.role === 'must' || item.role === 'want')).map((item) => item.sectionId),
+    professorConstraints: draft.items.flatMap((item) => {
+      if (!item.professorLocked || (item.role !== 'must' && item.role !== 'want')) return []
+      const section = sectionById.get(item.sectionId)
+      return section?.professor ? [{ courseCode: section.courseCode, professor: section.professor }] : []
+    }),
     minCredits: draft.preferences.minCredits,
     maxCredits: draft.preferences.maxCredits,
     targetCredits: draft.preferences.targetCredits,

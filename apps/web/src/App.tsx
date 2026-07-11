@@ -90,7 +90,12 @@ export default function App() {
   const selectedSection = selectedId ? sectionById.get(selectedId) ?? null : null
   const selectedItem = selectedId ? state.present.items.find((item) => item.sectionId === selectedId) : undefined
   const alternatives = selectedSection ? findAlternatives(selectedSection, catalog, activeSections) : []
-  const dragAlternativesById = useMemo(() => new Map(activeSections.map((section) => [section.id, findAlternatives(section, catalog, activeSections)])), [activeSections, catalog])
+  const professorLockAvailable = !!selectedSection?.professor && catalog.some((section) => section.id !== selectedSection.id && section.courseCode === selectedSection.courseCode && section.professor === selectedSection.professor)
+  const dragAlternativesById = useMemo(() => new Map(activeSections.map((section) => {
+    const item = state.present.items.find((candidate) => candidate.sectionId === section.id)
+    const candidates = findAlternatives(section, catalog, activeSections)
+    return [section.id, item?.professorLocked ? candidates.filter((candidate) => candidate.professor === section.professor) : candidates]
+  })), [activeSections, catalog, state.present.items])
   const showToast = useCallback((message: string, undoable = false) => {
     setToast(message)
     setToastUndoable(undoable)
@@ -223,16 +228,17 @@ export default function App() {
   const addSection = (section: Section, role: CourseRole = 'want') => {
     const excludedSameCourse = state.present.items.filter((item) => item.role === 'exclude' && sectionById.get(item.sectionId)?.courseCode === section.courseCode)
     if (excludedSameCourse.length) {
-      dispatch({ type: 'ITEMS', items: [...state.present.items.filter((item) => !excludedSameCourse.includes(item)), { sectionId: section.id, role, locked: false }] })
+      dispatch({ type: 'ITEMS', items: [...state.present.items.filter((item) => !excludedSameCourse.includes(item)), { sectionId: section.id, role, locked: false, professorLocked: false }] })
       showToast(`${section.name} ${section.sectionCode}분반을 추가했습니다.`, true)
       return
     }
     const sameCourse = state.present.items.find((item) => sectionById.get(item.sectionId)?.courseCode === section.courseCode && item.role !== 'backup' && item.role !== 'exclude')
     if (sameCourse && role !== 'backup' && role !== 'exclude') {
-      dispatch({ type: 'ITEMS', items: state.present.items.map((item) => item.sectionId === sameCourse.sectionId ? { ...item, sectionId: section.id, role: role === 'must' || item.role === 'must' ? 'must' : item.role } : item) })
+      const previousSection = sectionById.get(sameCourse.sectionId)
+      dispatch({ type: 'ITEMS', items: state.present.items.map((item) => item.sectionId === sameCourse.sectionId ? { ...item, sectionId: section.id, role: role === 'must' || item.role === 'must' ? 'must' : item.role, professorLocked: item.professorLocked && previousSection?.professor === section.professor } : item) })
     } else if (state.present.items.some((item) => item.sectionId === section.id)) {
       dispatch({ type: 'ITEMS', items: itemsWithCourseRole(section.id, role, state.present.items, sectionById) })
-    } else dispatch({ type: 'ADD', item: { sectionId: section.id, role, locked: false } })
+    } else dispatch({ type: 'ADD', item: { sectionId: section.id, role, locked: false, professorLocked: false } })
     showToast(`${section.name} ${section.sectionCode}분반을 추가했습니다.`, true)
   }
   const removeSection = () => {
@@ -245,7 +251,7 @@ export default function App() {
   }
   const dragReplaceSection = (source: Section, replacement: Section) => {
     const sourceItem = state.present.items.find((item) => item.sectionId === source.id)
-    const validReplacement = findAlternatives(source, catalog, activeSections).some((section) => section.id === replacement.id)
+    const validReplacement = dragAlternativesById.get(source.id)?.some((section) => section.id === replacement.id)
     if (!isDesktopDrag || validCandidatePreview || !sourceItem || sourceItem.locked || !validReplacement) return
     dispatch({ type: 'SWAP', fromId: source.id, toId: replacement.id })
     setSelectedId(null)
@@ -294,7 +300,7 @@ export default function App() {
     {catalogMeta?.offline && <div className="data-status" role="status"><strong>저장된 데이터 사용 중</strong><span>{catalogMeta.updatedAt} 갱신본 · 연결 복구 후 자동 확인</span></div>}
     <main className="editor-layout">
       <aside className="desktop-search">{courseEntry()}<SelectedCourseList items={state.present.items} sectionById={sectionById} onSelect={(section) => setSelectedId(section.id)} /></aside>
-      <div className="editor-main"><div className="mobile-course-entry">{courseEntry(true)}</div>{activeSections.length > 0 && <button type="button" className="application-summary-bar" onClick={() => setApplicationListOpen(true)}><span>신청 목록 보기</span><strong>{activeSections.length}개 · {metrics.credits}학점</strong></button>}<ConflictNotice conflicts={validCandidatePreview ? previewConflicts : conflicts} previewReadOnly={!!validCandidatePreview} onOpen={setSelectedId} />{validCandidatePreview && previewDiff && <CandidatePreviewBar candidate={validCandidatePreview.candidate} diff={previewDiff} containerRef={previewBarRef} onCancel={cancelCandidatePreview} onApply={applyCandidate} />}<TimetableGrid sections={gridSections} conflicts={validCandidatePreview ? previewConflicts : conflicts} lockedIds={new Set(state.present.items.filter((item) => item.locked).map((item) => item.sectionId))} onSelect={(section) => setSelectedId(section.id)} previewStatusById={previewStatusById} dragEnabled={isDesktopDrag && !validCandidatePreview} dragAlternativesById={dragAlternativesById} onReplace={dragReplaceSection} />
+      <div className="editor-main"><div className="mobile-course-entry">{courseEntry(true)}</div>{activeSections.length > 0 && <button type="button" className="application-summary-bar" onClick={() => setApplicationListOpen(true)}><span>신청 목록 보기</span><strong>{activeSections.length}개 · {metrics.credits}학점</strong></button>}<ConflictNotice conflicts={validCandidatePreview ? previewConflicts : conflicts} previewReadOnly={!!validCandidatePreview} onOpen={setSelectedId} />{validCandidatePreview && previewDiff && <CandidatePreviewBar candidate={validCandidatePreview.candidate} diff={previewDiff} containerRef={previewBarRef} onCancel={cancelCandidatePreview} onApply={applyCandidate} />}<TimetableGrid sections={gridSections} conflicts={validCandidatePreview ? previewConflicts : conflicts} lockedIds={new Set(state.present.items.filter((item) => item.locked).map((item) => item.sectionId))} professorLockedIds={new Set(state.present.items.filter((item) => item.professorLocked).map((item) => item.sectionId))} onSelect={(section) => setSelectedId(section.id)} previewStatusById={previewStatusById} dragEnabled={isDesktopDrag && !validCandidatePreview} dragAlternativesById={dragAlternativesById} onReplace={dragReplaceSection} />
         <div className="mobile-summary"><SelectedCourseList items={state.present.items} sectionById={sectionById} onSelect={(section) => setSelectedId(section.id)} /></div>
       </div>
       {isDesktopTools ? <aside className="tools-panel" aria-label="자동완성">{toolsContent}</aside> : <dialog className="tools-dialog" ref={toolsDialogRef} aria-labelledby="tools-dialog-title" onCancel={(event) => { event.preventDefault(); closeTools() }}><div className="mobile-tools-header"><h2 id="tools-dialog-title">자동완성</h2><button ref={toolsCloseRef} type="button" onClick={() => closeTools()}>닫기</button></div>{toolsContent}</dialog>}
@@ -303,7 +309,7 @@ export default function App() {
     <CourseSearchSheet open={searchOpen} initialMode={searchMode} sections={catalog} items={state.present.items} profile={profile} onClose={() => setSearchOpen(false)} onAdd={addSection} />
     <RequiredCourseSheet open={requiredOpen} profile={profile} rules={commonRules} majorRequired={majorRequired} catalog={catalog} items={state.present.items} sectionById={sectionById} onClose={() => setRequiredOpen(false)} onEditProfile={editProfileFromRequired} onAddRequired={(section) => addSection(section, 'must')} onBrowseMajor={() => browseFromRequired('MAJOR')} onBrowseLiberal={() => browseFromRequired('LIBERAL')} />
     <ApplicationListSheet open={applicationListOpen} items={state.present.items} sectionById={sectionById} onApplyBackup={applyBackup} onMessage={(message) => showToast(message)} onExportPng={exportImage} onExportPdf={() => print()} onClose={() => setApplicationListOpen(false)} />
-    <SectionDetailSheet section={selectedSection} role={selectedItem?.role ?? 'want'} locked={selectedItem?.locked ?? false} alternatives={alternatives} onClose={() => setSelectedId(null)} onRole={(role) => selectedSection && dispatch({ type: 'ITEMS', items: itemsWithCourseRole(selectedSection.id, role, state.present.items, sectionById) })} onLock={() => selectedSection && dispatch({ type: 'PATCH_ITEM', sectionId: selectedSection.id, patch: { locked: !selectedItem?.locked } })} onRemove={removeSection} onSwap={swapSection} />
+    <SectionDetailSheet section={selectedSection} role={selectedItem?.role ?? 'want'} locked={selectedItem?.locked ?? false} professorLocked={selectedItem?.professorLocked ?? false} professorLockAvailable={professorLockAvailable} alternatives={alternatives} onClose={() => setSelectedId(null)} onRole={(role) => selectedSection && dispatch({ type: 'ITEMS', items: itemsWithCourseRole(selectedSection.id, role, state.present.items, sectionById) })} onAdjustmentMode={(mode) => selectedSection && dispatch({ type: 'PATCH_ITEM', sectionId: selectedSection.id, patch: { locked: mode === 'SECTION', professorLocked: mode === 'PROFESSOR' } })} onRemove={removeSection} onSwap={swapSection} />
     {(onboardingOpen || profileEditorOpen) && <Onboarding departments={departments} initialProfile={profile} mode={profileEditorOpen ? 'EDIT' : 'FIRST_RUN'} authAvailable={authSession.available} onComplete={completeProfile} onSkip={profileEditorOpen ? () => setProfileEditorOpen(false) : skipOnboarding} onLogin={() => setAuthOpen(true)} />}
     <AuthSheet open={authOpen} session={authSession} onSession={setAuthSession} onClose={() => setAuthOpen(false)} />
     <Toast message={toast} onClose={() => setToast(null)} onUndo={toastUndoable && state.past.length ? () => { dispatch({ type: 'UNDO' }); setToast(null); setToastUndoable(false) } : undefined} />

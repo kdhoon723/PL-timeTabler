@@ -289,6 +289,14 @@
           "preferences": {
             "$ref": "#/components/schemas/OptimizationPreferences"
           },
+          "professorConstraints": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/ProfessorConstraint"
+            },
+            "title": "Professorconstraints",
+            "type": "array"
+          },
           "requiredCourseCodes": {
             "default": [],
             "items": {
@@ -610,6 +618,29 @@
           "code"
         ],
         "title": "OtpVerifyRequest",
+        "type": "object"
+      },
+      "ProfessorConstraint": {
+        "additionalProperties": false,
+        "properties": {
+          "courseCode": {
+            "maxLength": 32,
+            "minLength": 1,
+            "title": "Coursecode",
+            "type": "string"
+          },
+          "professor": {
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Professor",
+            "type": "string"
+          }
+        },
+        "required": [
+          "courseCode",
+          "professor"
+        ],
+        "title": "ProfessorConstraint",
         "type": "object"
       },
       "ReadinessStatus": {

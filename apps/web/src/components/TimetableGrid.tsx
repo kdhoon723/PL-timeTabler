@@ -8,6 +8,7 @@ interface Props {
   sections: Section[]
   conflicts: ConflictEdge[]
   lockedIds: Set<string>
+  professorLockedIds?: Set<string>
   onSelect: (section: Section) => void
   previewStatusById?: ReadonlyMap<string, CandidatePreviewState>
   dragEnabled?: boolean
@@ -52,7 +53,7 @@ interface DropChooser {
   slot: DropSlotGroup
 }
 
-export function TimetableGrid({ sections, conflicts, lockedIds, onSelect, previewStatusById, dragEnabled = false, dragAlternativesById, onReplace }: Props) {
+export function TimetableGrid({ sections, conflicts, lockedIds, professorLockedIds = new Set(), onSelect, previewStatusById, dragEnabled = false, dragAlternativesById, onReplace }: Props) {
   const [dragSource, setDragSource] = useState<Section | null>(null)
   const [dropTargetId, setDropTargetId] = useState<string | null>(null)
   const [dropChooser, setDropChooser] = useState<DropChooser | null>(null)
@@ -169,10 +170,11 @@ export function TimetableGrid({ sections, conflicts, lockedIds, onSelect, previe
             aria-disabled={previewState ? true : undefined}
             aria-describedby={draggable ? 'timetable-drag-instructions' : undefined}
             tabIndex={previewState ? -1 : undefined}
-            aria-label={`${section.name} ${session.day} ${session.start}부터 ${session.end}${lockedIds.has(section.id) ? ', 잠김' : ''}${conflictIds.has(section.id) ? ', 충돌' : ''}${previewState ? `, ${PREVIEW_LABELS[previewState]}` : ''}${draggable ? ', 드래그하여 충돌 없는 다른 분반으로 교체' : ''}`}
+            aria-label={`${section.name} ${session.day} ${session.start}부터 ${session.end}${lockedIds.has(section.id) ? ', 현재 수업 유지' : professorLockedIds.has(section.id) ? ', 교수 유지' : ''}${conflictIds.has(section.id) ? ', 충돌' : ''}${previewState ? `, ${PREVIEW_LABELS[previewState]}` : ''}${draggable ? ', 드래그하여 충돌 없는 다른 분반으로 교체' : ''}`}
           >
             <strong>{section.name}</strong><span>{session.start}</span><span>{session.room ?? section.professor ?? '장소 미정'}</span>
-            {lockedIds.has(section.id) && <span className="block-state">잠김</span>}
+            {lockedIds.has(section.id) && <span className="block-state">유지</span>}
+            {!lockedIds.has(section.id) && professorLockedIds.has(section.id) && <span className="block-state">교수</span>}
             {previewState && <span className="block-state">{PREVIEW_BADGES[previewState]}</span>}
           </button>
         })}
