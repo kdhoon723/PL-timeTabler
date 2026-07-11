@@ -45,49 +45,37 @@ describe('required course progress', () => {
   const majorRequired: MajorRequiredCourses = { schemaVersion: 1, asOf: '2026-07-11', cohortAdmissionYear: 2026, source: 'test', method: 'test', programs: [{ academicUnit: '컴퓨터공학전공', status: 'AVAILABLE', manualReviewReason: null, handbookPages: [77], courses: [{ courseCode: '561041', name: '운영체제론', grade: 1, semesters: [1], handbookPage: 77 }] }] }
   const rules: CommonRules = { schemaVersion: 1, asOf: '2026-07-11', resultLabel: 'test', statuses: [], manualReviewReasons: [], rules: [{ id: 'required', admissionYears: { start: 2025 }, scope: { studentType: 'DOMESTIC', academicUnit: 'GENERAL_EXCEPTIONS_EXCLUDED' }, kind: 'REQUIRED_COURSE_GROUP', courses: [{ name: 'AI시대의컴퓨팅사고', credits: 2 }], sourceRefs: ['test'] }] }
 
-  it('withholds automatic required-course options for an unconfirmed mismatch', async () => {
-    const onBrowseMajor = vi.fn()
-    render(<RequiredCoursePanel profile={{ ...profile, currentGrade: 3, academicBasis: { ...profile.academicBasis!, gradeMismatchAcknowledged: true } }} rules={rules} majorRequired={majorRequired} catalog={catalog} items={[]} sectionById={new Map(catalog.map((value) => [value.id, value]))} onEditProfile={() => undefined} onAddRequired={() => undefined} onBrowseMajor={onBrowseMajor} onBrowseLiberal={() => undefined} />)
+  it('withholds automatic required-course options for an unconfirmed mismatch', () => {
+    render(<RequiredCoursePanel profile={{ ...profile, currentGrade: 3, academicBasis: { ...profile.academicBasis!, gradeMismatchAcknowledged: true } }} rules={rules} majorRequired={majorRequired} catalog={catalog} items={[]} sectionById={new Map(catalog.map((value) => [value.id, value]))} onEditProfile={() => undefined} onAddRequired={() => undefined} />)
 
-    const toggle = screen.getByRole('button', { name: /필수 과목 먼저/ })
-    expect(toggle).toHaveTextContent('0/0개')
-    await userEvent.click(toggle)
+    expect(screen.getByRole('heading', { name: '이번 학기 필수과목' })).toBeVisible()
     expect(screen.getByText('입학연도와 학년이 맞지 않아 필수과목을 표시하지 않았어요.')).toBeInTheDocument()
     expect(screen.queryByText(/현재 학년이 일반 예상보다 높아 학과 확인 전에는/)).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: '시간표에 배치' })).not.toBeInTheDocument()
-    await userEvent.click(screen.getByRole('button', { name: '2 전공선택' }))
-    expect(onBrowseMajor).toHaveBeenCalledOnce()
   })
 
   it('keeps basic timetable planning useful while academic-basis setup is absent', async () => {
     const onEditProfile = vi.fn()
-    render(<RequiredCoursePanel profile={{ ...profile, currentGrade: 3, academicBasis: null }} rules={rules} majorRequired={majorRequired} catalog={catalog} items={[]} sectionById={new Map(catalog.map((value) => [value.id, value]))} onEditProfile={onEditProfile} onAddRequired={() => undefined} onBrowseMajor={() => undefined} onBrowseLiberal={() => undefined} />)
-    await userEvent.click(screen.getByRole('button', { name: /필수 과목 먼저/ }))
+    render(<RequiredCoursePanel profile={{ ...profile, currentGrade: 3, academicBasis: null }} rules={rules} majorRequired={majorRequired} catalog={catalog} items={[]} sectionById={new Map(catalog.map((value) => [value.id, value]))} onEditProfile={onEditProfile} onAddRequired={() => undefined} />)
     expect(screen.getByText('입학연도를 추가할까요?')).toBeVisible()
-    expect(screen.getByRole('button', { name: '전공선택 찾기' })).toBeVisible()
+    expect(screen.queryByRole('button', { name: /전공선택 찾기|교양선택 찾기/ })).not.toBeInTheDocument()
     await userEvent.click(screen.getByRole('button', { name: '입학연도 추가' }))
     expect(onEditProfile).toHaveBeenCalled()
   })
 
-  it('starts collapsed with accurate course and credit progress plus a clear next action', async () => {
-    render(<RequiredCoursePanel profile={profile} rules={rules} majorRequired={majorRequired} catalog={catalog} items={[{ sectionId: operatingSystems.id, role: 'must', locked: false }]} sectionById={new Map(catalog.map((value) => [value.id, value]))} onEditProfile={() => undefined} onAddRequired={() => undefined} onBrowseMajor={() => undefined} onBrowseLiberal={() => undefined} />)
+  it('presents required courses as a focused checklist instead of a timetable-building guide', () => {
+    render(<RequiredCoursePanel profile={profile} rules={rules} majorRequired={majorRequired} catalog={catalog} items={[{ sectionId: operatingSystems.id, role: 'must', locked: false }]} sectionById={new Map(catalog.map((value) => [value.id, value]))} onEditProfile={() => undefined} onAddRequired={() => undefined} />)
 
-    const toggle = screen.getByRole('button', { name: /필수 과목 먼저/ })
-    expect(toggle).toHaveAttribute('aria-expanded', 'false')
-    expect(toggle).toHaveTextContent('1/2개')
-    expect(toggle).toHaveTextContent('3/5학점')
-    expect(toggle).toHaveTextContent('다음: 필수 분반 확인')
-    expect(screen.queryByText('운영체제론')).not.toBeInTheDocument()
-
-    await userEvent.click(toggle)
-    expect(toggle).toHaveAttribute('aria-expanded', 'true')
+    expect(screen.getByRole('heading', { name: '이번 학기 필수과목' })).toBeVisible()
+    expect(screen.getByText(/1\/2과목 배치 · 3\/5학점/)).toBeVisible()
     expect(screen.getByText('운영체제론')).toBeInTheDocument()
+    expect(screen.queryByRole('navigation', { name: '시간표 만들기 순서' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /전공선택 찾기|교양선택 찾기/ })).not.toBeInTheDocument()
   })
 
-  it('places a required section through the expanded keyboard/tap alternative', async () => {
+  it('places a required section through the direct keyboard/tap action', async () => {
     const onAddRequired = vi.fn()
-    render(<RequiredCoursePanel profile={profile} rules={rules} majorRequired={majorRequired} catalog={catalog} items={[]} sectionById={new Map(catalog.map((value) => [value.id, value]))} onEditProfile={() => undefined} onAddRequired={onAddRequired} onBrowseMajor={() => undefined} onBrowseLiberal={() => undefined} />)
-    await userEvent.click(screen.getByRole('button', { name: /필수 과목 먼저/ }))
+    render(<RequiredCoursePanel profile={profile} rules={rules} majorRequired={majorRequired} catalog={catalog} items={[]} sectionById={new Map(catalog.map((value) => [value.id, value]))} onEditProfile={() => undefined} onAddRequired={onAddRequired} />)
     await userEvent.click(screen.getAllByRole('button', { name: '시간표에 배치' })[0]!)
     expect(onAddRequired).toHaveBeenCalled()
   })
@@ -97,10 +85,11 @@ describe('required course progress', () => {
       ...profile,
       academicBasis: { ...profile.academicBasis!, admissionYear: 2025, gradeMismatchAcknowledged: true },
     }
-    render(<RequiredCoursePanel profile={earlierProfile} rules={rules} majorRequired={majorRequired} catalog={catalog} items={[]} sectionById={new Map(catalog.map((value) => [value.id, value]))} onEditProfile={() => undefined} onAddRequired={() => undefined} onBrowseMajor={() => undefined} onBrowseLiberal={() => undefined} initiallyExpanded />)
+    render(<RequiredCoursePanel profile={earlierProfile} rules={rules} majorRequired={majorRequired} catalog={catalog} items={[]} sectionById={new Map(catalog.map((value) => [value.id, value]))} onEditProfile={() => undefined} onAddRequired={() => undefined} />)
 
     expect(screen.queryByText('이 입학연도 데이터는 아직 연결되지 않았어요.')).not.toBeInTheDocument()
-    expect(screen.getByRole('heading', { name: '확인 가능한 2026 기준 · 1학년 전공필수' })).toBeVisible()
+    expect(screen.getByRole('heading', { name: '전공필수' })).toBeVisible()
+    expect(screen.getByText('2026 편람 기준 참고')).toBeVisible()
     expect(screen.getByText('운영체제론')).toBeVisible()
     expect(screen.getByText('참고')).toBeVisible()
     expect(screen.getByText('입학연도별 차이가 있을 수 있어 참고용으로 보여드려요.')).toBeVisible()

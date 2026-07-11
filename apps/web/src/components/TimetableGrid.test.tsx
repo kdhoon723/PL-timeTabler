@@ -19,16 +19,18 @@ const section = (id: string, name: string): Section => ({
 afterEach(cleanup)
 
 describe('timetable candidate preview', () => {
-  it('assigns vivid course colors by timetable insertion order', () => {
-    const first = section('Z-1', '첫 번째 과목')
-    const second = section('A-1', '두 번째 과목')
-    const third = section('M-1', '세 번째 과목')
+  it('assigns the DJPic palette from Monday morning through the weekly timetable', () => {
+    const friday = { ...section('F-1', '금요일 과목'), sessions: [{ day: '금' as const, start: '09:00', end: '10:30', room: null, building: null }] }
+    const mondayLate = { ...section('M2-1', '월요일 늦은 과목'), sessions: [{ day: '월' as const, start: '13:30', end: '15:00', room: null, building: null }] }
+    const tuesday = { ...section('T-1', '화요일 과목'), sessions: [{ day: '화' as const, start: '08:30', end: '10:00', room: null, building: null }] }
+    const mondayEarly = { ...section('M1-1', '월요일 이른 과목'), sessions: [{ day: '월' as const, start: '09:00', end: '10:30', room: null, building: null }] }
 
-    render(<TimetableGrid sections={[first, second, third]} conflicts={[]} lockedIds={new Set()} onSelect={() => undefined} />)
+    render(<TimetableGrid sections={[friday, mondayLate, tuesday, mondayEarly]} conflicts={[]} lockedIds={new Set()} onSelect={() => undefined} />)
 
-    expect(screen.getByRole('button', { name: /첫 번째 과목/ })).toHaveClass('course-0')
-    expect(screen.getByRole('button', { name: /두 번째 과목/ })).toHaveClass('course-1')
-    expect(screen.getByRole('button', { name: /세 번째 과목/ })).toHaveClass('course-2')
+    expect(screen.getByRole('button', { name: /월요일 이른 과목/ })).toHaveClass('course-0')
+    expect(screen.getByRole('button', { name: /월요일 늦은 과목/ })).toHaveClass('course-1')
+    expect(screen.getByRole('button', { name: /화요일 과목/ })).toHaveClass('course-2')
+    expect(screen.getByRole('button', { name: /금요일 과목/ })).toHaveClass('course-3')
   })
 
   it('announces and styles preview states without opening the saved-draft detail sheet', () => {

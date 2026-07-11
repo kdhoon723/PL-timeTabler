@@ -188,10 +188,6 @@ export default function App() {
     setSearchDestination(destination)
     setSearchOpen(true)
   }
-  const browseFromRequired = (mode: CourseSearchMode) => {
-    setRequiredOpen(false)
-    requestAnimationFrame(() => openCourseSearch(mode))
-  }
   const editProfileFromRequired = () => {
     setRequiredOpen(false)
     requestAnimationFrame(() => setProfileEditorOpen(true))
@@ -324,7 +320,7 @@ export default function App() {
     </main>
     <div className="mobile-action-bar"><button type="button" className="secondary-button" onClick={(event) => openTools(event.currentTarget)}><SlidersIcon />자동완성</button><button type="button" className="primary-button" onClick={() => openCourseSearch()}><PlusIcon />과목 찾기</button></div>
     <CourseSearchSheet open={searchOpen} initialMode={searchMode} destination={searchDestination} sections={catalog} items={state.present.items} profile={profile} onClose={() => setSearchOpen(false)} onAdd={addSection} />
-    <RequiredCourseSheet open={requiredOpen} profile={profile} rules={commonRules} majorRequired={majorRequired} catalog={catalog} items={state.present.items} sectionById={sectionById} onClose={() => setRequiredOpen(false)} onEditProfile={editProfileFromRequired} onAddRequired={(section) => addSection(section, 'must')} onBrowseMajor={() => browseFromRequired('MAJOR')} onBrowseLiberal={() => browseFromRequired('LIBERAL')} />
+    <RequiredCourseSheet open={requiredOpen} profile={profile} rules={commonRules} majorRequired={majorRequired} catalog={catalog} items={state.present.items} sectionById={sectionById} onClose={() => setRequiredOpen(false)} onEditProfile={editProfileFromRequired} onAddRequired={(section) => addSection(section, 'must')} />
     <ApplicationListSheet open={applicationListOpen} items={state.present.items} sectionById={sectionById} onApplyBackup={applyBackup} onMessage={(message) => showToast(message)} onExportPng={exportImage} onExportPdf={() => print()} onClose={() => setApplicationListOpen(false)} />
     <SectionDetailSheet section={selectedSection} role={selectedItem?.role ?? 'want'} locked={selectedItem?.locked ?? false} professorLocked={selectedItem?.professorLocked ?? false} professorLockAvailable={professorLockAvailable} alternatives={alternatives} onClose={() => setSelectedId(null)} onRole={(role) => selectedSection && dispatch({ type: 'ITEMS', items: itemsWithCourseRole(selectedSection.id, role, state.present.items, sectionById) })} onAdjustmentMode={(mode) => selectedSection && dispatch({ type: 'PATCH_ITEM', sectionId: selectedSection.id, patch: { locked: mode === 'SECTION', professorLocked: mode === 'PROFESSOR' } })} onRemove={removeSection} onSwap={swapSection} />
     {(onboardingOpen || profileEditorOpen) && <Onboarding departments={departments} initialProfile={profile} mode={profileEditorOpen ? 'EDIT' : 'FIRST_RUN'} authAvailable={authSession.available} onComplete={completeProfile} onSkip={profileEditorOpen ? () => setProfileEditorOpen(false) : skipOnboarding} onLogin={() => setAuthOpen(true)} />}

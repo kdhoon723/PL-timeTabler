@@ -1,5 +1,7 @@
 # UX iteration 5 — vivid timetable course colors
 
+> 이 문서의 초기 10색·추가 순서 계약은 [`UX_ITERATION_6.md`](UX_ITERATION_6.md)의 DJPic 20색·주간 시간순 계약으로 대체되었다.
+
 ## Problem
 
 The previous timetable palette used six low-saturation colors selected from a course-code hash. In dark mode the blocks blended into the grid and were difficult to scan. Hash assignment also made the apparent color order feel arbitrary instead of matching the student's act of building a timetable.

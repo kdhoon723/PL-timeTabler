@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { DragEvent } from 'react'
-import type { ConflictEdge, Section } from '../types'
+import { DAYS, type ConflictEdge, type Section } from '../types'
 import type { CandidatePreviewState } from '../domain/candidateDiff'
 import { minutesToTime, timeToMinutes, timetableBounds } from '../domain/time'
 
@@ -16,7 +16,7 @@ interface Props {
   onReplace?: (source: Section, replacement: Section) => void
 }
 
-const COLOR_CLASSES = ['course-0', 'course-1', 'course-2', 'course-3', 'course-4', 'course-5', 'course-6', 'course-7', 'course-8', 'course-9']
+const COLOR_CLASSES = Array.from({ length: 20 }, (_, index) => `course-${index}`)
 
 const PREVIEW_LABELS: Record<CandidatePreviewState, string> = {
   kept: '미리보기에서 유지',
@@ -58,11 +58,15 @@ export function TimetableGrid({ sections, conflicts, lockedIds, professorLockedI
   const timetableTitleRef = useRef<HTMLHeadingElement | null>(null)
   const sessions = sections.flatMap((section) => section.sessions.map((session) => ({ section, session })))
   const colorByCourse = useMemo(() => {
-    const colors = new Map<string, string>()
-    for (const section of sections) {
-      if (!colors.has(section.courseCode)) colors.set(section.courseCode, COLOR_CLASSES[colors.size % COLOR_CLASSES.length] ?? COLOR_CLASSES[0]!)
-    }
-    return colors
+    const firstWeeklySlot = new Map<string, { slot: number, appearance: number }>()
+    sections.forEach((section, appearance) => {
+      const slot = Math.min(...section.sessions.map((session) => DAYS.indexOf(session.day) * 24 * 60 + timeToMinutes(session.start)))
+      const current = firstWeeklySlot.get(section.courseCode)
+      if (!current || slot < current.slot) firstWeeklySlot.set(section.courseCode, { slot, appearance })
+    })
+    return new Map([...firstWeeklySlot.entries()]
+      .sort(([, left], [, right]) => left.slot - right.slot || left.appearance - right.appearance)
+      .map(([courseCode], index) => [courseCode, COLOR_CLASSES[index % COLOR_CLASSES.length] ?? COLOR_CLASSES[0]!]))
   }, [sections])
   const dragAlternatives = dragSource ? (dragAlternativesById?.get(dragSource.id) ?? []).filter((section) => section.sessions.length > 0) : []
   const boundSessions = [...sessions.map(({ session }) => session), ...dragAlternatives.flatMap((section) => section.sessions)]

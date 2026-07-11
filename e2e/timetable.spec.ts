@@ -79,7 +79,7 @@ test.describe('responsive timetable editor', () => {
     expect(Number.parseFloat(await sheet.evaluate((element) => getComputedStyle(element).transitionDuration))).toBeLessThanOrEqual(0.00001)
   })
 
-  test('keeps insertion-ordered course colors vivid and readable in both themes', async ({ page }) => {
+  test('keeps weekly chronological course colors vivid and protected from auto darkening', async ({ page }) => {
     await page.addInitScript(() => {
       localStorage.setItem('pl-timetabler:onboarding:v1', 'complete')
       localStorage.setItem('pl-timetabler:draft:v1', JSON.stringify({
@@ -96,8 +96,8 @@ test.describe('responsive timetable editor', () => {
     const blocks = page.locator('.course-block')
     await expect(blocks).toHaveCount(3)
     await expect(blocks.nth(0)).toHaveClass(/course-0/)
-    await expect(blocks.nth(1)).toHaveClass(/course-1/)
-    await expect(blocks.nth(2)).toHaveClass(/course-2/)
+    await expect(blocks.nth(1)).toHaveClass(/course-2/)
+    await expect(blocks.nth(2)).toHaveClass(/course-1/)
 
     const measureContrast = async () => blocks.evaluateAll((elements) => {
       const luminance = (rgb: string) => {
@@ -118,6 +118,7 @@ test.describe('responsive timetable editor', () => {
           opacity: style.opacity,
           filter: style.filter,
           mixBlendMode: style.mixBlendMode,
+          colorScheme: style.colorScheme,
         }
       })
     })
@@ -131,8 +132,8 @@ test.describe('responsive timetable editor', () => {
     const dark = await measureContrast()
     expect(new Set(dark.map(({ background }) => background)).size).toBe(3)
     expect(Math.min(...dark.map(({ contrast }) => contrast))).toBeGreaterThanOrEqual(5)
-    expect(dark.map(({ background }) => background)).not.toEqual(light.map(({ background }) => background))
-    expect(dark.every(({ opacity, filter, mixBlendMode }) => opacity === '1' && filter === 'none' && mixBlendMode === 'normal')).toBe(true)
+    expect(dark.map(({ background }) => background)).toEqual(light.map(({ background }) => background))
+    expect(dark.every(({ opacity, filter, mixBlendMode, colorScheme }) => opacity === '1' && filter === 'none' && mixBlendMode === 'normal' && colorScheme === 'light only')).toBe(true)
   })
 
   test('keeps first-run focus inside the accessible setup dialog', async ({ page }) => {
@@ -249,7 +250,11 @@ test.describe('responsive timetable editor', () => {
     await expect(page.getByRole('dialog', { name: '필수과목 확인' })).toBeVisible()
     await expect(page.getByText('입학연도를 추가할까요?')).toBeVisible()
     await expect(page.getByRole('button', { name: '시간표에 배치' })).toHaveCount(0)
-    await page.getByRole('button', { name: '2 전공선택' }).click()
+    await expect(page.getByRole('navigation', { name: '시간표 만들기 순서' })).toHaveCount(0)
+    await expect(page.getByRole('button', { name: /전공선택 찾기|교양선택 찾기/ })).toHaveCount(0)
+    await page.getByRole('button', { name: '필수과목 확인 닫기' }).click()
+    await page.getByRole('button', { name: '과목 찾기' }).click()
+    await page.getByRole('button', { name: /내 전공.*컴퓨터공학전공.*분반/ }).click()
     await page.getByRole('button', { name: /세부 필터/ }).click()
     await expect(page.getByRole('combobox', { name: '이수구분' })).toHaveValue('전공(AI융합대학/컴퓨터공학전공)')
     await page.getByRole('button', { name: '과목 검색 닫기' }).click()
