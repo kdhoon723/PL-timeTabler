@@ -5,6 +5,7 @@
 ## 구현된 기능
 
 - 2026-1 개설과목 1,576개를 과목명·교수·과목코드·이수구분·요일로 검색
+- 현재 시간표와 자동완성 후보 바구니를 분리하고, 후보는 분반 선택 없이 과목 단위로 담아 조합
 - 분반 추가·교체·잠금·삭제, 필수·희망·예비·제외 역할, 실행 취소·다시 실행
 - 시간 충돌 즉시 표시, 대체 가능한 다른 분반 제안
 - 정수 목표·최소·최대 학점, 공강 요일, 이른/늦은 수업, 연속 점심 여유, 하루 수업시간, 공강 길이·현재 선택 유지 선호
@@ -133,4 +134,5 @@ docker compose logs -f api optimizer web
 - [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — 기술·배포·최적화 경계
 - [`docs/PRODUCT_PLAN.md`](docs/PRODUCT_PLAN.md) — 기능과 출시 기준
 - [`docs/IMPLEMENTATION_READINESS.md`](docs/IMPLEMENTATION_READINESS.md) — OR-Tools 검증 기준
+- [`docs/UX_ITERATION_3.md`](docs/UX_ITERATION_3.md) — 현재 시간표와 자동완성 후보를 분리한 UX 결정·검증
 - [`docs/research/DAEJIN_GRADUATION_RULES.md`](docs/research/DAEJIN_GRADUATION_RULES.md) — 공식 졸업요건 출처와 자동 판정 경계

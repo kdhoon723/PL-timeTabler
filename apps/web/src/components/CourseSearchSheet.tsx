@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import type { AcademicProfile, Day, PlanItem, Section } from '../types'
+import type { AcademicProfile, CourseRole, Day, PlanItem, Section } from '../types'
 import { canPlace } from '../domain/conflicts'
 import { formatSession } from '../domain/time'
 import { CheckIcon, CloseIcon, SearchIcon } from './Icons'
@@ -7,14 +7,16 @@ import { CheckIcon, CloseIcon, SearchIcon } from './Icons'
 interface Props {
   open: boolean
   initialMode?: CourseSearchMode
+  destination?: CourseSearchDestination
   sections: Section[]
   items: PlanItem[]
   profile: AcademicProfile | null
   onClose: () => void
-  onAdd: (section: Section) => void
+  onAdd: (section: Section, role?: CourseRole) => void
 }
 
 export type CourseSearchMode = 'ALL' | 'MAJOR' | 'LIBERAL'
+export type CourseSearchDestination = 'TIMETABLE' | 'CANDIDATES'
 
 const LIBERAL_ELECTIVE_CATEGORY = '교양선택 전체'
 
@@ -28,7 +30,7 @@ function academicUnitFromCategory(category: string): string | null {
   return slash < 0 ? null : category.slice(slash + 1, -1)
 }
 
-export function CourseSearchSheet({ open, initialMode = 'ALL', sections, items, profile, onClose, onAdd }: Props) {
+export function CourseSearchSheet({ open, initialMode = 'ALL', destination = 'TIMETABLE', sections, items, profile, onClose, onAdd }: Props) {
   const dialogRef = useRef<HTMLDialogElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
   const wasOpenRef = useRef(false)
@@ -51,6 +53,7 @@ export function CourseSearchSheet({ open, initialMode = 'ALL', sections, items, 
     return ['전체', ...(preferredCategory ? [preferredCategory] : []), ...(hasLiberalElectives ? [LIBERAL_ELECTIVE_CATEGORY] : []), ...sorted.filter((value) => value !== preferredCategory)]
   }, [preferredCategory, sections])
   const selectedIds = useMemo(() => new Set(items.map((item) => item.sectionId)), [items])
+  const plannedCourseCodes = useMemo(() => new Set(items.filter((item) => item.role !== 'exclude').map((item) => sections.find((section) => section.id === item.sectionId)?.courseCode).filter((value): value is string => !!value)), [items, sections])
   const activeSections = useMemo(() => {
     const sectionById = new Map(sections.map((section) => [section.id, section]))
     return items.filter((item) => item.role === 'must' || item.role === 'want').map((item) => sectionById.get(item.sectionId)).filter((section): section is Section => !!section)
@@ -103,9 +106,11 @@ export function CourseSearchSheet({ open, initialMode = 'ALL', sections, items, 
     onClose()
   }
 
+  const candidateMode = destination === 'CANDIDATES'
+
   return <dialog className="sheet search-sheet" ref={dialogRef} onClose={closeSheet} onCancel={(event) => { event.preventDefault(); closeSheet() }} aria-labelledby="search-title">
     <div className="sheet-header">
-      <div><h2 id="search-title">과목 추가</h2><p>{sections.length.toLocaleString()}개 분반 · 검색 결과 {groups.length}개 과목</p></div>
+      <div><h2 id="search-title">{candidateMode ? '자동완성 후보 담기' : '과목 추가'}</h2><p>{candidateMode ? '과목만 담으면 분반은 조건에 맞게 조합해요.' : `${sections.length.toLocaleString()}개 분반 · 검색 결과 ${groups.length}개 과목`}</p></div>
       <button type="button" className="icon-button" onClick={closeSheet} aria-label="과목 검색 닫기"><CloseIcon /></button>
     </div>
     <div className="search-controls">
@@ -126,6 +131,16 @@ export function CourseSearchSheet({ open, initialMode = 'ALL', sections, items, 
         const comparisonSections = activeSections.filter((section) => section.id !== currentSection?.id)
         const titleId = `course-${first.courseCode}-title`
         const sectionsId = `course-${first.courseCode}-sections`
+        const coursePlanned = plannedCourseCodes.has(first.courseCode)
+        if (candidateMode) return <section className="course-group candidate-course-group" key={first.courseCode} aria-labelledby={titleId}>
+          <div className="candidate-course-row">
+            <button type="button" className="course-group-toggle" id={titleId} aria-expanded={expanded} aria-controls={sectionsId} onClick={() => setExpandedCourseCode((value) => value === first.courseCode ? null : first.courseCode)}>
+              <span><strong>{first.name}</strong><small>{first.courseCode} · {first.category} · {first.credits}학점</small></span><span>{group.length}개 분반</span>
+            </button>
+            <button type="button" className="candidate-course-add" aria-label={`${first.name} ${coursePlanned ? '후보에 담김' : '후보로 담기'}`} disabled={coursePlanned} onClick={() => onAdd(first, 'backup')}>{coursePlanned ? '담김' : '후보로 담기'}</button>
+          </div>
+          {expanded && <ul className="candidate-section-preview" id={sectionsId}>{group.map((section) => <li key={section.id}><strong>{section.sectionCode}분반 · {section.professor ?? '교수 미정'}</strong><span>{section.sessions.length ? section.sessions.map(formatSession).join(' / ') : '수업시간 미정'}</span></li>)}</ul>}
+        </section>
         return <section className="course-group" key={first.courseCode} aria-labelledby={titleId}>
           <button type="button" className="course-group-toggle" id={titleId} aria-expanded={expanded} aria-controls={sectionsId} onClick={() => setExpandedCourseCode((value) => value === first.courseCode ? null : first.courseCode)}>
             <span><strong>{first.name}</strong><small>{first.courseCode} · {first.category} · {first.credits}학점</small></span><span>{group.length}개 분반 보기</span>

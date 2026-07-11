@@ -110,6 +110,29 @@ test.describe('responsive timetable editor', () => {
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true)
   })
 
+  test('keeps optimizer candidates outside the timetable until the student promotes them', async ({ page }, testInfo) => {
+    await openEditor(page)
+    if (testInfo.project.name === 'mobile-390') await page.getByRole('button', { name: /자동완성/ }).click()
+
+    await page.getByRole('button', { name: '후보 과목 담기' }).click()
+    const search = page.getByRole('dialog', { name: '자동완성 후보 담기' })
+    await expect(search).toBeVisible()
+    await search.getByRole('textbox', { name: /과목명/ }).fill('AI시대의컴퓨팅사고')
+    await search.getByRole('button', { name: 'AI시대의컴퓨팅사고 후보로 담기' }).click()
+    await expect(search.getByRole('button', { name: 'AI시대의컴퓨팅사고 후보에 담김' })).toBeDisabled()
+    await search.getByRole('button', { name: '과목 검색 닫기' }).click()
+
+    if (testInfo.project.name === 'mobile-390') await page.getByRole('button', { name: /자동완성/ }).click()
+    const basket = page.getByRole('region', { name: '자동완성 후보' })
+    await expect(basket).toContainText('AI시대의컴퓨팅사고')
+    await expect(page.getByRole('button', { name: /AI시대의컴퓨팅사고 화/ })).toHaveCount(0)
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true)
+
+    await basket.getByRole('button', { name: '시간표에 넣기' }).click()
+    if (testInfo.project.name === 'mobile-390') await page.getByRole('button', { name: '닫기' }).click()
+    await expect(page.getByRole('button', { name: /AI시대의컴퓨팅사고 화/ })).toBeVisible()
+  })
+
   test('prioritizes the saved department as a one-tap course filter', async ({ page }) => {
     await page.addInitScript(() => {
       localStorage.setItem('pl-timetabler:onboarding:v1', 'complete')

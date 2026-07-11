@@ -13,8 +13,9 @@ import { AppHeader } from './components/AppHeader'
 import { ApplicationListSheet } from './components/ApplicationListSheet'
 import { AuthSheet } from './components/AuthSheet'
 import { CandidatePreviewBar } from './components/CandidatePreviewBar'
+import { CandidateCourseBasket } from './components/CandidateCourseBasket'
 import { ConflictNotice } from './components/ConflictNotice'
-import { CourseSearchSheet, type CourseSearchMode } from './components/CourseSearchSheet'
+import { CourseSearchSheet, type CourseSearchDestination, type CourseSearchMode } from './components/CourseSearchSheet'
 import { CourseEntryPanel } from './components/CourseEntryPanel'
 import { Onboarding } from './components/Onboarding'
 import { OptimizerPanel } from './components/OptimizerPanel'
@@ -47,6 +48,7 @@ export default function App() {
   const [catalogError, setCatalogError] = useState<string | null>(null)
   const [searchOpen, setSearchOpen] = useState(false)
   const [searchMode, setSearchMode] = useState<CourseSearchMode>('ALL')
+  const [searchDestination, setSearchDestination] = useState<CourseSearchDestination>('TIMETABLE')
   const [requiredOpen, setRequiredOpen] = useState(false)
   const [applicationListOpen, setApplicationListOpen] = useState(false)
   const [selectedId, setSelectedId] = useState<string | null>(null)
@@ -181,8 +183,9 @@ export default function App() {
   }, [state.future.length, state.past.length])
 
   const navigate = (path: string) => { history.pushState({}, '', path); setRoute(path); scrollTo({ top: 0, behavior: 'instant' }) }
-  const openCourseSearch = (mode: CourseSearchMode = 'ALL') => {
+  const openCourseSearch = (mode: CourseSearchMode = 'ALL', destination: CourseSearchDestination = 'TIMETABLE') => {
     setSearchMode(mode)
+    setSearchDestination(destination)
     setSearchOpen(true)
   }
   const browseFromRequired = (mode: CourseSearchMode) => {
@@ -269,6 +272,19 @@ export default function App() {
     if (showTools) closeTools()
   }
   const applyBackup = (section: Section) => { dispatch({ type: 'ITEMS', items: itemsWithAppliedBackup(section.id, state.present.items, sectionById) }); showToast(`${section.name}을 현재 시간표에 적용했습니다.`, true) }
+  const removePassiveCourse = (section: Section) => {
+    const courseItems = state.present.items.filter((item) => sectionById.get(item.sectionId)?.courseCode === section.courseCode && (item.role === 'backup' || item.role === 'exclude'))
+    dispatch({ type: 'ITEMS', items: state.present.items.filter((item) => !courseItems.includes(item)) })
+    showToast(`${section.name}을 자동완성 목록에서 삭제했습니다.`, true)
+  }
+  const openCandidateSearch = () => {
+    if (!isDesktopTools && showTools) {
+      closeTools()
+      window.setTimeout(() => openCourseSearch('ALL', 'CANDIDATES'), 0)
+      return
+    }
+    openCourseSearch('ALL', 'CANDIDATES')
+  }
 
   const share = async () => {
     const url = new URL(location.origin)
@@ -291,7 +307,8 @@ export default function App() {
 
   if (route === '/requirements') return <><RequirementsPage catalog={catalog} profile={profile} onBack={() => navigate('/')} onAddCourse={(section) => { addSection(section, 'must'); navigate('/') }} /><Toast message={toast} onClose={() => setToast(null)} /></>
 
-  const toolsContent = <><PreferencesPanel preferences={state.present.preferences} onChange={(preferences) => dispatch({ type: 'PREFERENCES', preferences })} /><OptimizerPanel draft={state.present} draftFingerprint={draftFingerprint} sections={catalog} onPreview={previewCandidate} /></>
+  const candidateBasket = () => <CandidateCourseBasket items={state.present.items} sectionById={sectionById} onAdd={openCandidateSearch} onPromote={(section) => addSection(section, 'want')} onRemove={removePassiveCourse} />
+  const toolsContent = <>{!isDesktopDrag && candidateBasket()}<PreferencesPanel preferences={state.present.preferences} onChange={(preferences) => dispatch({ type: 'PREFERENCES', preferences })} /><OptimizerPanel draft={state.present} draftFingerprint={draftFingerprint} sections={catalog} onPreview={previewCandidate} /></>
   const courseEntry = (compact = false) => <CourseEntryPanel compact={compact} hasProfile={!!profile} onRequired={() => setRequiredOpen(true)} onMajor={() => profile ? openCourseSearch('MAJOR') : setProfileEditorOpen(true)} onLiberal={() => openCourseSearch('LIBERAL')} onAll={() => openCourseSearch()} />
 
   return <div className="app-shell">
@@ -299,14 +316,14 @@ export default function App() {
     {catalogError && <div className="global-error" role="alert"><span>{catalogError}</span><button type="button" onClick={fetchCatalog}>다시 시도</button></div>}
     {catalogMeta?.offline && <div className="data-status" role="status"><strong>저장된 데이터 사용 중</strong><span>{catalogMeta.updatedAt} 갱신본 · 연결 복구 후 자동 확인</span></div>}
     <main className="editor-layout">
-      <aside className="desktop-search">{courseEntry()}<SelectedCourseList items={state.present.items} sectionById={sectionById} onSelect={(section) => setSelectedId(section.id)} /></aside>
+      <aside className="desktop-search">{courseEntry()}<SelectedCourseList items={state.present.items} sectionById={sectionById} onSelect={(section) => setSelectedId(section.id)} />{isDesktopDrag && candidateBasket()}</aside>
       <div className="editor-main"><div className="mobile-course-entry">{courseEntry(true)}</div>{activeSections.length > 0 && <button type="button" className="application-summary-bar" onClick={() => setApplicationListOpen(true)}><span>신청 목록 보기</span><strong>{activeSections.length}개 · {metrics.credits}학점</strong></button>}<ConflictNotice conflicts={validCandidatePreview ? previewConflicts : conflicts} previewReadOnly={!!validCandidatePreview} onOpen={setSelectedId} />{validCandidatePreview && previewDiff && <CandidatePreviewBar candidate={validCandidatePreview.candidate} diff={previewDiff} containerRef={previewBarRef} onCancel={cancelCandidatePreview} onApply={applyCandidate} />}<TimetableGrid sections={gridSections} conflicts={validCandidatePreview ? previewConflicts : conflicts} lockedIds={new Set(state.present.items.filter((item) => item.locked).map((item) => item.sectionId))} professorLockedIds={new Set(state.present.items.filter((item) => item.professorLocked).map((item) => item.sectionId))} onSelect={(section) => setSelectedId(section.id)} previewStatusById={previewStatusById} dragEnabled={isDesktopDrag && !validCandidatePreview} dragAlternativesById={dragAlternativesById} onReplace={dragReplaceSection} />
         <div className="mobile-summary"><SelectedCourseList items={state.present.items} sectionById={sectionById} onSelect={(section) => setSelectedId(section.id)} /></div>
       </div>
       {isDesktopTools ? <aside className="tools-panel" aria-label="자동완성">{toolsContent}</aside> : <dialog className="tools-dialog" ref={toolsDialogRef} aria-labelledby="tools-dialog-title" onCancel={(event) => { event.preventDefault(); closeTools() }}><div className="mobile-tools-header"><h2 id="tools-dialog-title">자동완성</h2><button ref={toolsCloseRef} type="button" onClick={() => closeTools()}>닫기</button></div>{toolsContent}</dialog>}
     </main>
     <div className="mobile-action-bar"><button type="button" className="secondary-button" onClick={(event) => openTools(event.currentTarget)}><SlidersIcon />자동완성</button><button type="button" className="primary-button" onClick={() => openCourseSearch()}><PlusIcon />과목 추가</button></div>
-    <CourseSearchSheet open={searchOpen} initialMode={searchMode} sections={catalog} items={state.present.items} profile={profile} onClose={() => setSearchOpen(false)} onAdd={addSection} />
+    <CourseSearchSheet open={searchOpen} initialMode={searchMode} destination={searchDestination} sections={catalog} items={state.present.items} profile={profile} onClose={() => setSearchOpen(false)} onAdd={addSection} />
     <RequiredCourseSheet open={requiredOpen} profile={profile} rules={commonRules} majorRequired={majorRequired} catalog={catalog} items={state.present.items} sectionById={sectionById} onClose={() => setRequiredOpen(false)} onEditProfile={editProfileFromRequired} onAddRequired={(section) => addSection(section, 'must')} onBrowseMajor={() => browseFromRequired('MAJOR')} onBrowseLiberal={() => browseFromRequired('LIBERAL')} />
     <ApplicationListSheet open={applicationListOpen} items={state.present.items} sectionById={sectionById} onApplyBackup={applyBackup} onMessage={(message) => showToast(message)} onExportPng={exportImage} onExportPdf={() => print()} onClose={() => setApplicationListOpen(false)} />
     <SectionDetailSheet section={selectedSection} role={selectedItem?.role ?? 'want'} locked={selectedItem?.locked ?? false} professorLocked={selectedItem?.professorLocked ?? false} professorLockAvailable={professorLockAvailable} alternatives={alternatives} onClose={() => setSelectedId(null)} onRole={(role) => selectedSection && dispatch({ type: 'ITEMS', items: itemsWithCourseRole(selectedSection.id, role, state.present.items, sectionById) })} onAdjustmentMode={(mode) => selectedSection && dispatch({ type: 'PATCH_ITEM', sectionId: selectedSection.id, patch: { locked: mode === 'SECTION', professorLocked: mode === 'PROFESSOR' } })} onRemove={removeSection} onSwap={swapSection} />

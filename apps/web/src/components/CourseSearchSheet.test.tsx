@@ -105,4 +105,15 @@ describe('course search sheet', () => {
     expect(screen.getByRole('button', { name: /인간과소통.*분반 보기/ })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /과학과기술.*분반 보기/ })).toBeInTheDocument()
   })
+
+  it('adds an optimizer candidate at course level without asking for a section first', async () => {
+    const onAdd = vi.fn()
+    render(<CourseSearchSheet open destination="CANDIDATES" sections={catalog.slice(0, 4)} items={[]} profile={null} onClose={() => undefined} onAdd={onAdd} />)
+
+    expect(screen.getByRole('dialog', { name: '자동완성 후보 담기' })).toBeInTheDocument()
+    expect(screen.getByText('과목만 담으면 분반은 조건에 맞게 조합해요.')).toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: 'AI시대의컴퓨팅사고 후보로 담기' }))
+    expect(onAdd).toHaveBeenCalledWith(catalog[0], 'backup')
+    expect(screen.queryByRole('button', { name: /01분반.*추가/ })).not.toBeInTheDocument()
+  })
 })
