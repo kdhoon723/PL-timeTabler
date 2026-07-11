@@ -135,4 +135,5 @@ docker compose logs -f api optimizer web
 - [`docs/PRODUCT_PLAN.md`](docs/PRODUCT_PLAN.md) — 기능과 출시 기준
 - [`docs/IMPLEMENTATION_READINESS.md`](docs/IMPLEMENTATION_READINESS.md) — OR-Tools 검증 기준
 - [`docs/UX_ITERATION_3.md`](docs/UX_ITERATION_3.md) — 현재 시간표와 자동완성 후보를 분리한 UX 결정·검증
+- [`docs/UX_ITERATION_4.md`](docs/UX_ITERATION_4.md) — 과목 진입 역할 분리와 모바일 바텀시트 스와이프 계약
 - [`docs/research/DAEJIN_GRADUATION_RULES.md`](docs/research/DAEJIN_GRADUATION_RULES.md) — 공식 졸업요건 출처와 자동 판정 경계

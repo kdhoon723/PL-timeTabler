@@ -1,4 +1,4 @@
-import { cleanup, render, screen, within } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import type { AcademicProfile, Section } from '../types'
@@ -27,6 +27,30 @@ const catalog: Section[] = [
 afterEach(cleanup)
 
 describe('course search sheet', () => {
+  it('dismisses a mobile sheet when its header is dragged down', () => {
+    const originalPointerEvent = window.PointerEvent
+    class TestPointerEvent extends MouseEvent {
+      pointerId: number
+      pointerType: string
+      constructor(type: string, init: PointerEventInit = {}) {
+        super(type, init)
+        this.pointerId = init.pointerId ?? 0
+        this.pointerType = init.pointerType ?? ''
+      }
+    }
+    Object.defineProperty(window, 'PointerEvent', { configurable: true, value: TestPointerEvent })
+    const onClose = vi.fn()
+    render(<CourseSearchSheet open sections={catalog} items={[]} profile={null} onClose={onClose} onAdd={() => undefined} />)
+
+    const header = screen.getByRole('dialog', { name: '과목 추가' }).querySelector('.sheet-header')!
+    fireEvent.pointerDown(header, { pointerId: 1, pointerType: 'touch', clientY: 20 })
+    fireEvent.pointerMove(header, { pointerId: 1, pointerType: 'touch', clientY: 110 })
+    fireEvent.pointerUp(header, { pointerId: 1, pointerType: 'touch', clientY: 110 })
+
+    expect(onClose).toHaveBeenCalledOnce()
+    Object.defineProperty(window, 'PointerEvent', { configurable: true, value: originalPointerEvent })
+  })
+
   it('renders at most 20 collapsed course rows and expands only one course at a time', async () => {
     render(<CourseSearchSheet open sections={catalog} items={[]} profile={null} onClose={() => undefined} onAdd={() => undefined} />)
 
@@ -79,6 +103,7 @@ describe('course search sheet', () => {
     render(<CourseSearchSheet open sections={[...catalog, major]} items={[]} profile={profile} onClose={() => undefined} onAdd={() => undefined} />)
 
     const shortcut = screen.getByRole('button', { name: /내 전공.*컴퓨터공학전공.*1개 분반/ })
+    await userEvent.click(screen.getByRole('button', { name: '세부 필터' }))
     const category = screen.getByRole('combobox', { name: '이수구분' })
     expect(within(category).getAllByRole('option').slice(0, 2).map((option) => option.textContent)).toEqual(['전체', '내 전공 · 컴퓨터공학전공'])
 
@@ -92,6 +117,19 @@ describe('course search sheet', () => {
     expect(category).toHaveValue('전체')
   })
 
+  it('keeps major and liberal choices as quick filters inside search', async () => {
+    const profile: AcademicProfile = { schemaVersion: 2, department: '컴퓨터공학전공', currentGrade: 1, academicBasis: null, updatedAt: '2026-07-11T00:00:00Z' }
+    const major = { ...section('350001', '01', '컴퓨터구조', '월'), category: '전공(AI융합대학/컴퓨터공학전공)' }
+    const liberal = { ...section('310001', '01', '인간과소통', '월'), category: '교양선택(제1영역:인간과소통)' }
+    render(<CourseSearchSheet open sections={[...catalog, major, liberal]} items={[]} profile={profile} onClose={() => undefined} onAdd={() => undefined} />)
+
+    await userEvent.click(screen.getByRole('button', { name: '교양선택 빠른 필터' }))
+    await userEvent.click(screen.getByRole('button', { name: /세부 필터/ }))
+    expect(screen.getByRole('combobox', { name: '이수구분' })).toHaveValue('교양선택 전체')
+    expect(screen.getByRole('button', { name: '교양선택 빠른 필터' })).toHaveAttribute('aria-pressed', 'true')
+    expect(screen.getByRole('button', { name: '필터 초기화' })).toBeVisible()
+  })
+
   it('opens directly on all liberal electives when the planner requests the liberal step', async () => {
     const liberalElectives = [
       { ...section('310001', '01', '인간과소통', '월'), category: '교양선택(제1영역:인간과소통)' },
@@ -99,6 +137,7 @@ describe('course search sheet', () => {
     ]
     render(<CourseSearchSheet open initialMode="LIBERAL" sections={[...catalog, ...liberalElectives]} items={[]} profile={null} onClose={() => undefined} onAdd={() => undefined} />)
 
+    await userEvent.click(screen.getByRole('button', { name: /세부 필터/ }))
     const category = await screen.findByRole('combobox', { name: '이수구분' })
     expect(category).toHaveValue('교양선택 전체')
     expect(screen.getAllByRole('button', { name: /분반 보기/ })).toHaveLength(2)

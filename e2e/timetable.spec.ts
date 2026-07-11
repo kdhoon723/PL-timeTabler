@@ -10,7 +10,7 @@ async function openEditor(page: Page) {
 }
 
 async function addCourse(page: Page, query: string, courseName: RegExp, sectionName = /01분반.*추가/) {
-  await page.getByRole('button', { name: /과목 추가/ }).last().click()
+  await page.getByRole('button', { name: /과목 찾기/ }).last().click()
   await page.getByRole('textbox', { name: /과목명/ }).fill(query)
   await page.getByRole('button', { name: courseName }).click()
   await page.getByRole('button', { name: sectionName }).click()
@@ -33,6 +33,22 @@ async function seedDraft(page: Page, sectionId = '922601-01') {
 
 test.describe('responsive timetable editor', () => {
 
+  test('dismisses a mobile bottom sheet with the expected downward drag', async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== 'mobile-390', 'mobile bottom-sheet gesture contract')
+    await openEditor(page)
+    await page.getByRole('button', { name: '과목 찾기' }).click()
+    const sheet = page.getByRole('dialog', { name: '과목 추가' })
+    await expect(sheet).toBeVisible()
+    const header = sheet.locator('.sheet-header')
+
+    await header.dispatchEvent('pointerdown', { pointerId: 1, pointerType: 'touch', button: 0, clientY: 20 })
+    await header.dispatchEvent('pointermove', { pointerId: 1, pointerType: 'touch', button: 0, clientY: 112 })
+    await header.dispatchEvent('pointerup', { pointerId: 1, pointerType: 'touch', button: 0, clientY: 112 })
+
+    await expect(sheet).not.toBeVisible()
+    expect(await page.evaluate(() => getComputedStyle(document.documentElement).overscrollBehaviorY)).toBe('none')
+  })
+
   test('follows the system dark theme with intentional colors and reduced-motion support', async ({ page }) => {
     await page.emulateMedia({ colorScheme: 'dark', reducedMotion: 'no-preference' })
     await openEditor(page)
@@ -52,7 +68,7 @@ test.describe('responsive timetable editor', () => {
     expect(theme.bodyColor).toBe('rgb(243, 244, 246)')
     await expect(page.locator('meta[name="theme-color"][media*="dark"]')).toHaveAttribute('content', '#0f1115')
 
-    await page.getByRole('button', { name: /과목 추가/ }).last().click()
+    await page.getByRole('button', { name: /과목 찾기/ }).last().click()
     const sheet = page.getByRole('dialog', { name: '과목 추가' })
     await expect(sheet).toBeVisible()
     expect(await sheet.evaluate((element) => getComputedStyle(element).transitionDuration)).not.toBe('0s')
@@ -84,7 +100,7 @@ test.describe('responsive timetable editor', () => {
 
   test('searches, adds, persists and edits a section without horizontal overflow', async ({ page }) => {
     await openEditor(page)
-    await page.getByRole('button', { name: /과목 추가/ }).last().click()
+    await page.getByRole('button', { name: /과목 찾기/ }).last().click()
     await page.getByRole('textbox', { name: /과목명/ }).fill('AI시대의컴퓨팅사고')
     await page.getByRole('button', { name: /AI시대의컴퓨팅사고.*분반 보기/ }).click()
     await page.getByRole('button', { name: /01분반.*추가/ }).click()
@@ -139,10 +155,11 @@ test.describe('responsive timetable editor', () => {
       localStorage.setItem('pl-timetabler:profile:v1', JSON.stringify({ schemaVersion: 1, department: '컴퓨터공학전공', admissionYear: 2026, currentGrade: 1, entryType: 'FRESHMAN', studentType: 'DOMESTIC', sectionGroup: 'UNKNOWN', updatedAt: '2026-07-11T00:00:00Z' }))
     })
     await page.goto('/')
-    await page.getByRole('button', { name: /과목 추가/ }).last().click()
+    await page.getByRole('button', { name: /과목 찾기/ }).last().click()
 
     const shortcut = page.getByRole('button', { name: /내 전공.*컴퓨터공학전공.*25개 분반/ })
     await expect(shortcut).toBeVisible()
+    await page.getByRole('button', { name: '세부 필터' }).click()
     await expect(page.getByRole('combobox', { name: '이수구분' }).locator('option').nth(1)).toHaveText('내 전공 · 컴퓨터공학전공')
     await shortcut.click()
     await expect(shortcut).toHaveAttribute('aria-pressed', 'true')
@@ -172,24 +189,26 @@ test.describe('responsive timetable editor', () => {
     await startButton.click()
 
     await expect.poll(() => page.evaluate(() => JSON.parse(localStorage.getItem('pl-timetabler:profile:v2') ?? 'null'))).toMatchObject({ department: '컴퓨터공학전공', currentGrade: 3 })
-    await page.getByRole('button', { name: '필수 추천' }).click()
-    await expect(page.getByRole('dialog', { name: '필수 추천' })).toBeVisible()
+    await page.getByRole('button', { name: '필수과목 확인' }).click()
+    await expect(page.getByRole('dialog', { name: '필수과목 확인' })).toBeVisible()
     await expect(page.getByText('입학연도를 추가할까요?')).toBeVisible()
     await expect(page.getByRole('button', { name: '시간표에 배치' })).toHaveCount(0)
     await page.getByRole('button', { name: '2 전공선택' }).click()
+    await page.getByRole('button', { name: /세부 필터/ }).click()
     await expect(page.getByRole('combobox', { name: '이수구분' })).toHaveValue('전공(AI융합대학/컴퓨터공학전공)')
     await page.getByRole('button', { name: '과목 검색 닫기' }).click()
-    await page.getByRole('button', { name: '교양', exact: true }).click()
-    await expect(page.getByRole('combobox', { name: '이수구분' })).toHaveValue('교양선택 전체')
+    await page.getByRole('button', { name: '과목 찾기' }).click()
+    await page.getByRole('button', { name: '교양선택 빠른 필터' }).click()
+    await expect(page.getByRole('button', { name: '교양선택 빠른 필터' })).toHaveAttribute('aria-pressed', 'true')
     await page.getByRole('button', { name: '과목 검색 닫기' }).click()
-    await page.getByRole('button', { name: '필수 추천' }).click()
+    await page.getByRole('button', { name: '필수과목 확인' }).click()
     await page.getByRole('button', { name: '입학연도 추가' }).click()
     await expect(page.getByRole('heading', { name: /몇 학년 시간표를 준비할까요/ })).toBeVisible()
     await expect(page.getByRole('checkbox', { name: /필수과목 추천을 더 정확히/ })).not.toBeChecked()
     await page.getByRole('button', { name: '닫기' }).click()
     await page.reload()
     await expect(page.getByRole('heading', { name: /원하는 시간표/ })).toHaveCount(0)
-    await expect(page.getByRole('button', { name: '필수 추천' })).toBeVisible()
+    await expect(page.getByRole('button', { name: '필수과목 확인' })).toBeVisible()
   })
 
   test('opens graduation evidence and returns to the editor', async ({ page }) => {
@@ -277,7 +296,7 @@ test.describe('responsive timetable editor', () => {
       localStorage.setItem('pl-timetabler:profile:v1', JSON.stringify({ schemaVersion: 1, department: '컴퓨터공학전공', admissionYear: 2026, currentGrade: 1, entryType: 'FRESHMAN', studentType: 'DOMESTIC', sectionGroup: 'UNKNOWN', updatedAt: '2026-07-11T00:00:00Z' }))
     })
     await page.goto('/')
-    await expect(page.getByRole('button', { name: '필수 추천' })).toBeVisible()
+    await expect(page.getByRole('button', { name: '필수과목 확인' })).toBeVisible()
     const box = await page.locator('.timetable-grid').boundingBox()
     expect(box?.y).toBeLessThanOrEqual(360)
   })
@@ -425,7 +444,7 @@ test.describe('production optimizer integration', () => {
   test('creates and applies three real OR-Tools candidates', async ({ page }) => {
     await openEditor(page)
     await expect(page.getByText('최신 데이터 연결됨')).toHaveCount(0)
-    await page.getByRole('button', { name: /과목 추가/ }).last().click()
+    await page.getByRole('button', { name: /과목 찾기/ }).last().click()
     const search = page.getByRole('textbox', { name: /과목명/ })
     for (const courseCode of ['005111', '927283', '927430', '922601', '005005']) {
       await search.fill(courseCode)

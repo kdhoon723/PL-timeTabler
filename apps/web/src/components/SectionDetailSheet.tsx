@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react'
 import type { CourseRole, Section } from '../types'
 import { formatSession } from '../domain/time'
 import { CloseIcon, TrashIcon } from './Icons'
+import { useSheetSwipeDismiss } from '../hooks/useSheetSwipeDismiss'
 
 type AdjustmentMode = 'AUTO' | 'PROFESSOR' | 'SECTION'
 
@@ -29,6 +30,7 @@ const ROLE_HELP: Record<CourseRole, string> = {
 
 export function SectionDetailSheet({ section, role, locked, professorLocked, professorLockAvailable, alternatives, onClose, onRole, onAdjustmentMode, onRemove, onSwap }: Props) {
   const ref = useRef<HTMLDialogElement>(null)
+  const sheetDrag = useSheetSwipeDismiss(ref, onClose)
   useEffect(() => {
     if (section && ref.current && !ref.current.open) ref.current.showModal()
     if (!section && ref.current?.open) ref.current.close()
@@ -42,7 +44,7 @@ export function SectionDetailSheet({ section, role, locked, professorLocked, pro
       ? `${section.professor} 교수님의 분반 안에서 시간을 맞춰요.`
       : '교수와 시간을 조건에 맞춰 바꿀 수 있어요.'
   return <dialog className="sheet detail-sheet" ref={ref} onClose={onClose} onCancel={(event) => { event.preventDefault(); onClose() }} aria-labelledby="detail-title">
-    <div className="sheet-header"><div><h2 id="detail-title">{section.name}</h2><p>{section.courseCode}-{section.sectionCode} · {section.credits}학점</p></div><button type="button" className="icon-button" onClick={onClose} aria-label="과목 상세 닫기"><CloseIcon /></button></div>
+    <div className="sheet-header" {...sheetDrag}><div><h2 id="detail-title">{section.name}</h2><p>{section.courseCode}-{section.sectionCode} · {section.credits}학점</p></div><button type="button" className="icon-button" onClick={onClose} aria-label="과목 상세 닫기"><CloseIcon /></button></div>
     <dl className="detail-list"><div><dt>담당 교수</dt><dd>{section.professor ?? '미정'}</dd></div><div><dt>이수 구분</dt><dd>{section.category}</dd></div><div><dt>수업</dt><dd>{section.sessions.length ? section.sessions.map(formatSession).join(', ') : '시간 미정 — 충돌 여부를 직접 확인하세요'}</dd></div></dl>
     <fieldset className="role-fieldset"><legend>자동 생성 기준</legend><div>{(Object.keys(ROLE_LABELS) as CourseRole[]).map((value) => <label key={value} className={role === value ? 'checked' : ''}><input type="radio" name="course-role" value={value} checked={role === value} onChange={() => onRole(value)} />{ROLE_LABELS[value]}</label>)}</div><p aria-live="polite">{ROLE_HELP[role]}</p></fieldset>
     {(role === 'must' || role === 'want') && <fieldset className="adjustment-fieldset"><legend>자동 조정 범위</legend><div>

@@ -1,22 +1,20 @@
 import { PlusIcon } from './Icons'
+import type { AcademicProfile } from '../types'
 
 interface Props {
-  hasProfile: boolean
+  profile: AcademicProfile | null
   compact?: boolean
   onRequired: () => void
-  onMajor: () => void
-  onLiberal: () => void
-  onAll: () => void
+  onEditProfile: () => void
+  onSearch: () => void
 }
 
-export function CourseEntryPanel({ hasProfile, compact = false, onRequired, onMajor, onLiberal, onAll }: Props) {
+export function CourseEntryPanel({ profile, compact = false, onRequired, onEditProfile, onSearch }: Props) {
   return <section className={`course-entry-panel ${compact ? 'compact' : ''}`} aria-label="과목 찾기">
-    {!compact && <div className="section-heading"><div><h2>과목</h2><p>필수 추천이나 원하는 분류에서 시작하세요.</p></div></div>}
-    <button type="button" className="primary-button full-button" onClick={onAll}><PlusIcon />전체 과목 추가</button>
-    <div className="course-entry-shortcuts">
-      <button type="button" onClick={onRequired}>필수 추천</button>
-      <button type="button" onClick={onMajor}>{hasProfile ? '내 전공' : '학과 설정'}</button>
-      <button type="button" onClick={onLiberal}>교양</button>
-    </div>
+    {!compact && <div className="section-heading"><div><h2>과목</h2><p>검색해서 시간표에 바로 배치하세요.</p></div></div>}
+    <button type="button" className="primary-button full-button course-search-action" onClick={onSearch}><PlusIcon />과목 찾기</button>
+    {profile
+      ? <button type="button" className="required-guidance" aria-label="필수과목 확인" onClick={onRequired}><span><strong>필수과목 확인</strong><small>{profile.department} · {profile.currentGrade}학년 기준</small></span><span aria-hidden="true">›</span></button>
+      : <button type="button" className="profile-guidance" aria-label="학과를 설정하면 필수과목을 안내해요" onClick={onEditProfile}>학과를 설정하면 필수과목을 안내해요 <span aria-hidden="true">›</span></button>}
   </section>
 }

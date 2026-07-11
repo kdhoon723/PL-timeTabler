@@ -59,7 +59,7 @@ describe('editor command recovery', () => {
 
   async function addSection() {
     render(<App />)
-    fireEvent.click(screen.getAllByRole('button', { name: /과목 추가/ }).at(-1)!)
+    fireEvent.click(screen.getAllByRole('button', { name: /과목 찾기/ }).at(-1)!)
     fireEvent.click(await screen.findByRole('button', { name: /AI시대의컴퓨팅사고.*분반 보기/ }))
     fireEvent.click(screen.getByRole('button', { name: /01분반.*추가/ }))
     expect(screen.getByRole('button', { name: /AI시대의컴퓨팅사고 화/ })).toBeInTheDocument()

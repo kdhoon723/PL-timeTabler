@@ -96,7 +96,7 @@ describe('candidate preview integration', () => {
     fireEvent.click(screen.getByRole('button', { name: '새 필수과목 없는 후보 미리보기' }))
     await screen.findByRole('heading', { name: '후보 3 변경 내용' })
 
-    fireEvent.click(screen.getAllByRole('button', { name: /과목 추가/ }).at(-1)!)
+    fireEvent.click(screen.getAllByRole('button', { name: /과목 찾기/ }).at(-1)!)
     fireEvent.click(screen.getByRole('button', { name: /운영체제.*분반 보기/ }))
     fireEvent.click(screen.getByRole('button', { name: /01분반.*추가/ }))
     fireEvent.click(screen.getByRole('button', { name: '과목 검색 닫기' }))

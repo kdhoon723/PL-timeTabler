@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { logoutAuthSession, startEmailOtp, verifyEmailOtp } from '../api/client'
 import type { AuthSession } from '../types'
 import { CloseIcon } from './Icons'
+import { useSheetSwipeDismiss } from '../hooks/useSheetSwipeDismiss'
 
 interface Props {
   open: boolean
@@ -12,6 +13,7 @@ interface Props {
 
 export function AuthSheet({ open, session, onClose, onSession }: Props) {
   const ref = useRef<HTMLDialogElement>(null)
+  const sheetDrag = useSheetSwipeDismiss(ref, onClose)
   const [studentNumber, setStudentNumber] = useState('')
   const [code, setCode] = useState('')
   const [step, setStep] = useState<'NUMBER' | 'OTP'>('NUMBER')
@@ -54,7 +56,7 @@ export function AuthSheet({ open, session, onClose, onSession }: Props) {
   }
 
   return <dialog ref={ref} className="sheet detail-sheet auth-sheet" onClose={onClose} onCancel={(event) => { event.preventDefault(); onClose() }} aria-labelledby="auth-title">
-    <div className="sheet-header"><div><h2 id="auth-title">학교 이메일 로그인</h2><p>비밀번호 없이 인증번호로 로그인합니다.</p></div><button type="button" className="icon-button" onClick={onClose} aria-label="로그인 닫기"><CloseIcon /></button></div>
+    <div className="sheet-header" {...sheetDrag}><div><h2 id="auth-title">학교 이메일 로그인</h2><p>비밀번호 없이 인증번호로 로그인합니다.</p></div><button type="button" className="icon-button" onClick={onClose} aria-label="로그인 닫기"><CloseIcon /></button></div>
     {session.authenticated ? <div className="auth-content"><span className="status success">인증됨</span><h3>{session.studentNumber}@daejin.ac.kr</h3><p>학교 이메일 인증 상태입니다. 시간표는 현재 브라우저에 계속 저장됩니다.</p><button type="button" className="secondary-button full-button" disabled={pending} onClick={logout}>로그아웃</button>{error && <p className="inline-error" role="alert">{error}</p>}</div> : <div className="auth-content">
       {step === 'NUMBER' ? <><label><span>학번</span><div className="email-input"><input autoFocus inputMode="numeric" autoComplete="username" value={studentNumber} onChange={(event) => setStudentNumber(event.target.value.replace(/\D/g, '').slice(0, 12))} placeholder="학번 입력" aria-describedby="school-email-preview" /><span>@daejin.ac.kr</span></div><small id="school-email-preview">{studentNumber || '학번'}@daejin.ac.kr로 인증번호를 보냅니다.</small></label><button type="button" className="primary-button full-button" disabled={pending} onClick={requestOtp}>{pending ? '요청 중…' : '인증번호 받기'}</button></> : <><button type="button" className="text-button auth-back" onClick={() => { setStep('NUMBER'); setError(null); setMessage(null) }}>← 학번 다시 입력</button><label><span>인증번호 6자리</span><input className="otp-input" autoFocus inputMode="numeric" autoComplete="one-time-code" value={code} onChange={(event) => setCode(event.target.value.replace(/\D/g, '').slice(0, 6))} placeholder="000000" /></label>{message && <p className="auth-message">{message}</p>}<button type="button" className="primary-button full-button" disabled={pending || code.length !== 6} onClick={verify}>{pending ? '확인 중…' : '로그인'}</button><button type="button" className="text-button resend-button" disabled={pending || cooldown > 0} onClick={requestOtp}>{cooldown > 0 ? `${cooldown}초 후 다시 받기` : '인증번호 다시 받기'}</button></>}
       {error && <p className="inline-error" role="alert">{error}</p>}

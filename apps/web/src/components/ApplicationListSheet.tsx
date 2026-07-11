@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react'
 import type { PlanItem, Section } from '../types'
 import { CloseIcon } from './Icons'
 import { RegistrationChecklist } from './RegistrationChecklist'
+import { useSheetSwipeDismiss } from '../hooks/useSheetSwipeDismiss'
 
 interface Props {
   open: boolean
@@ -16,6 +17,7 @@ interface Props {
 
 export function ApplicationListSheet({ open, items, sectionById, onApplyBackup, onMessage, onExportPng, onExportPdf, onClose }: Props) {
   const dialogRef = useRef<HTMLDialogElement>(null)
+  const sheetDrag = useSheetSwipeDismiss(dialogRef, onClose)
   const active = items.filter((item) => item.role === 'must' || item.role === 'want').map((item) => sectionById.get(item.sectionId)).filter((section): section is Section => !!section)
   const credits = Array.from(new Map(active.map((section) => [section.courseCode, section.credits])).values()).reduce((sum, value) => sum + value, 0)
 
@@ -27,7 +29,7 @@ export function ApplicationListSheet({ open, items, sectionById, onApplyBackup, 
   }, [open])
 
   return <dialog ref={dialogRef} className="sheet application-list-sheet" aria-labelledby="application-list-title" onCancel={(event) => { event.preventDefault(); onClose() }}>
-    <div className="sheet-header">
+    <div className="sheet-header" {...sheetDrag}>
       <div><h2 id="application-list-title">신청 목록</h2><p>{active.length}개 과목 · {credits}학점</p></div>
       <button type="button" className="icon-button" onClick={onClose} aria-label="신청 목록 닫기"><CloseIcon /></button>
     </div>
