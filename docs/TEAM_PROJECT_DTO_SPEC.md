@@ -1,0 +1,84 @@
+# DTO(데이터 전달 객체)
+
+| 이름 | API 분류 | 태그 | 필드 |
+| --- | --- | --- | --- |
+| OtpStartRequest | API Request | DTO(요청 객체) | studentNumber |
+| OtpStartResponse | API Response | DTO(응답 객체) | message, cooldownSeconds, expiresInSeconds |
+| OtpVerifyRequest | API Request | DTO(요청 객체) | studentNumber, code |
+| OtpVerifyResponse | API Response | DTO(응답 객체) | authenticated, user, isNewUser, expiresAt |
+| AuthSessionResponse | API Response | DTO(응답 객체) | authenticated, user, expiresAt |
+| LogoutResponse | API Response | DTO(응답 객체) | message |
+| UserInfoResponse | API Response | DTO(응답 객체) | id, studentNumber, name, grade, department, createdAt |
+| UserUpdateRequest | API Request | DTO(요청 객체) | name?, grade?, departmentId? |
+| UserUpdateResponse | API Response | DTO(응답 객체) | 변경된 user |
+| ConsentCreateRequest | API Request | DTO(요청 객체) | consentVersion, agreed |
+| ConsentCreateResponse | API Response | DTO(응답 객체) | consentId, consentVersion, agreedAt |
+| ConsentListResponse | API Response | DTO(응답 객체) | consents[] |
+| UserDeleteResponse | API Response | DTO(응답 객체) | message, deletedAt |
+| DepartmentListResponse | API Response | DTO(응답 객체) | departments[] |
+| DepartmentDetailResponse | API Response | DTO(응답 객체) | department |
+| SemesterListResponse | API Response | DTO(응답 객체) | semesters[], activeSemester |
+| SemesterVersionResponse | API Response | DTO(응답 객체) | semester, datasetVersion, updatedAt |
+| CourseListResponse | API Response | DTO(응답 객체) | courses[], page, size, total |
+| PopularCourseListResponse | API Response | DTO(응답 객체) | 인기 점수가 적용된 courses[] |
+| RatedCourseListResponse | API Response | DTO(응답 객체) | 평균 별점이 적용된 courses[] |
+| NamedCourseListResponse | API Response | DTO(응답 객체) | 정렬된 courses[] |
+| CourseDetailResponse | API Response | DTO(응답 객체) | course, sections[], ratingSummary |
+| CourseSectionListResponse | API Response | DTO(응답 객체) | sections[] |
+| SectionDetailResponse | API Response | DTO(응답 객체) | section, sessions[] |
+| AlternativeSectionListResponse | API Response | DTO(응답 객체) | alternatives[], conflicts[] |
+| CourseReviewListResponse | API Response | DTO(응답 객체) | reviews[], ratingSummary, page, total |
+| CourseReviewCreateRequest | API Request | DTO(요청 객체) | professor, semester, rating, content |
+| CourseReviewCreateResponse | API Response | DTO(응답 객체) | 생성된 review, ratingSummary |
+| CourseReviewUpdateRequest | API Request | DTO(요청 객체) | rating?, content? |
+| CourseReviewUpdateResponse | API Response | DTO(응답 객체) | 변경된 review, ratingSummary |
+| CourseReviewDeleteResponse | API Response | DTO(응답 객체) | message, ratingSummary |
+| MyReviewListResponse | API Response | DTO(응답 객체) | reviews[], page, total |
+| CourseRatingSummaryResponse | API Response | DTO(응답 객체) | averageRating, reviewCount, popularityScore |
+| TimetableCreateRequest | API Request | DTO(요청 객체) | name, semester, sections[], preferences? |
+| TimetableCreateResponse | API Response | DTO(응답 객체) | 생성된 timetable |
+| TimetableListResponse | API Response | DTO(응답 객체) | timetables[], page, total |
+| TimetableDetailResponse | API Response | DTO(응답 객체) | timetable, sections[], metrics, conflicts[] |
+| TimetableUpdateRequest | API Request | DTO(요청 객체) | name?, preferences? |
+| TimetableUpdateResponse | API Response | DTO(응답 객체) | 변경된 timetable |
+| TimetableSectionUpdateRequest | API Request | DTO(요청 객체) | sections[] |
+| TimetableSectionUpdateResponse | API Response | DTO(응답 객체) | sections[], metrics, conflicts[] |
+| TimetableDeleteResponse | API Response | DTO(응답 객체) | message |
+| TimetableCopyRequest | API Request | DTO(요청 객체) | name? |
+| TimetableCopyResponse | API Response | DTO(응답 객체) | 복사된 timetable |
+| TimetableFavoriteUpdateRequest | API Request | DTO(요청 객체) | favorite |
+| TimetableFavoriteUpdateResponse | API Response | DTO(응답 객체) | timetableId, favorite |
+| TimetableHistoryResponse | API Response | DTO(응답 객체) | 학기별 timetables[] |
+| TimetableShareCreateRequest | API Request | DTO(요청 객체) | expiresAt? |
+| TimetableShareCreateResponse | API Response | DTO(응답 객체) | shareCode, shareUrl, expiresAt |
+| SharedTimetableResponse | API Response | DTO(응답 객체) | timetable, sections[], metrics |
+| SharedTimetableCopyRequest | API Request | DTO(요청 객체) | name? |
+| SharedTimetableCopyResponse | API Response | DTO(응답 객체) | 복사된 timetable |
+| OptimizationCreateRequest | API Request | DTO(요청 객체) | semester, datasetVersion, requiredCourseCodes[], candidateCourseCodes[], excludedCourseCodes[], lockedSectionIds[], professorConstraints[], minCredits, maxCredits, targetCredits, preferredDaysOff[], excludedDays[], avoidBefore?, avoidAfter?, minGapMinutes?, maxGapMinutes?, minLunchMinutes?, maxDailyMinutes?, candidateCount |
+| OptimizationCreateResponse | API Response | DTO(응답 객체) | jobId, status, createdAt |
+| OptimizationResultResponse | API Response | DTO(응답 객체) | status, candidates[], relaxationSuggestions[], error? |
+| OptimizationCancelResponse | API Response | DTO(응답 객체) | jobId, status=CANCELLED |
+| CandidateCompareRequest | API Request | DTO(요청 객체) | currentSectionIds[], candidateSectionIds[][] |
+| CandidateCompareResponse | API Response | DTO(응답 객체) | 후보별 metrics, added[], removed[], swapped[], conflicts[] |
+| CompletedCourseListResponse | API Response | DTO(응답 객체) | completedCourses[], creditSummary |
+| CompletedCourseCreateRequest | API Request | DTO(요청 객체) | courseCode?, courseName, credits, category, area?, semester?, status |
+| CompletedCourseCreateResponse | API Response | DTO(응답 객체) | 생성된 completedCourse |
+| CompletedCourseUpdateRequest | API Request | DTO(요청 객체) | courseName?, credits?, category?, area?, semester?, status? |
+| CompletedCourseUpdateResponse | API Response | DTO(응답 객체) | 변경된 completedCourse |
+| CompletedCourseDeleteResponse | API Response | DTO(응답 객체) | message |
+| TimetableCourseImportRequest | API Request | DTO(요청 객체) | timetableId, status=IN_PROGRESS |
+| TimetableCourseImportResponse | API Response | DTO(응답 객체) | importedCourses[], skippedCourses[] |
+| CompletedCreditSummaryResponse | API Response | DTO(응답 객체) | totalCredits, majorCredits, liberalCredits, areaCredits |
+| OcrJobCreateRequest | API Request | DTO(요청 객체) | Multipart: image, documentType=TIMETABLE 또는 TRANSCRIPT |
+| OcrJobCreateResponse | API Response | DTO(응답 객체) | jobId, status, uploadedAt |
+| OcrJobResultResponse | API Response | DTO(응답 객체) | status, recognizedCourses[], warnings[], originalDeleted |
+| OcrResultConfirmRequest | API Request | DTO(요청 객체) | courses[] |
+| OcrResultConfirmResponse | API Response | DTO(응답 객체) | savedCourses[], skippedCourses[] |
+| OcrJobDeleteResponse | API Response | DTO(응답 객체) | message, deletedAt |
+| RequirementRuleListResponse | API Response | DTO(응답 객체) | rules[], sources[], manualReviewItems[] |
+| RequirementEvaluationRequest | API Request | DTO(요청 객체) | admissionYear, departmentId, studentType, programPath, completedCourses[]? |
+| RequirementEvaluationResponse | API Response | DTO(응답 객체) | creditStatus, areaStatus[], requiredCourseStatus[], missingRequirements[], manualReviewItems[] |
+| RequirementRecommendationResponse | API Response | DTO(응답 객체) | missingRequirements[], recommendedCourses[] |
+| RequirementSourceResponse | API Response | DTO(응답 객체) | sourceId, title, url, effectiveDate, verifiedAt |
+| HealthLiveResponse | API Response | DTO(응답 객체) | status, version |
+| HealthReadyResponse | API Response | DTO(응답 객체) | status, database, catalog, optimizer |
