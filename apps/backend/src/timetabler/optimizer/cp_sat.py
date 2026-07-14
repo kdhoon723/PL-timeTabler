@@ -188,6 +188,19 @@ class CpSatOptimizer:
             if (
                 section.section_id in request.excluded_section_ids
                 or section.verified_eligible is False
+                or any(
+                    session.day in request.preferences.excluded_days
+                    or (
+                        request.preferences.hard_earliest_start_minute is not None
+                        and session.start_minute
+                        < request.preferences.hard_earliest_start_minute
+                    )
+                    or (
+                        request.preferences.hard_latest_end_minute is not None
+                        and session.end_minute > request.preferences.hard_latest_end_minute
+                    )
+                    for session in section.sessions
+                )
             ):
                 model.add(variable == 0)
             if section.section_id in request.locked_section_ids:
@@ -235,9 +248,54 @@ class CpSatOptimizer:
         for intervals in intervals_by_day.values():
             model.add_no_overlap(intervals)
 
+        if request.preferences.max_gap_minutes is not None:
+            self._add_max_gap_constraints(model, variables, request)
+
         if include_objective:
             model.minimize(self._objective(model, variables, request, sections_by_course))
         return model, variables
+
+    @staticmethod
+    def _add_max_gap_constraints(
+        model: Any,
+        variables: dict[str, Any],
+        request: OptimizationRequest,
+    ) -> None:
+        meetings_by_day: dict[int, list[tuple[Section, Any]]] = defaultdict(list)
+        for section in request.sections:
+            for meeting in section.sessions:
+                meetings_by_day[meeting.day].append((section, meeting))
+        for day, meetings in meetings_by_day.items():
+            day_sections = sorted({section.section_id for section, _ in meetings})
+            day_active = model.new_bool_var(f"hard_gap_day_{day}_active")
+            model.add_max_equality(
+                day_active,
+                [variables[section_id] for section_id in day_sections],
+            )
+            first_options: list[Any] = []
+            last_options: list[Any] = []
+            duration_terms: list[Any] = []
+            for index, (section, meeting) in enumerate(meetings):
+                selected = variables[section.section_id]
+                first = model.new_int_var(0, 24 * 60, f"hard_gap_day_{day}_first_{index}")
+                last = model.new_int_var(0, 24 * 60, f"hard_gap_day_{day}_last_{index}")
+                model.add(first == meeting.start_minute).only_enforce_if(selected)
+                model.add(first == 24 * 60).only_enforce_if(selected.Not())
+                model.add(last == meeting.end_minute).only_enforce_if(selected)
+                model.add(last == 0).only_enforce_if(selected.Not())
+                first_options.append(first)
+                last_options.append(last)
+                duration_terms.append((meeting.end_minute - meeting.start_minute) * selected)
+            first_start = model.new_int_var(0, 24 * 60, f"hard_gap_day_{day}_first")
+            last_end = model.new_int_var(0, 24 * 60, f"hard_gap_day_{day}_last")
+            gap = model.new_int_var(0, 24 * 60, f"hard_gap_day_{day}_minutes")
+            model.add_min_equality(first_start, first_options)
+            model.add_max_equality(last_end, last_options)
+            model.add(gap == last_end - first_start - sum(duration_terms)).only_enforce_if(
+                day_active
+            )
+            model.add(gap == 0).only_enforce_if(day_active.Not())
+            model.add(gap <= request.preferences.max_gap_minutes)
 
     def _objective(
         self,

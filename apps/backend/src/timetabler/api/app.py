@@ -11,7 +11,18 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from timetabler import __version__
 from timetabler.api.rate_limit import SlidingWindowRateLimiter
-from timetabler.api.routes import auth, catalog, health, optimizations
+from timetabler.api.routes import (
+    auth,
+    catalog,
+    completed_courses,
+    courses,
+    health,
+    optimizations,
+    requirements,
+    reviews,
+    timetables,
+    users,
+)
 from timetabler.auth.mailer import OtpMailer, build_otp_mailer
 from timetabler.auth.service import AuthService
 from timetabler.catalog.repository import CatalogRepository
@@ -67,8 +78,8 @@ def create_app(
     app.add_middleware(
         CORSMiddleware,
         allow_origins=resolved.cors_origins,
-        allow_credentials=False,
-        allow_methods=["GET", "POST", "DELETE", "OPTIONS"],
+        allow_credentials=True,
+        allow_methods=["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
         allow_headers=["Content-Type", "X-Request-ID"],
     )
 
@@ -81,7 +92,14 @@ def create_app(
         started = time.monotonic()
         response = await call_next(request)
         response.headers["X-Request-ID"] = request_id
-        if request.url.path.startswith("/api/v1/auth/"):
+        if request.url.path.startswith(
+            (
+                "/api/v1/auth/",
+                "/api/v1/users/",
+                "/api/v1/timetables",
+                "/api/v1/reviews",
+            )
+        ):
             response.headers["Cache-Control"] = "no-store, private"
             response.headers["Pragma"] = "no-cache"
             vary = response.headers.get("Vary")
@@ -99,6 +117,17 @@ def create_app(
     app.include_router(health.router, prefix="/api/v1")
     app.include_router(auth.router, prefix="/api/v1")
     app.include_router(catalog.router, prefix="/api/v1")
+    app.include_router(courses.course_router, prefix="/api/v1")
+    app.include_router(courses.section_router, prefix="/api/v1")
+    app.include_router(courses.department_router, prefix="/api/v1")
+    app.include_router(reviews.course_router, prefix="/api/v1")
+    app.include_router(reviews.review_router, prefix="/api/v1")
+    app.include_router(reviews.my_router, prefix="/api/v1")
+    app.include_router(users.router, prefix="/api/v1")
+    app.include_router(timetables.router, prefix="/api/v1")
+    app.include_router(timetables.shared_router, prefix="/api/v1")
+    app.include_router(completed_courses.router, prefix="/api/v1")
+    app.include_router(requirements.router, prefix="/api/v1")
     app.include_router(optimizations.router, prefix="/api/v1")
     return app
 

@@ -1,6 +1,30 @@
 {
   "components": {
     "schemas": {
+      "AreaStatus": {
+        "additionalProperties": false,
+        "properties": {
+          "area": {
+            "title": "Area",
+            "type": "string"
+          },
+          "credits": {
+            "title": "Credits",
+            "type": "number"
+          },
+          "satisfied": {
+            "title": "Satisfied",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "area",
+          "credits",
+          "satisfied"
+        ],
+        "title": "AreaStatus",
+        "type": "object"
+      },
       "AuthSessionRead": {
         "additionalProperties": false,
         "properties": {
@@ -41,6 +65,122 @@
           "authenticated"
         ],
         "title": "AuthSessionRead",
+        "type": "object"
+      },
+      "CandidateCompareRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "candidateSectionIds": {
+            "items": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "maxItems": 5,
+            "minItems": 1,
+            "title": "Candidatesectionids",
+            "type": "array"
+          },
+          "currentSectionIds": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Currentsectionids",
+            "type": "array"
+          }
+        },
+        "required": [
+          "candidateSectionIds"
+        ],
+        "title": "CandidateCompareRequest",
+        "type": "object"
+      },
+      "CandidateCompareResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "candidates": {
+            "items": {
+              "$ref": "#/components/schemas/CandidateComparisonRead"
+            },
+            "title": "Candidates",
+            "type": "array"
+          }
+        },
+        "required": [
+          "candidates"
+        ],
+        "title": "CandidateCompareResponse",
+        "type": "object"
+      },
+      "CandidateComparisonRead": {
+        "additionalProperties": false,
+        "properties": {
+          "added": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Added",
+            "type": "array"
+          },
+          "conflicts": {
+            "items": {
+              "maxItems": 2,
+              "minItems": 2,
+              "prefixItems": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "string"
+                }
+              ],
+              "type": "array"
+            },
+            "title": "Conflicts",
+            "type": "array"
+          },
+          "metrics": {
+            "$ref": "#/components/schemas/CandidateMetrics"
+          },
+          "rank": {
+            "minimum": 1.0,
+            "title": "Rank",
+            "type": "integer"
+          },
+          "removed": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Removed",
+            "type": "array"
+          },
+          "sectionIds": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Sectionids",
+            "type": "array"
+          },
+          "swapped": {
+            "items": {
+              "$ref": "#/components/schemas/CandidateSwapRead"
+            },
+            "title": "Swapped",
+            "type": "array"
+          }
+        },
+        "required": [
+          "rank",
+          "sectionIds",
+          "metrics",
+          "added",
+          "removed",
+          "swapped",
+          "conflicts"
+        ],
+        "title": "CandidateComparisonRead",
         "type": "object"
       },
       "CandidateMetrics": {
@@ -101,6 +241,25 @@
         "title": "CandidateMetrics",
         "type": "object"
       },
+      "CandidateSwapRead": {
+        "additionalProperties": false,
+        "properties": {
+          "fromSectionId": {
+            "title": "Fromsectionid",
+            "type": "string"
+          },
+          "toSectionId": {
+            "title": "Tosectionid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "fromSectionId",
+          "toSectionId"
+        ],
+        "title": "CandidateSwapRead",
+        "type": "object"
+      },
       "CatalogPage": {
         "additionalProperties": false,
         "properties": {
@@ -146,6 +305,585 @@
           "sections"
         ],
         "title": "CatalogPage",
+        "type": "object"
+      },
+      "CompletedCourseCreate": {
+        "additionalProperties": false,
+        "properties": {
+          "area": {
+            "anyOf": [
+              {
+                "maxLength": 120,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Area"
+          },
+          "category": {
+            "maxLength": 160,
+            "minLength": 1,
+            "title": "Category",
+            "type": "string"
+          },
+          "courseCode": {
+            "anyOf": [
+              {
+                "maxLength": 40,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Coursecode"
+          },
+          "courseName": {
+            "maxLength": 240,
+            "minLength": 1,
+            "title": "Coursename",
+            "type": "string"
+          },
+          "credits": {
+            "exclusiveMinimum": 0.0,
+            "maximum": 30.0,
+            "title": "Credits",
+            "type": "number"
+          },
+          "semester": {
+            "anyOf": [
+              {
+                "maxLength": 20,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Semester"
+          },
+          "status": {
+            "default": "COMPLETED",
+            "enum": [
+              "IN_PROGRESS",
+              "COMPLETED"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "courseName",
+          "credits",
+          "category"
+        ],
+        "title": "CompletedCourseCreate",
+        "type": "object"
+      },
+      "CompletedCourseList": {
+        "additionalProperties": false,
+        "properties": {
+          "completedCourses": {
+            "items": {
+              "$ref": "#/components/schemas/CompletedCourseRead"
+            },
+            "title": "Completedcourses",
+            "type": "array"
+          },
+          "creditSummary": {
+            "$ref": "#/components/schemas/CreditSummary"
+          }
+        },
+        "required": [
+          "completedCourses",
+          "creditSummary"
+        ],
+        "title": "CompletedCourseList",
+        "type": "object"
+      },
+      "CompletedCourseRead": {
+        "additionalProperties": false,
+        "properties": {
+          "area": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Area"
+          },
+          "category": {
+            "title": "Category",
+            "type": "string"
+          },
+          "courseCode": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Coursecode"
+          },
+          "courseName": {
+            "title": "Coursename",
+            "type": "string"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "title": "Createdat",
+            "type": "string"
+          },
+          "credits": {
+            "title": "Credits",
+            "type": "number"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "semester": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Semester"
+          },
+          "status": {
+            "enum": [
+              "IN_PROGRESS",
+              "COMPLETED"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "title": "Updatedat",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "courseCode",
+          "courseName",
+          "credits",
+          "category",
+          "area",
+          "semester",
+          "status",
+          "createdAt",
+          "updatedAt"
+        ],
+        "title": "CompletedCourseRead",
+        "type": "object"
+      },
+      "CompletedCourseUpdate": {
+        "additionalProperties": false,
+        "properties": {
+          "area": {
+            "anyOf": [
+              {
+                "maxLength": 120,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Area"
+          },
+          "category": {
+            "anyOf": [
+              {
+                "maxLength": 160,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Category"
+          },
+          "courseCode": {
+            "anyOf": [
+              {
+                "maxLength": 40,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Coursecode"
+          },
+          "courseName": {
+            "anyOf": [
+              {
+                "maxLength": 240,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Coursename"
+          },
+          "credits": {
+            "anyOf": [
+              {
+                "exclusiveMinimum": 0.0,
+                "maximum": 30.0,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Credits"
+          },
+          "semester": {
+            "anyOf": [
+              {
+                "maxLength": 20,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Semester"
+          },
+          "status": {
+            "anyOf": [
+              {
+                "enum": [
+                  "IN_PROGRESS",
+                  "COMPLETED"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Status"
+          }
+        },
+        "title": "CompletedCourseUpdate",
+        "type": "object"
+      },
+      "ConsentCreate": {
+        "additionalProperties": false,
+        "properties": {
+          "agreed": {
+            "title": "Agreed",
+            "type": "boolean"
+          },
+          "consentVersion": {
+            "maxLength": 40,
+            "minLength": 1,
+            "title": "Consentversion",
+            "type": "string"
+          }
+        },
+        "required": [
+          "consentVersion",
+          "agreed"
+        ],
+        "title": "ConsentCreate",
+        "type": "object"
+      },
+      "ConsentRead": {
+        "additionalProperties": false,
+        "properties": {
+          "agreed": {
+            "title": "Agreed",
+            "type": "boolean"
+          },
+          "agreedAt": {
+            "format": "date-time",
+            "title": "Agreedat",
+            "type": "string"
+          },
+          "consentVersion": {
+            "title": "Consentversion",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "consentVersion",
+          "agreed",
+          "agreedAt"
+        ],
+        "title": "ConsentRead",
+        "type": "object"
+      },
+      "CourseDetailRead": {
+        "additionalProperties": false,
+        "properties": {
+          "course": {
+            "$ref": "#/components/schemas/CourseSummaryRead"
+          },
+          "ratingSummary": {
+            "$ref": "#/components/schemas/RatingSummary"
+          },
+          "sections": {
+            "items": {
+              "$ref": "#/components/schemas/Section"
+            },
+            "title": "Sections",
+            "type": "array"
+          }
+        },
+        "required": [
+          "course",
+          "sections",
+          "ratingSummary"
+        ],
+        "title": "CourseDetailRead",
+        "type": "object"
+      },
+      "CourseListRead": {
+        "additionalProperties": false,
+        "properties": {
+          "courses": {
+            "items": {
+              "$ref": "#/components/schemas/CourseSummaryRead"
+            },
+            "title": "Courses",
+            "type": "array"
+          },
+          "page": {
+            "title": "Page",
+            "type": "integer"
+          },
+          "size": {
+            "title": "Size",
+            "type": "integer"
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "courses",
+          "page",
+          "size",
+          "total"
+        ],
+        "title": "CourseListRead",
+        "type": "object"
+      },
+      "CourseSummaryRead": {
+        "additionalProperties": false,
+        "properties": {
+          "averageRating": {
+            "title": "Averagerating",
+            "type": "number"
+          },
+          "category": {
+            "title": "Category",
+            "type": "string"
+          },
+          "courseCode": {
+            "title": "Coursecode",
+            "type": "string"
+          },
+          "credits": {
+            "title": "Credits",
+            "type": "number"
+          },
+          "grade": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Grade"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "popularityScore": {
+            "title": "Popularityscore",
+            "type": "number"
+          },
+          "professors": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Professors",
+            "type": "array"
+          },
+          "reviewCount": {
+            "title": "Reviewcount",
+            "type": "integer"
+          },
+          "sectionCount": {
+            "title": "Sectioncount",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "courseCode",
+          "name",
+          "category",
+          "credits",
+          "grade",
+          "sectionCount",
+          "professors",
+          "averageRating",
+          "reviewCount",
+          "popularityScore"
+        ],
+        "title": "CourseSummaryRead",
+        "type": "object"
+      },
+      "CreditSummary": {
+        "additionalProperties": false,
+        "properties": {
+          "areaCredits": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "title": "Areacredits",
+            "type": "object"
+          },
+          "liberalCredits": {
+            "title": "Liberalcredits",
+            "type": "number"
+          },
+          "majorCredits": {
+            "title": "Majorcredits",
+            "type": "number"
+          },
+          "totalCredits": {
+            "title": "Totalcredits",
+            "type": "number"
+          }
+        },
+        "required": [
+          "totalCredits",
+          "majorCredits",
+          "liberalCredits",
+          "areaCredits"
+        ],
+        "title": "CreditSummary",
+        "type": "object"
+      },
+      "DeleteResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "deletedAt": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Deletedat"
+          },
+          "message": {
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "message"
+        ],
+        "title": "DeleteResponse",
+        "type": "object"
+      },
+      "DepartmentListRead": {
+        "additionalProperties": false,
+        "properties": {
+          "departments": {
+            "items": {
+              "$ref": "#/components/schemas/DepartmentRead"
+            },
+            "title": "Departments",
+            "type": "array"
+          }
+        },
+        "required": [
+          "departments"
+        ],
+        "title": "DepartmentListRead",
+        "type": "object"
+      },
+      "DepartmentRead": {
+        "additionalProperties": false,
+        "properties": {
+          "college": {
+            "title": "College",
+            "type": "string"
+          },
+          "curriculumUrl": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Curriculumurl"
+          },
+          "graduationUrl": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Graduationurl"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "college",
+          "name",
+          "curriculumUrl",
+          "graduationUrl"
+        ],
+        "title": "DepartmentRead",
         "type": "object"
       },
       "HTTPValidationError": {
@@ -471,12 +1209,55 @@
             ],
             "title": "Avoidbeforeminute"
           },
+          "excludedDays": {
+            "default": [],
+            "items": {
+              "enum": [
+                "월",
+                "화",
+                "수",
+                "목",
+                "금",
+                "토",
+                "일"
+              ],
+              "type": "string"
+            },
+            "title": "Excludeddays",
+            "type": "array"
+          },
           "gapWeightPercent": {
             "default": 50,
             "maximum": 100.0,
             "minimum": 0.0,
             "title": "Gapweightpercent",
             "type": "integer"
+          },
+          "hardEndMinute": {
+            "anyOf": [
+              {
+                "exclusiveMinimum": 0.0,
+                "maximum": 1440.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Hardendminute"
+          },
+          "hardStartMinute": {
+            "anyOf": [
+              {
+                "exclusiveMaximum": 1440.0,
+                "minimum": 0.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Hardstartminute"
           },
           "maxDailyMinutes": {
             "anyOf": [
@@ -490,6 +1271,19 @@
               }
             ],
             "title": "Maxdailyminutes"
+          },
+          "maxGapMinutes": {
+            "anyOf": [
+              {
+                "maximum": 1440.0,
+                "minimum": 0.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Maxgapminutes"
           },
           "minLunchMinutes": {
             "default": 0,
@@ -643,6 +1437,30 @@
         "title": "ProfessorConstraint",
         "type": "object"
       },
+      "RatingSummary": {
+        "additionalProperties": false,
+        "properties": {
+          "averageRating": {
+            "title": "Averagerating",
+            "type": "number"
+          },
+          "popularityScore": {
+            "title": "Popularityscore",
+            "type": "number"
+          },
+          "reviewCount": {
+            "title": "Reviewcount",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "averageRating",
+          "reviewCount",
+          "popularityScore"
+        ],
+        "title": "RatingSummary",
+        "type": "object"
+      },
       "ReadinessStatus": {
         "additionalProperties": false,
         "properties": {
@@ -665,6 +1483,450 @@
           "database"
         ],
         "title": "ReadinessStatus",
+        "type": "object"
+      },
+      "RequirementEvaluation": {
+        "additionalProperties": false,
+        "properties": {
+          "areaStatus": {
+            "items": {
+              "$ref": "#/components/schemas/AreaStatus"
+            },
+            "title": "Areastatus",
+            "type": "array"
+          },
+          "creditStatus": {
+            "items": {
+              "$ref": "#/components/schemas/RequirementStatus"
+            },
+            "title": "Creditstatus",
+            "type": "array"
+          },
+          "manualReviewItems": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Manualreviewitems",
+            "type": "array"
+          },
+          "missingRequirements": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Missingrequirements",
+            "type": "array"
+          },
+          "requiredCourseStatus": {
+            "items": {
+              "$ref": "#/components/schemas/RequirementStatus"
+            },
+            "title": "Requiredcoursestatus",
+            "type": "array"
+          }
+        },
+        "required": [
+          "creditStatus",
+          "areaStatus",
+          "requiredCourseStatus",
+          "missingRequirements",
+          "manualReviewItems"
+        ],
+        "title": "RequirementEvaluation",
+        "type": "object"
+      },
+      "RequirementProfile": {
+        "additionalProperties": false,
+        "properties": {
+          "admissionYear": {
+            "maximum": 2100.0,
+            "minimum": 1990.0,
+            "title": "Admissionyear",
+            "type": "integer"
+          },
+          "departmentId": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Departmentid",
+            "type": "string"
+          },
+          "programPath": {
+            "maxLength": 40,
+            "minLength": 1,
+            "title": "Programpath",
+            "type": "string"
+          },
+          "studentType": {
+            "maxLength": 40,
+            "minLength": 1,
+            "title": "Studenttype",
+            "type": "string"
+          }
+        },
+        "required": [
+          "admissionYear",
+          "departmentId",
+          "studentType",
+          "programPath"
+        ],
+        "title": "RequirementProfile",
+        "type": "object"
+      },
+      "RequirementRecommendation": {
+        "additionalProperties": false,
+        "properties": {
+          "missingRequirements": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Missingrequirements",
+            "type": "array"
+          },
+          "recommendedCourses": {
+            "items": {
+              "$ref": "#/components/schemas/CourseSummaryRead"
+            },
+            "title": "Recommendedcourses",
+            "type": "array"
+          }
+        },
+        "required": [
+          "missingRequirements",
+          "recommendedCourses"
+        ],
+        "title": "RequirementRecommendation",
+        "type": "object"
+      },
+      "RequirementRuleList": {
+        "additionalProperties": false,
+        "properties": {
+          "asOf": {
+            "title": "Asof",
+            "type": "string"
+          },
+          "manualReviewItems": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Manualreviewitems",
+            "type": "array"
+          },
+          "rules": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Rules",
+            "type": "array"
+          }
+        },
+        "required": [
+          "rules",
+          "manualReviewItems",
+          "asOf"
+        ],
+        "title": "RequirementRuleList",
+        "type": "object"
+      },
+      "RequirementSource": {
+        "additionalProperties": false,
+        "properties": {
+          "effectiveDate": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Effectivedate"
+          },
+          "sourceId": {
+            "title": "Sourceid",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "url": {
+            "title": "Url",
+            "type": "string"
+          },
+          "verifiedAt": {
+            "title": "Verifiedat",
+            "type": "string"
+          }
+        },
+        "required": [
+          "sourceId",
+          "title",
+          "url",
+          "verifiedAt"
+        ],
+        "title": "RequirementSource",
+        "type": "object"
+      },
+      "RequirementStatus": {
+        "additionalProperties": false,
+        "properties": {
+          "current": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Current"
+          },
+          "kind": {
+            "title": "Kind",
+            "type": "string"
+          },
+          "missing": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Missing",
+            "type": "array"
+          },
+          "required": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Required"
+          },
+          "satisfied": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Satisfied"
+          }
+        },
+        "required": [
+          "kind",
+          "required",
+          "current",
+          "satisfied"
+        ],
+        "title": "RequirementStatus",
+        "type": "object"
+      },
+      "ReviewCreate": {
+        "additionalProperties": false,
+        "properties": {
+          "content": {
+            "maxLength": 2000,
+            "minLength": 1,
+            "title": "Content",
+            "type": "string"
+          },
+          "professor": {
+            "anyOf": [
+              {
+                "maxLength": 120,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Professor"
+          },
+          "rating": {
+            "maximum": 5.0,
+            "minimum": 1.0,
+            "title": "Rating",
+            "type": "integer"
+          },
+          "semester": {
+            "maxLength": 20,
+            "minLength": 1,
+            "title": "Semester",
+            "type": "string"
+          }
+        },
+        "required": [
+          "semester",
+          "rating",
+          "content"
+        ],
+        "title": "ReviewCreate",
+        "type": "object"
+      },
+      "ReviewDeleteResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "message": {
+            "title": "Message",
+            "type": "string"
+          },
+          "ratingSummary": {
+            "$ref": "#/components/schemas/RatingSummary"
+          }
+        },
+        "required": [
+          "message",
+          "ratingSummary"
+        ],
+        "title": "ReviewDeleteResponse",
+        "type": "object"
+      },
+      "ReviewList": {
+        "additionalProperties": false,
+        "properties": {
+          "ratingSummary": {
+            "$ref": "#/components/schemas/RatingSummary"
+          },
+          "reviews": {
+            "items": {
+              "$ref": "#/components/schemas/ReviewRead"
+            },
+            "title": "Reviews",
+            "type": "array"
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "reviews",
+          "ratingSummary",
+          "total"
+        ],
+        "title": "ReviewList",
+        "type": "object"
+      },
+      "ReviewMutationResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "ratingSummary": {
+            "$ref": "#/components/schemas/RatingSummary"
+          },
+          "review": {
+            "$ref": "#/components/schemas/ReviewRead"
+          }
+        },
+        "required": [
+          "review",
+          "ratingSummary"
+        ],
+        "title": "ReviewMutationResponse",
+        "type": "object"
+      },
+      "ReviewRead": {
+        "additionalProperties": false,
+        "properties": {
+          "content": {
+            "title": "Content",
+            "type": "string"
+          },
+          "courseCode": {
+            "title": "Coursecode",
+            "type": "string"
+          },
+          "courseName": {
+            "title": "Coursename",
+            "type": "string"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "title": "Createdat",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "mine": {
+            "title": "Mine",
+            "type": "boolean"
+          },
+          "professor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Professor"
+          },
+          "rating": {
+            "title": "Rating",
+            "type": "integer"
+          },
+          "semester": {
+            "title": "Semester",
+            "type": "string"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "title": "Updatedat",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "courseCode",
+          "courseName",
+          "professor",
+          "semester",
+          "rating",
+          "content",
+          "mine",
+          "createdAt",
+          "updatedAt"
+        ],
+        "title": "ReviewRead",
+        "type": "object"
+      },
+      "ReviewUpdate": {
+        "additionalProperties": false,
+        "properties": {
+          "content": {
+            "anyOf": [
+              {
+                "maxLength": 2000,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Content"
+          },
+          "rating": {
+            "anyOf": [
+              {
+                "maximum": 5.0,
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rating"
+          }
+        },
+        "title": "ReviewUpdate",
         "type": "object"
       },
       "Section": {
@@ -784,6 +2046,30 @@
         "title": "Semester",
         "type": "object"
       },
+      "SemesterVersionRead": {
+        "additionalProperties": false,
+        "properties": {
+          "datasetVersion": {
+            "title": "Datasetversion",
+            "type": "string"
+          },
+          "semester": {
+            "title": "Semester",
+            "type": "string"
+          },
+          "updatedAt": {
+            "title": "Updatedat",
+            "type": "string"
+          }
+        },
+        "required": [
+          "semester",
+          "datasetVersion",
+          "updatedAt"
+        ],
+        "title": "SemesterVersionRead",
+        "type": "object"
+      },
       "Session": {
         "additionalProperties": false,
         "properties": {
@@ -863,6 +2149,890 @@
           "endMinute"
         ],
         "title": "Session",
+        "type": "object"
+      },
+      "SharedTimetableRead": {
+        "additionalProperties": false,
+        "properties": {
+          "metrics": {
+            "$ref": "#/components/schemas/TimetableMetrics"
+          },
+          "sections": {
+            "items": {
+              "$ref": "#/components/schemas/Section"
+            },
+            "title": "Sections",
+            "type": "array"
+          },
+          "timetable": {
+            "$ref": "#/components/schemas/TimetableRead"
+          }
+        },
+        "required": [
+          "timetable",
+          "sections",
+          "metrics"
+        ],
+        "title": "SharedTimetableRead",
+        "type": "object"
+      },
+      "TimetableCopyRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "anyOf": [
+              {
+                "maxLength": 120,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          }
+        },
+        "title": "TimetableCopyRequest",
+        "type": "object"
+      },
+      "TimetableCourseImport": {
+        "additionalProperties": false,
+        "properties": {
+          "status": {
+            "default": "IN_PROGRESS",
+            "enum": [
+              "IN_PROGRESS",
+              "COMPLETED"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "timetableId": {
+            "title": "Timetableid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "timetableId"
+        ],
+        "title": "TimetableCourseImport",
+        "type": "object"
+      },
+      "TimetableCourseImportResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "importedCourses": {
+            "items": {
+              "$ref": "#/components/schemas/CompletedCourseRead"
+            },
+            "title": "Importedcourses",
+            "type": "array"
+          },
+          "skippedCourses": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Skippedcourses",
+            "type": "array"
+          }
+        },
+        "required": [
+          "importedCourses",
+          "skippedCourses"
+        ],
+        "title": "TimetableCourseImportResponse",
+        "type": "object"
+      },
+      "TimetableCreate": {
+        "additionalProperties": false,
+        "properties": {
+          "dataVersion": {
+            "anyOf": [
+              {
+                "maxLength": 80,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Dataversion"
+          },
+          "items": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/TimetableItem"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "name": {
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          },
+          "preferences": {
+            "$ref": "#/components/schemas/TimetablePreferences"
+          },
+          "semester": {
+            "maxLength": 20,
+            "minLength": 1,
+            "title": "Semester",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "semester"
+        ],
+        "title": "TimetableCreate",
+        "type": "object"
+      },
+      "TimetableDetail": {
+        "additionalProperties": false,
+        "properties": {
+          "conflictSectionIds": {
+            "items": {
+              "maxItems": 2,
+              "minItems": 2,
+              "prefixItems": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "string"
+                }
+              ],
+              "type": "array"
+            },
+            "title": "Conflictsectionids",
+            "type": "array"
+          },
+          "metrics": {
+            "$ref": "#/components/schemas/TimetableMetrics"
+          },
+          "sections": {
+            "items": {
+              "$ref": "#/components/schemas/Section"
+            },
+            "title": "Sections",
+            "type": "array"
+          },
+          "timetable": {
+            "$ref": "#/components/schemas/TimetableRead"
+          }
+        },
+        "required": [
+          "timetable",
+          "sections",
+          "metrics",
+          "conflictSectionIds"
+        ],
+        "title": "TimetableDetail",
+        "type": "object"
+      },
+      "TimetableFavoriteUpdate": {
+        "additionalProperties": false,
+        "properties": {
+          "favorite": {
+            "title": "Favorite",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "favorite"
+        ],
+        "title": "TimetableFavoriteUpdate",
+        "type": "object"
+      },
+      "TimetableItem": {
+        "additionalProperties": false,
+        "properties": {
+          "locked": {
+            "default": false,
+            "title": "Locked",
+            "type": "boolean"
+          },
+          "professorLocked": {
+            "default": false,
+            "title": "Professorlocked",
+            "type": "boolean"
+          },
+          "role": {
+            "default": "want",
+            "enum": [
+              "must",
+              "want",
+              "backup",
+              "exclude"
+            ],
+            "title": "Role",
+            "type": "string"
+          },
+          "sectionId": {
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Sectionid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "sectionId"
+        ],
+        "title": "TimetableItem",
+        "type": "object"
+      },
+      "TimetableItemsUpdate": {
+        "additionalProperties": false,
+        "properties": {
+          "dataVersion": {
+            "anyOf": [
+              {
+                "maxLength": 80,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Dataversion"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/TimetableItem"
+            },
+            "title": "Items",
+            "type": "array"
+          }
+        },
+        "required": [
+          "items"
+        ],
+        "title": "TimetableItemsUpdate",
+        "type": "object"
+      },
+      "TimetableList": {
+        "additionalProperties": false,
+        "properties": {
+          "timetables": {
+            "items": {
+              "$ref": "#/components/schemas/TimetableRead"
+            },
+            "title": "Timetables",
+            "type": "array"
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "timetables",
+          "total"
+        ],
+        "title": "TimetableList",
+        "type": "object"
+      },
+      "TimetableMetrics": {
+        "additionalProperties": false,
+        "properties": {
+          "campusDays": {
+            "title": "Campusdays",
+            "type": "integer"
+          },
+          "credits": {
+            "title": "Credits",
+            "type": "number"
+          },
+          "gapMinutes": {
+            "title": "Gapminutes",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "credits",
+          "campusDays",
+          "gapMinutes"
+        ],
+        "title": "TimetableMetrics",
+        "type": "object"
+      },
+      "TimetablePreferences": {
+        "additionalProperties": false,
+        "properties": {
+          "avoidAfter": {
+            "anyOf": [
+              {
+                "pattern": "^(?:[01]\\d|2[0-3]):[0-5]\\d$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Avoidafter"
+          },
+          "avoidBefore": {
+            "anyOf": [
+              {
+                "pattern": "^(?:[01]\\d|2[0-3]):[0-5]\\d$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Avoidbefore"
+          },
+          "compactness": {
+            "default": 70,
+            "maximum": 100.0,
+            "minimum": 0.0,
+            "title": "Compactness",
+            "type": "integer"
+          },
+          "excludedDays": {
+            "default": [],
+            "items": {
+              "enum": [
+                "월",
+                "화",
+                "수",
+                "목",
+                "금",
+                "토",
+                "일"
+              ],
+              "type": "string"
+            },
+            "title": "Excludeddays",
+            "type": "array"
+          },
+          "hardEnd": {
+            "anyOf": [
+              {
+                "pattern": "^(?:[01]\\d|2[0-3]):[0-5]\\d$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Hardend"
+          },
+          "hardStart": {
+            "anyOf": [
+              {
+                "pattern": "^(?:[01]\\d|2[0-3]):[0-5]\\d$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Hardstart"
+          },
+          "maxCredits": {
+            "default": 21,
+            "maximum": 30.0,
+            "minimum": 0.0,
+            "title": "Maxcredits",
+            "type": "integer"
+          },
+          "maxDailyMinutes": {
+            "default": 360,
+            "exclusiveMinimum": 0.0,
+            "maximum": 1440.0,
+            "title": "Maxdailyminutes",
+            "type": "integer"
+          },
+          "maxGapMinutes": {
+            "anyOf": [
+              {
+                "maximum": 1440.0,
+                "minimum": 0.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Maxgapminutes"
+          },
+          "minCredits": {
+            "default": 15,
+            "maximum": 30.0,
+            "minimum": 0.0,
+            "title": "Mincredits",
+            "type": "integer"
+          },
+          "minLunchMinutes": {
+            "default": 60,
+            "maximum": 150.0,
+            "minimum": 0.0,
+            "title": "Minlunchminutes",
+            "type": "integer"
+          },
+          "minimizeChanges": {
+            "default": true,
+            "title": "Minimizechanges",
+            "type": "boolean"
+          },
+          "preferredFreeDays": {
+            "default": [],
+            "items": {
+              "enum": [
+                "월",
+                "화",
+                "수",
+                "목",
+                "금",
+                "토",
+                "일"
+              ],
+              "type": "string"
+            },
+            "title": "Preferredfreedays",
+            "type": "array"
+          },
+          "targetCredits": {
+            "default": 18,
+            "maximum": 30.0,
+            "minimum": 0.0,
+            "title": "Targetcredits",
+            "type": "integer"
+          }
+        },
+        "title": "TimetablePreferences",
+        "type": "object"
+      },
+      "TimetableRead": {
+        "additionalProperties": false,
+        "properties": {
+          "createdAt": {
+            "format": "date-time",
+            "title": "Createdat",
+            "type": "string"
+          },
+          "dataVersion": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Dataversion"
+          },
+          "favorite": {
+            "title": "Favorite",
+            "type": "boolean"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/TimetableItem"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "preferences": {
+            "$ref": "#/components/schemas/TimetablePreferences"
+          },
+          "semester": {
+            "title": "Semester",
+            "type": "string"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "title": "Updatedat",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "semester",
+          "dataVersion",
+          "items",
+          "preferences",
+          "favorite",
+          "createdAt",
+          "updatedAt"
+        ],
+        "title": "TimetableRead",
+        "type": "object"
+      },
+      "TimetableShareCreate": {
+        "additionalProperties": false,
+        "properties": {
+          "expiresAt": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expiresat"
+          }
+        },
+        "title": "TimetableShareCreate",
+        "type": "object"
+      },
+      "TimetableShareRead": {
+        "additionalProperties": false,
+        "properties": {
+          "expiresAt": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expiresat"
+          },
+          "shareCode": {
+            "title": "Sharecode",
+            "type": "string"
+          },
+          "shareUrl": {
+            "title": "Shareurl",
+            "type": "string"
+          }
+        },
+        "required": [
+          "shareCode",
+          "shareUrl",
+          "expiresAt"
+        ],
+        "title": "TimetableShareRead",
+        "type": "object"
+      },
+      "TimetableUpdate": {
+        "additionalProperties": false,
+        "properties": {
+          "dataVersion": {
+            "anyOf": [
+              {
+                "maxLength": 80,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Dataversion"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "maxLength": 120,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "preferences": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/TimetablePreferences"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "title": "TimetableUpdate",
+        "type": "object"
+      },
+      "UserDeleteRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "confirmation": {
+            "title": "Confirmation",
+            "type": "string"
+          }
+        },
+        "required": [
+          "confirmation"
+        ],
+        "title": "UserDeleteRequest",
+        "type": "object"
+      },
+      "UserRead": {
+        "additionalProperties": false,
+        "properties": {
+          "admissionYear": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Admissionyear"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "title": "Createdat",
+            "type": "string"
+          },
+          "department": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Department"
+          },
+          "entryType": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Entrytype"
+          },
+          "grade": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Grade"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "majorPath": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Majorpath"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "profileCompleted": {
+            "title": "Profilecompleted",
+            "type": "boolean"
+          },
+          "sectionGroup": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sectiongroup"
+          },
+          "studentNumber": {
+            "title": "Studentnumber",
+            "type": "string"
+          },
+          "studentType": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Studenttype"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "title": "Updatedat",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "studentNumber",
+          "name",
+          "grade",
+          "department",
+          "admissionYear",
+          "entryType",
+          "studentType",
+          "sectionGroup",
+          "majorPath",
+          "profileCompleted",
+          "createdAt",
+          "updatedAt"
+        ],
+        "title": "UserRead",
+        "type": "object"
+      },
+      "UserUpdate": {
+        "additionalProperties": false,
+        "properties": {
+          "admissionYear": {
+            "anyOf": [
+              {
+                "maximum": 2100.0,
+                "minimum": 1990.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Admissionyear"
+          },
+          "department": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Department"
+          },
+          "entryType": {
+            "anyOf": [
+              {
+                "enum": [
+                  "FRESHMAN",
+                  "TRANSFER"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Entrytype"
+          },
+          "grade": {
+            "anyOf": [
+              {
+                "maximum": 4.0,
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Grade"
+          },
+          "majorPath": {
+            "anyOf": [
+              {
+                "enum": [
+                  "ADVANCED_MAJOR",
+                  "DOUBLE_MAJOR",
+                  "MINOR",
+                  "MICRO_MAJOR"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Majorpath"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "maxLength": 120,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "sectionGroup": {
+            "anyOf": [
+              {
+                "enum": [
+                  "ODD",
+                  "EVEN",
+                  "UNKNOWN"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sectiongroup"
+          },
+          "studentType": {
+            "anyOf": [
+              {
+                "enum": [
+                  "DOMESTIC",
+                  "INTERNATIONAL",
+                  "UNKNOWN"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Studenttype"
+          }
+        },
+        "title": "UserUpdate",
         "type": "object"
       },
       "ValidationError": {
@@ -1163,6 +3333,657 @@
         ]
       }
     },
+    "/api/v1/courses": {
+      "get": {
+        "operationId": "list_courses_api_v1_courses_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "semester",
+            "required": false,
+            "schema": {
+              "default": "2026-1",
+              "title": "Semester",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "keyword",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Keyword"
+            }
+          },
+          {
+            "in": "query",
+            "name": "professor",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Professor"
+            }
+          },
+          {
+            "in": "query",
+            "name": "departmentId",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Departmentid"
+            }
+          },
+          {
+            "in": "query",
+            "name": "category",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Category"
+            }
+          },
+          {
+            "in": "query",
+            "name": "area",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Area"
+            }
+          },
+          {
+            "in": "query",
+            "name": "grade",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maximum": 4,
+                  "minimum": 1,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Grade"
+            }
+          },
+          {
+            "in": "query",
+            "name": "day",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "pattern": "^[월화수목금토일]$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Day"
+            }
+          },
+          {
+            "in": "query",
+            "name": "sort",
+            "required": false,
+            "schema": {
+              "default": "NAME",
+              "pattern": "^(NAME|POPULARITY|RATING|REVIEWS)$",
+              "title": "Sort",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "order",
+            "required": false,
+            "schema": {
+              "default": "ASC",
+              "pattern": "^(ASC|DESC)$",
+              "title": "Order",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "page",
+            "required": false,
+            "schema": {
+              "default": 1,
+              "minimum": 1,
+              "title": "Page",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "size",
+            "required": false,
+            "schema": {
+              "default": 50,
+              "maximum": 2000,
+              "minimum": 1,
+              "title": "Size",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CourseListRead"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Courses",
+        "tags": [
+          "courses"
+        ]
+      }
+    },
+    "/api/v1/courses/{course_code}": {
+      "get": {
+        "operationId": "get_course_api_v1_courses__course_code__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "course_code",
+            "required": true,
+            "schema": {
+              "title": "Course Code",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "semester",
+            "required": false,
+            "schema": {
+              "default": "2026-1",
+              "title": "Semester",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CourseDetailRead"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Course",
+        "tags": [
+          "courses"
+        ]
+      }
+    },
+    "/api/v1/courses/{course_code}/ratings": {
+      "get": {
+        "operationId": "get_rating_summary_api_v1_courses__course_code__ratings_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "course_code",
+            "required": true,
+            "schema": {
+              "title": "Course Code",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "professor",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Professor"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RatingSummary"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Rating Summary",
+        "tags": [
+          "reviews"
+        ]
+      }
+    },
+    "/api/v1/courses/{course_code}/reviews": {
+      "get": {
+        "operationId": "list_course_reviews_api_v1_courses__course_code__reviews_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "course_code",
+            "required": true,
+            "schema": {
+              "title": "Course Code",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "professor",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Professor"
+            }
+          },
+          {
+            "in": "query",
+            "name": "semester",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Semester"
+            }
+          },
+          {
+            "in": "query",
+            "name": "sort",
+            "required": false,
+            "schema": {
+              "default": "NEWEST",
+              "pattern": "^(NEWEST|RATING)$",
+              "title": "Sort",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "page",
+            "required": false,
+            "schema": {
+              "default": 1,
+              "minimum": 1,
+              "title": "Page",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "size",
+            "required": false,
+            "schema": {
+              "default": 20,
+              "maximum": 100,
+              "minimum": 1,
+              "title": "Size",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReviewList"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Course Reviews",
+        "tags": [
+          "reviews"
+        ]
+      },
+      "post": {
+        "operationId": "create_review_api_v1_courses__course_code__reviews_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "course_code",
+            "required": true,
+            "schema": {
+              "title": "Course Code",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReviewCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReviewMutationResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create Review",
+        "tags": [
+          "reviews"
+        ]
+      }
+    },
+    "/api/v1/courses/{course_code}/sections": {
+      "get": {
+        "operationId": "list_course_sections_api_v1_courses__course_code__sections_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "course_code",
+            "required": true,
+            "schema": {
+              "title": "Course Code",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "semester",
+            "required": false,
+            "schema": {
+              "default": "2026-1",
+              "title": "Semester",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "professor",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Professor"
+            }
+          },
+          {
+            "in": "query",
+            "name": "day",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "pattern": "^[월화수목금토일]$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Day"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/Section"
+                  },
+                  "title": "Response List Course Sections Api V1 Courses  Course Code  Sections Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Course Sections",
+        "tags": [
+          "courses"
+        ]
+      }
+    },
+    "/api/v1/departments": {
+      "get": {
+        "operationId": "list_departments_api_v1_departments_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "keyword",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Keyword"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DepartmentListRead"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Departments",
+        "tags": [
+          "departments"
+        ]
+      }
+    },
+    "/api/v1/departments/{department_id}": {
+      "get": {
+        "operationId": "get_department_api_v1_departments__department_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "department_id",
+            "required": true,
+            "schema": {
+              "title": "Department Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DepartmentRead"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Department",
+        "tags": [
+          "departments"
+        ]
+      }
+    },
     "/api/v1/health/live": {
       "get": {
         "operationId": "live_api_v1_health_live_get",
@@ -1256,6 +4077,47 @@
         ]
       }
     },
+    "/api/v1/optimizations/compare": {
+      "post": {
+        "operationId": "compare_candidates_api_v1_optimizations_compare_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CandidateCompareRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CandidateCompareResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Compare Candidates",
+        "tags": [
+          "optimizations"
+        ]
+      }
+    },
     "/api/v1/optimizations/{job_id}": {
       "delete": {
         "operationId": "cancel_optimization_api_v1_optimizations__job_id__delete",
@@ -1338,6 +4200,470 @@
         ]
       }
     },
+    "/api/v1/requirements/common": {
+      "get": {
+        "operationId": "common_rules_api_v1_requirements_common_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Common Rules Api V1 Requirements Common Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Common Rules",
+        "tags": [
+          "requirements"
+        ]
+      }
+    },
+    "/api/v1/requirements/evaluate": {
+      "post": {
+        "operationId": "evaluate_requirements_api_v1_requirements_evaluate_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RequirementProfile"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RequirementEvaluation"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Evaluate Requirements",
+        "tags": [
+          "requirements"
+        ]
+      }
+    },
+    "/api/v1/requirements/recommendations": {
+      "get": {
+        "operationId": "requirement_recommendations_api_v1_requirements_recommendations_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "semester",
+            "required": false,
+            "schema": {
+              "default": "2026-1",
+              "title": "Semester",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "admissionYear",
+            "required": true,
+            "schema": {
+              "maximum": 2100,
+              "minimum": 1990,
+              "title": "Admissionyear",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "departmentId",
+            "required": true,
+            "schema": {
+              "title": "Departmentid",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "studentType",
+            "required": true,
+            "schema": {
+              "title": "Studenttype",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "programPath",
+            "required": true,
+            "schema": {
+              "title": "Programpath",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RequirementRecommendation"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Requirement Recommendations",
+        "tags": [
+          "requirements"
+        ]
+      }
+    },
+    "/api/v1/requirements/rules": {
+      "get": {
+        "operationId": "list_requirement_rules_api_v1_requirements_rules_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "admissionYear",
+            "required": true,
+            "schema": {
+              "maximum": 2100,
+              "minimum": 1990,
+              "title": "Admissionyear",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "departmentId",
+            "required": true,
+            "schema": {
+              "title": "Departmentid",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "studentType",
+            "required": true,
+            "schema": {
+              "title": "Studenttype",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "programPath",
+            "required": true,
+            "schema": {
+              "title": "Programpath",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RequirementRuleList"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Requirement Rules",
+        "tags": [
+          "requirements"
+        ]
+      }
+    },
+    "/api/v1/requirements/sources/{source_id}": {
+      "get": {
+        "operationId": "get_requirement_source_api_v1_requirements_sources__source_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "source_id",
+            "required": true,
+            "schema": {
+              "title": "Source Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RequirementSource"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Requirement Source",
+        "tags": [
+          "requirements"
+        ]
+      }
+    },
+    "/api/v1/reviews/{review_id}": {
+      "delete": {
+        "operationId": "delete_review_api_v1_reviews__review_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "review_id",
+            "required": true,
+            "schema": {
+              "title": "Review Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReviewDeleteResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Delete Review",
+        "tags": [
+          "reviews"
+        ]
+      },
+      "patch": {
+        "operationId": "update_review_api_v1_reviews__review_id__patch",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "review_id",
+            "required": true,
+            "schema": {
+              "title": "Review Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReviewUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReviewMutationResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Update Review",
+        "tags": [
+          "reviews"
+        ]
+      }
+    },
+    "/api/v1/sections/{section_id}": {
+      "get": {
+        "operationId": "get_section_api_v1_sections__section_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "section_id",
+            "required": true,
+            "schema": {
+              "title": "Section Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Section"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Section",
+        "tags": [
+          "courses"
+        ]
+      }
+    },
+    "/api/v1/sections/{section_id}/alternatives": {
+      "get": {
+        "operationId": "get_alternatives_api_v1_sections__section_id__alternatives_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "section_id",
+            "required": true,
+            "schema": {
+              "title": "Section Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "sameProfessor",
+            "required": false,
+            "schema": {
+              "default": false,
+              "title": "Sameprofessor",
+              "type": "boolean"
+            }
+          },
+          {
+            "in": "query",
+            "name": "timetableId",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Timetableid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/Section"
+                  },
+                  "title": "Response Get Alternatives Api V1 Sections  Section Id  Alternatives Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Alternatives",
+        "tags": [
+          "courses"
+        ]
+      }
+    },
     "/api/v1/semesters": {
       "get": {
         "operationId": "semesters_api_v1_semesters_get",
@@ -1360,6 +4686,1175 @@
         "summary": "Semesters",
         "tags": [
           "catalog"
+        ]
+      }
+    },
+    "/api/v1/semesters/{semester}/version": {
+      "get": {
+        "operationId": "semester_version_api_v1_semesters__semester__version_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "semester",
+            "required": true,
+            "schema": {
+              "title": "Semester",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SemesterVersionRead"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Semester Version",
+        "tags": [
+          "catalog"
+        ]
+      }
+    },
+    "/api/v1/shared-timetables/{share_code}": {
+      "get": {
+        "operationId": "get_shared_timetable_api_v1_shared_timetables__share_code__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "share_code",
+            "required": true,
+            "schema": {
+              "title": "Share Code",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SharedTimetableRead"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Shared Timetable",
+        "tags": [
+          "shared-timetables"
+        ]
+      }
+    },
+    "/api/v1/shared-timetables/{share_code}/copy": {
+      "post": {
+        "operationId": "copy_shared_timetable_api_v1_shared_timetables__share_code__copy_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "share_code",
+            "required": true,
+            "schema": {
+              "title": "Share Code",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TimetableCopyRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TimetableDetail"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Copy Shared Timetable",
+        "tags": [
+          "shared-timetables"
+        ]
+      }
+    },
+    "/api/v1/timetables": {
+      "get": {
+        "operationId": "list_timetables_api_v1_timetables_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "semester",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Semester"
+            }
+          },
+          {
+            "in": "query",
+            "name": "favorite",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Favorite"
+            }
+          },
+          {
+            "in": "query",
+            "name": "page",
+            "required": false,
+            "schema": {
+              "default": 1,
+              "minimum": 1,
+              "title": "Page",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "size",
+            "required": false,
+            "schema": {
+              "default": 50,
+              "maximum": 200,
+              "minimum": 1,
+              "title": "Size",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TimetableList"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Timetables",
+        "tags": [
+          "timetables"
+        ]
+      },
+      "post": {
+        "operationId": "create_timetable_api_v1_timetables_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TimetableCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TimetableDetail"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create Timetable",
+        "tags": [
+          "timetables"
+        ]
+      }
+    },
+    "/api/v1/timetables/history": {
+      "get": {
+        "operationId": "timetable_history_api_v1_timetables_history_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "semester",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Semester"
+            }
+          },
+          {
+            "in": "query",
+            "name": "page",
+            "required": false,
+            "schema": {
+              "default": 1,
+              "minimum": 1,
+              "title": "Page",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "size",
+            "required": false,
+            "schema": {
+              "default": 50,
+              "maximum": 200,
+              "minimum": 1,
+              "title": "Size",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TimetableList"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Timetable History",
+        "tags": [
+          "timetables"
+        ]
+      }
+    },
+    "/api/v1/timetables/{timetable_id}": {
+      "delete": {
+        "operationId": "delete_timetable_api_v1_timetables__timetable_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "timetable_id",
+            "required": true,
+            "schema": {
+              "title": "Timetable Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeleteResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Delete Timetable",
+        "tags": [
+          "timetables"
+        ]
+      },
+      "get": {
+        "operationId": "get_timetable_api_v1_timetables__timetable_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "timetable_id",
+            "required": true,
+            "schema": {
+              "title": "Timetable Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TimetableDetail"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Timetable",
+        "tags": [
+          "timetables"
+        ]
+      },
+      "patch": {
+        "operationId": "update_timetable_api_v1_timetables__timetable_id__patch",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "timetable_id",
+            "required": true,
+            "schema": {
+              "title": "Timetable Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TimetableUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TimetableRead"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Update Timetable",
+        "tags": [
+          "timetables"
+        ]
+      }
+    },
+    "/api/v1/timetables/{timetable_id}/copy": {
+      "post": {
+        "operationId": "copy_timetable_api_v1_timetables__timetable_id__copy_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "timetable_id",
+            "required": true,
+            "schema": {
+              "title": "Timetable Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TimetableCopyRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TimetableDetail"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Copy Timetable",
+        "tags": [
+          "timetables"
+        ]
+      }
+    },
+    "/api/v1/timetables/{timetable_id}/favorite": {
+      "patch": {
+        "operationId": "update_favorite_api_v1_timetables__timetable_id__favorite_patch",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "timetable_id",
+            "required": true,
+            "schema": {
+              "title": "Timetable Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TimetableFavoriteUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TimetableRead"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Update Favorite",
+        "tags": [
+          "timetables"
+        ]
+      }
+    },
+    "/api/v1/timetables/{timetable_id}/sections": {
+      "patch": {
+        "operationId": "update_timetable_sections_api_v1_timetables__timetable_id__sections_patch",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "timetable_id",
+            "required": true,
+            "schema": {
+              "title": "Timetable Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TimetableItemsUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TimetableDetail"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Update Timetable Sections",
+        "tags": [
+          "timetables"
+        ]
+      }
+    },
+    "/api/v1/timetables/{timetable_id}/shares": {
+      "post": {
+        "operationId": "create_share_api_v1_timetables__timetable_id__shares_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "timetable_id",
+            "required": true,
+            "schema": {
+              "title": "Timetable Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TimetableShareCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TimetableShareRead"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create Share",
+        "tags": [
+          "timetables"
+        ]
+      }
+    },
+    "/api/v1/users/me": {
+      "delete": {
+        "operationId": "delete_me_api_v1_users_me_delete",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserDeleteRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeleteResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Delete Me",
+        "tags": [
+          "users"
+        ]
+      },
+      "get": {
+        "operationId": "get_me_api_v1_users_me_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserRead"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Get Me",
+        "tags": [
+          "users"
+        ]
+      },
+      "patch": {
+        "operationId": "update_me_api_v1_users_me_patch",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserRead"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Update Me",
+        "tags": [
+          "users"
+        ]
+      }
+    },
+    "/api/v1/users/me/completed-courses": {
+      "get": {
+        "operationId": "list_completed_courses_api_v1_users_me_completed_courses_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "status",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "pattern": "^(IN_PROGRESS|COMPLETED)$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Status"
+            }
+          },
+          {
+            "in": "query",
+            "name": "semester",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Semester"
+            }
+          },
+          {
+            "in": "query",
+            "name": "category",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Category"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CompletedCourseList"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Completed Courses",
+        "tags": [
+          "completed-courses"
+        ]
+      },
+      "post": {
+        "operationId": "create_completed_course_api_v1_users_me_completed_courses_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CompletedCourseCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CompletedCourseRead"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create Completed Course",
+        "tags": [
+          "completed-courses"
+        ]
+      }
+    },
+    "/api/v1/users/me/completed-courses/import-timetable": {
+      "post": {
+        "operationId": "import_timetable_courses_api_v1_users_me_completed_courses_import_timetable_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TimetableCourseImport"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TimetableCourseImportResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Import Timetable Courses",
+        "tags": [
+          "completed-courses"
+        ]
+      }
+    },
+    "/api/v1/users/me/completed-courses/summary": {
+      "get": {
+        "operationId": "get_credit_summary_api_v1_users_me_completed_courses_summary_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreditSummary"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Get Credit Summary",
+        "tags": [
+          "completed-courses"
+        ]
+      }
+    },
+    "/api/v1/users/me/completed-courses/{completed_course_id}": {
+      "delete": {
+        "operationId": "delete_completed_course_api_v1_users_me_completed_courses__completed_course_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "completed_course_id",
+            "required": true,
+            "schema": {
+              "title": "Completed Course Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeleteResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Delete Completed Course",
+        "tags": [
+          "completed-courses"
+        ]
+      },
+      "patch": {
+        "operationId": "update_completed_course_api_v1_users_me_completed_courses__completed_course_id__patch",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "completed_course_id",
+            "required": true,
+            "schema": {
+              "title": "Completed Course Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CompletedCourseUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CompletedCourseRead"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Update Completed Course",
+        "tags": [
+          "completed-courses"
+        ]
+      }
+    },
+    "/api/v1/users/me/consents": {
+      "get": {
+        "operationId": "list_consents_api_v1_users_me_consents_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ConsentRead"
+                  },
+                  "title": "Response List Consents Api V1 Users Me Consents Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "List Consents",
+        "tags": [
+          "users"
+        ]
+      },
+      "post": {
+        "operationId": "create_consent_api_v1_users_me_consents_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConsentCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConsentRead"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create Consent",
+        "tags": [
+          "users"
+        ]
+      }
+    },
+    "/api/v1/users/me/reviews": {
+      "get": {
+        "operationId": "list_my_reviews_api_v1_users_me_reviews_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "page",
+            "required": false,
+            "schema": {
+              "default": 1,
+              "minimum": 1,
+              "title": "Page",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "size",
+            "required": false,
+            "schema": {
+              "default": 100,
+              "maximum": 200,
+              "minimum": 1,
+              "title": "Size",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReviewList"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List My Reviews",
+        "tags": [
+          "reviews"
         ]
       }
     }

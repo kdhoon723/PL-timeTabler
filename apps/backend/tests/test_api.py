@@ -149,4 +149,25 @@ def test_openapi_exposes_only_implemented_product_endpoints(client: TestClient) 
     assert "/api/v1/health/live" in paths
     assert "/api/v1/catalog/{semester}" in paths
     assert "/api/v1/optimizations" in paths
-    assert not any("curricula" in path or "shares" in path for path in paths)
+    assert "/api/v1/optimizations/compare" in paths
+    assert "/api/v1/timetables/{timetable_id}/shares" in paths
+    assert not any("curricula" in path for path in paths)
+
+
+def test_compare_timetable_candidates(client: TestClient) -> None:
+    compared = client.post(
+        "/api/v1/optimizations/compare",
+        json={
+            "currentSectionIds": ["922601-01"],
+            "candidateSectionIds": [["922601-02"], ["922601-01", "927283-01"]],
+        },
+    )
+
+    assert compared.status_code == 200, compared.text
+    candidates = compared.json()["candidates"]
+    assert candidates[0]["swapped"] == [
+        {"fromSectionId": "922601-01", "toSectionId": "922601-02"}
+    ]
+    assert candidates[0]["added"] == []
+    assert candidates[0]["removed"] == []
+    assert candidates[1]["metrics"]["totalCredits"] > 0

@@ -12,7 +12,7 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from timetabler.auth.mailer import OtpMailer
 from timetabler.config import Settings
-from timetabler.db.models import AuthOtpChallenge, AuthRateEvent, AuthSession
+from timetabler.db.models import AuthOtpChallenge, AuthRateEvent, AuthSession, User
 
 
 class InvalidOtpError(RuntimeError):
@@ -29,6 +29,8 @@ class CreatedSession:
     student_number: str
     token: str
     expires_at: datetime
+    user_id: str
+    is_new_user: bool
 
 
 @dataclass(frozen=True, slots=True)
@@ -189,6 +191,29 @@ class AuthService:
                     challenge.consumed_at = now
                     token = secrets.token_urlsafe(32)
                     expires_at = now + timedelta(seconds=self._settings.auth_session_ttl_seconds)
+                    user = (
+                        await session.scalars(
+                            select(User).where(User.student_number == student_number).limit(1)
+                        )
+                    ).one_or_none()
+                    is_new_user = user is None
+                    if user is None:
+                        user = User(
+                            id=str(uuid4()),
+                            student_number=student_number,
+                            name=None,
+                            grade=None,
+                            department=None,
+                            admission_year=None,
+                            entry_type=None,
+                            student_type=None,
+                            section_group=None,
+                            major_path=None,
+                            profile_completed=False,
+                            created_at=now,
+                            updated_at=now,
+                        )
+                        session.add(user)
                     await session.execute(
                         update(AuthSession)
                         .where(
@@ -208,7 +233,13 @@ class AuthService:
                             created_at=now,
                         )
                     )
-                    created = CreatedSession(student_number, token, expires_at)
+                    created = CreatedSession(
+                        student_number,
+                        token,
+                        expires_at,
+                        user.id,
+                        is_new_user,
+                    )
 
         if created is None:
             raise InvalidOtpError
@@ -261,6 +292,24 @@ class AuthService:
                     AuthSession.revoked_at.is_(None),
                 )
                 .values(revoked_at=now)
+            )
+
+    async def delete_account_records(self, student_number: str) -> None:
+        """Remove authentication records that are not linked by a foreign key."""
+
+        async with self._session_factory() as session, session.begin():
+            await session.execute(
+                delete(AuthSession).where(AuthSession.student_number == student_number)
+            )
+            await session.execute(
+                delete(AuthOtpChallenge).where(
+                    AuthOtpChallenge.student_number == student_number
+                )
+            )
+            await session.execute(
+                delete(AuthRateEvent).where(
+                    AuthRateEvent.account_digest == self._digest("account", student_number)
+                )
             )
 
     def _derive_email(self, student_number: str) -> str:

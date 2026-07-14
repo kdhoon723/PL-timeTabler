@@ -89,6 +89,126 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/courses": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Courses */
+        get: operations["list_courses_api_v1_courses_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/courses/{course_code}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Course */
+        get: operations["get_course_api_v1_courses__course_code__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/courses/{course_code}/ratings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Rating Summary */
+        get: operations["get_rating_summary_api_v1_courses__course_code__ratings_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/courses/{course_code}/reviews": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Course Reviews */
+        get: operations["list_course_reviews_api_v1_courses__course_code__reviews_get"];
+        put?: never;
+        /** Create Review */
+        post: operations["create_review_api_v1_courses__course_code__reviews_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/courses/{course_code}/sections": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Course Sections */
+        get: operations["list_course_sections_api_v1_courses__course_code__sections_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/departments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Departments */
+        get: operations["list_departments_api_v1_departments_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/departments/{department_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Department */
+        get: operations["get_department_api_v1_departments__department_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/health/live": {
         parameters: {
             query?: never;
@@ -140,6 +260,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/optimizations/compare": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Compare Candidates */
+        post: operations["compare_candidates_api_v1_optimizations_compare_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/optimizations/{job_id}": {
         parameters: {
             query?: never;
@@ -153,6 +290,143 @@ export interface paths {
         post?: never;
         /** Cancel Optimization */
         delete: operations["cancel_optimization_api_v1_optimizations__job_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/requirements/common": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Common Rules */
+        get: operations["common_rules_api_v1_requirements_common_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/requirements/evaluate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Evaluate Requirements */
+        post: operations["evaluate_requirements_api_v1_requirements_evaluate_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/requirements/recommendations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Requirement Recommendations */
+        get: operations["requirement_recommendations_api_v1_requirements_recommendations_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/requirements/rules": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Requirement Rules */
+        get: operations["list_requirement_rules_api_v1_requirements_rules_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/requirements/sources/{source_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Requirement Source */
+        get: operations["get_requirement_source_api_v1_requirements_sources__source_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/reviews/{review_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Delete Review */
+        delete: operations["delete_review_api_v1_reviews__review_id__delete"];
+        options?: never;
+        head?: never;
+        /** Update Review */
+        patch: operations["update_review_api_v1_reviews__review_id__patch"];
+        trace?: never;
+    };
+    "/api/v1/sections/{section_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Section */
+        get: operations["get_section_api_v1_sections__section_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/sections/{section_id}/alternatives": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Alternatives */
+        get: operations["get_alternatives_api_v1_sections__section_id__alternatives_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -175,10 +449,316 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/semesters/{semester}/version": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Semester Version */
+        get: operations["semester_version_api_v1_semesters__semester__version_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/shared-timetables/{share_code}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Shared Timetable */
+        get: operations["get_shared_timetable_api_v1_shared_timetables__share_code__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/shared-timetables/{share_code}/copy": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Copy Shared Timetable */
+        post: operations["copy_shared_timetable_api_v1_shared_timetables__share_code__copy_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/timetables": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Timetables */
+        get: operations["list_timetables_api_v1_timetables_get"];
+        put?: never;
+        /** Create Timetable */
+        post: operations["create_timetable_api_v1_timetables_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/timetables/history": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Timetable History */
+        get: operations["timetable_history_api_v1_timetables_history_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/timetables/{timetable_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Timetable */
+        get: operations["get_timetable_api_v1_timetables__timetable_id__get"];
+        put?: never;
+        post?: never;
+        /** Delete Timetable */
+        delete: operations["delete_timetable_api_v1_timetables__timetable_id__delete"];
+        options?: never;
+        head?: never;
+        /** Update Timetable */
+        patch: operations["update_timetable_api_v1_timetables__timetable_id__patch"];
+        trace?: never;
+    };
+    "/api/v1/timetables/{timetable_id}/copy": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Copy Timetable */
+        post: operations["copy_timetable_api_v1_timetables__timetable_id__copy_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/timetables/{timetable_id}/favorite": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Update Favorite */
+        patch: operations["update_favorite_api_v1_timetables__timetable_id__favorite_patch"];
+        trace?: never;
+    };
+    "/api/v1/timetables/{timetable_id}/sections": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Update Timetable Sections */
+        patch: operations["update_timetable_sections_api_v1_timetables__timetable_id__sections_patch"];
+        trace?: never;
+    };
+    "/api/v1/timetables/{timetable_id}/shares": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Create Share */
+        post: operations["create_share_api_v1_timetables__timetable_id__shares_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/users/me": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Me */
+        get: operations["get_me_api_v1_users_me_get"];
+        put?: never;
+        post?: never;
+        /** Delete Me */
+        delete: operations["delete_me_api_v1_users_me_delete"];
+        options?: never;
+        head?: never;
+        /** Update Me */
+        patch: operations["update_me_api_v1_users_me_patch"];
+        trace?: never;
+    };
+    "/api/v1/users/me/completed-courses": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Completed Courses */
+        get: operations["list_completed_courses_api_v1_users_me_completed_courses_get"];
+        put?: never;
+        /** Create Completed Course */
+        post: operations["create_completed_course_api_v1_users_me_completed_courses_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/users/me/completed-courses/import-timetable": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Import Timetable Courses */
+        post: operations["import_timetable_courses_api_v1_users_me_completed_courses_import_timetable_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/users/me/completed-courses/summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Credit Summary */
+        get: operations["get_credit_summary_api_v1_users_me_completed_courses_summary_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/users/me/completed-courses/{completed_course_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Delete Completed Course */
+        delete: operations["delete_completed_course_api_v1_users_me_completed_courses__completed_course_id__delete"];
+        options?: never;
+        head?: never;
+        /** Update Completed Course */
+        patch: operations["update_completed_course_api_v1_users_me_completed_courses__completed_course_id__patch"];
+        trace?: never;
+    };
+    "/api/v1/users/me/consents": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Consents */
+        get: operations["list_consents_api_v1_users_me_consents_get"];
+        put?: never;
+        /** Create Consent */
+        post: operations["create_consent_api_v1_users_me_consents_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/users/me/reviews": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List My Reviews */
+        get: operations["list_my_reviews_api_v1_users_me_reviews_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** AreaStatus */
+        AreaStatus: {
+            /** Area */
+            area: string;
+            /** Credits */
+            credits: number;
+            /** Satisfied */
+            satisfied: boolean;
+        };
         /** AuthSessionRead */
         AuthSessionRead: {
             /** Authenticated */
@@ -189,6 +769,40 @@ export interface components {
             expiresAt?: string | null;
             /** Studentnumber */
             studentNumber?: string | null;
+        };
+        /** CandidateCompareRequest */
+        CandidateCompareRequest: {
+            /** Candidatesectionids */
+            candidateSectionIds: string[][];
+            /**
+             * Currentsectionids
+             * @default []
+             */
+            currentSectionIds: string[];
+        };
+        /** CandidateCompareResponse */
+        CandidateCompareResponse: {
+            /** Candidates */
+            candidates: components["schemas"]["CandidateComparisonRead"][];
+        };
+        /** CandidateComparisonRead */
+        CandidateComparisonRead: {
+            /** Added */
+            added: string[];
+            /** Conflicts */
+            conflicts: [
+                string,
+                string
+            ][];
+            metrics: components["schemas"]["CandidateMetrics"];
+            /** Rank */
+            rank: number;
+            /** Removed */
+            removed: string[];
+            /** Sectionids */
+            sectionIds: string[];
+            /** Swapped */
+            swapped: components["schemas"]["CandidateSwapRead"][];
         };
         /** CandidateMetrics */
         CandidateMetrics: {
@@ -213,6 +827,13 @@ export interface components {
              */
             unknownTimeSections: number;
         };
+        /** CandidateSwapRead */
+        CandidateSwapRead: {
+            /** Fromsectionid */
+            fromSectionId: string;
+            /** Tosectionid */
+            toSectionId: string;
+        };
         /** CatalogPage */
         CatalogPage: {
             /** Datasetversion */
@@ -229,6 +850,182 @@ export interface components {
             semester: string;
             /** Total */
             total: number;
+        };
+        /** CompletedCourseCreate */
+        CompletedCourseCreate: {
+            /** Area */
+            area?: string | null;
+            /** Category */
+            category: string;
+            /** Coursecode */
+            courseCode?: string | null;
+            /** Coursename */
+            courseName: string;
+            /** Credits */
+            credits: number;
+            /** Semester */
+            semester?: string | null;
+            /**
+             * Status
+             * @default COMPLETED
+             * @enum {string}
+             */
+            status: "IN_PROGRESS" | "COMPLETED";
+        };
+        /** CompletedCourseList */
+        CompletedCourseList: {
+            /** Completedcourses */
+            completedCourses: components["schemas"]["CompletedCourseRead"][];
+            creditSummary: components["schemas"]["CreditSummary"];
+        };
+        /** CompletedCourseRead */
+        CompletedCourseRead: {
+            /** Area */
+            area: string | null;
+            /** Category */
+            category: string;
+            /** Coursecode */
+            courseCode: string | null;
+            /** Coursename */
+            courseName: string;
+            /**
+             * Createdat
+             * Format: date-time
+             */
+            createdAt: string;
+            /** Credits */
+            credits: number;
+            /** Id */
+            id: string;
+            /** Semester */
+            semester: string | null;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "IN_PROGRESS" | "COMPLETED";
+            /**
+             * Updatedat
+             * Format: date-time
+             */
+            updatedAt: string;
+        };
+        /** CompletedCourseUpdate */
+        CompletedCourseUpdate: {
+            /** Area */
+            area?: string | null;
+            /** Category */
+            category?: string | null;
+            /** Coursecode */
+            courseCode?: string | null;
+            /** Coursename */
+            courseName?: string | null;
+            /** Credits */
+            credits?: number | null;
+            /** Semester */
+            semester?: string | null;
+            /** Status */
+            status?: ("IN_PROGRESS" | "COMPLETED") | null;
+        };
+        /** ConsentCreate */
+        ConsentCreate: {
+            /** Agreed */
+            agreed: boolean;
+            /** Consentversion */
+            consentVersion: string;
+        };
+        /** ConsentRead */
+        ConsentRead: {
+            /** Agreed */
+            agreed: boolean;
+            /**
+             * Agreedat
+             * Format: date-time
+             */
+            agreedAt: string;
+            /** Consentversion */
+            consentVersion: string;
+            /** Id */
+            id: string;
+        };
+        /** CourseDetailRead */
+        CourseDetailRead: {
+            course: components["schemas"]["CourseSummaryRead"];
+            ratingSummary: components["schemas"]["RatingSummary"];
+            /** Sections */
+            sections: components["schemas"]["Section"][];
+        };
+        /** CourseListRead */
+        CourseListRead: {
+            /** Courses */
+            courses: components["schemas"]["CourseSummaryRead"][];
+            /** Page */
+            page: number;
+            /** Size */
+            size: number;
+            /** Total */
+            total: number;
+        };
+        /** CourseSummaryRead */
+        CourseSummaryRead: {
+            /** Averagerating */
+            averageRating: number;
+            /** Category */
+            category: string;
+            /** Coursecode */
+            courseCode: string;
+            /** Credits */
+            credits: number;
+            /** Grade */
+            grade: number | null;
+            /** Name */
+            name: string;
+            /** Popularityscore */
+            popularityScore: number;
+            /** Professors */
+            professors: string[];
+            /** Reviewcount */
+            reviewCount: number;
+            /** Sectioncount */
+            sectionCount: number;
+        };
+        /** CreditSummary */
+        CreditSummary: {
+            /** Areacredits */
+            areaCredits: {
+                [key: string]: number;
+            };
+            /** Liberalcredits */
+            liberalCredits: number;
+            /** Majorcredits */
+            majorCredits: number;
+            /** Totalcredits */
+            totalCredits: number;
+        };
+        /** DeleteResponse */
+        DeleteResponse: {
+            /** Deletedat */
+            deletedAt?: string | null;
+            /** Message */
+            message: string;
+        };
+        /** DepartmentListRead */
+        DepartmentListRead: {
+            /** Departments */
+            departments: components["schemas"]["DepartmentRead"][];
+        };
+        /** DepartmentRead */
+        DepartmentRead: {
+            /** College */
+            college: string;
+            /** Curriculumurl */
+            curriculumUrl: string | null;
+            /** Graduationurl */
+            graduationUrl: string | null;
+            /** Id */
+            id: string;
+            /** Name */
+            name: string;
         };
         /** HTTPValidationError */
         HTTPValidationError: {
@@ -373,12 +1170,23 @@ export interface components {
             /** Avoidbeforeminute */
             avoidBeforeMinute?: number | null;
             /**
+             * Excludeddays
+             * @default []
+             */
+            excludedDays: ("월" | "화" | "수" | "목" | "금" | "토" | "일")[];
+            /**
              * Gapweightpercent
              * @default 50
              */
             gapWeightPercent: number;
+            /** Hardendminute */
+            hardEndMinute?: number | null;
+            /** Hardstartminute */
+            hardStartMinute?: number | null;
             /** Maxdailyminutes */
             maxDailyMinutes?: number | null;
+            /** Maxgapminutes */
+            maxGapMinutes?: number | null;
             /**
              * Minlunchminutes
              * @default 0
@@ -444,6 +1252,15 @@ export interface components {
             /** Professor */
             professor: string;
         };
+        /** RatingSummary */
+        RatingSummary: {
+            /** Averagerating */
+            averageRating: number;
+            /** Popularityscore */
+            popularityScore: number;
+            /** Reviewcount */
+            reviewCount: number;
+        };
         /** ReadinessStatus */
         ReadinessStatus: {
             /** Catalog */
@@ -452,6 +1269,143 @@ export interface components {
             database: string;
             /** Status */
             status: string;
+        };
+        /** RequirementEvaluation */
+        RequirementEvaluation: {
+            /** Areastatus */
+            areaStatus: components["schemas"]["AreaStatus"][];
+            /** Creditstatus */
+            creditStatus: components["schemas"]["RequirementStatus"][];
+            /** Manualreviewitems */
+            manualReviewItems: string[];
+            /** Missingrequirements */
+            missingRequirements: string[];
+            /** Requiredcoursestatus */
+            requiredCourseStatus: components["schemas"]["RequirementStatus"][];
+        };
+        /** RequirementProfile */
+        RequirementProfile: {
+            /** Admissionyear */
+            admissionYear: number;
+            /** Departmentid */
+            departmentId: string;
+            /** Programpath */
+            programPath: string;
+            /** Studenttype */
+            studentType: string;
+        };
+        /** RequirementRecommendation */
+        RequirementRecommendation: {
+            /** Missingrequirements */
+            missingRequirements: string[];
+            /** Recommendedcourses */
+            recommendedCourses: components["schemas"]["CourseSummaryRead"][];
+        };
+        /** RequirementRuleList */
+        RequirementRuleList: {
+            /** Asof */
+            asOf: string;
+            /** Manualreviewitems */
+            manualReviewItems: string[];
+            /** Rules */
+            rules: {
+                [key: string]: unknown;
+            }[];
+        };
+        /** RequirementSource */
+        RequirementSource: {
+            /** Effectivedate */
+            effectiveDate?: string | null;
+            /** Sourceid */
+            sourceId: string;
+            /** Title */
+            title: string;
+            /** Url */
+            url: string;
+            /** Verifiedat */
+            verifiedAt: string;
+        };
+        /** RequirementStatus */
+        RequirementStatus: {
+            /** Current */
+            current: number | null;
+            /** Kind */
+            kind: string;
+            /**
+             * Missing
+             * @default []
+             */
+            missing: string[];
+            /** Required */
+            required: number | null;
+            /** Satisfied */
+            satisfied: boolean | null;
+        };
+        /** ReviewCreate */
+        ReviewCreate: {
+            /** Content */
+            content: string;
+            /** Professor */
+            professor?: string | null;
+            /** Rating */
+            rating: number;
+            /** Semester */
+            semester: string;
+        };
+        /** ReviewDeleteResponse */
+        ReviewDeleteResponse: {
+            /** Message */
+            message: string;
+            ratingSummary: components["schemas"]["RatingSummary"];
+        };
+        /** ReviewList */
+        ReviewList: {
+            ratingSummary: components["schemas"]["RatingSummary"];
+            /** Reviews */
+            reviews: components["schemas"]["ReviewRead"][];
+            /** Total */
+            total: number;
+        };
+        /** ReviewMutationResponse */
+        ReviewMutationResponse: {
+            ratingSummary: components["schemas"]["RatingSummary"];
+            review: components["schemas"]["ReviewRead"];
+        };
+        /** ReviewRead */
+        ReviewRead: {
+            /** Content */
+            content: string;
+            /** Coursecode */
+            courseCode: string;
+            /** Coursename */
+            courseName: string;
+            /**
+             * Createdat
+             * Format: date-time
+             */
+            createdAt: string;
+            /** Id */
+            id: string;
+            /** Mine */
+            mine: boolean;
+            /** Professor */
+            professor: string | null;
+            /** Rating */
+            rating: number;
+            /** Semester */
+            semester: string;
+            /**
+             * Updatedat
+             * Format: date-time
+             */
+            updatedAt: string;
+        };
+        /** ReviewUpdate */
+        ReviewUpdate: {
+            /** Content */
+            content?: string | null;
+            /** Rating */
+            rating?: number | null;
         };
         /** Section */
         Section: {
@@ -499,6 +1453,15 @@ export interface components {
             /** Sectioncount */
             sectionCount: number;
         };
+        /** SemesterVersionRead */
+        SemesterVersionRead: {
+            /** Datasetversion */
+            datasetVersion: string;
+            /** Semester */
+            semester: string;
+            /** Updatedat */
+            updatedAt: string;
+        };
         /** Session */
         Session: {
             /** Buildingcode */
@@ -518,6 +1481,277 @@ export interface components {
             roomName?: string | null;
             /** Startminute */
             startMinute: number;
+        };
+        /** SharedTimetableRead */
+        SharedTimetableRead: {
+            metrics: components["schemas"]["TimetableMetrics"];
+            /** Sections */
+            sections: components["schemas"]["Section"][];
+            timetable: components["schemas"]["TimetableRead"];
+        };
+        /** TimetableCopyRequest */
+        TimetableCopyRequest: {
+            /** Name */
+            name?: string | null;
+        };
+        /** TimetableCourseImport */
+        TimetableCourseImport: {
+            /**
+             * Status
+             * @default IN_PROGRESS
+             * @enum {string}
+             */
+            status: "IN_PROGRESS" | "COMPLETED";
+            /** Timetableid */
+            timetableId: string;
+        };
+        /** TimetableCourseImportResponse */
+        TimetableCourseImportResponse: {
+            /** Importedcourses */
+            importedCourses: components["schemas"]["CompletedCourseRead"][];
+            /** Skippedcourses */
+            skippedCourses: string[];
+        };
+        /** TimetableCreate */
+        TimetableCreate: {
+            /** Dataversion */
+            dataVersion?: string | null;
+            /**
+             * Items
+             * @default []
+             */
+            items: components["schemas"]["TimetableItem"][];
+            /** Name */
+            name: string;
+            preferences?: components["schemas"]["TimetablePreferences"];
+            /** Semester */
+            semester: string;
+        };
+        /** TimetableDetail */
+        TimetableDetail: {
+            /** Conflictsectionids */
+            conflictSectionIds: [
+                string,
+                string
+            ][];
+            metrics: components["schemas"]["TimetableMetrics"];
+            /** Sections */
+            sections: components["schemas"]["Section"][];
+            timetable: components["schemas"]["TimetableRead"];
+        };
+        /** TimetableFavoriteUpdate */
+        TimetableFavoriteUpdate: {
+            /** Favorite */
+            favorite: boolean;
+        };
+        /** TimetableItem */
+        TimetableItem: {
+            /**
+             * Locked
+             * @default false
+             */
+            locked: boolean;
+            /**
+             * Professorlocked
+             * @default false
+             */
+            professorLocked: boolean;
+            /**
+             * Role
+             * @default want
+             * @enum {string}
+             */
+            role: "must" | "want" | "backup" | "exclude";
+            /** Sectionid */
+            sectionId: string;
+        };
+        /** TimetableItemsUpdate */
+        TimetableItemsUpdate: {
+            /** Dataversion */
+            dataVersion?: string | null;
+            /** Items */
+            items: components["schemas"]["TimetableItem"][];
+        };
+        /** TimetableList */
+        TimetableList: {
+            /** Timetables */
+            timetables: components["schemas"]["TimetableRead"][];
+            /** Total */
+            total: number;
+        };
+        /** TimetableMetrics */
+        TimetableMetrics: {
+            /** Campusdays */
+            campusDays: number;
+            /** Credits */
+            credits: number;
+            /** Gapminutes */
+            gapMinutes: number;
+        };
+        /** TimetablePreferences */
+        TimetablePreferences: {
+            /** Avoidafter */
+            avoidAfter?: string | null;
+            /** Avoidbefore */
+            avoidBefore?: string | null;
+            /**
+             * Compactness
+             * @default 70
+             */
+            compactness: number;
+            /**
+             * Excludeddays
+             * @default []
+             */
+            excludedDays: ("월" | "화" | "수" | "목" | "금" | "토" | "일")[];
+            /** Hardend */
+            hardEnd?: string | null;
+            /** Hardstart */
+            hardStart?: string | null;
+            /**
+             * Maxcredits
+             * @default 21
+             */
+            maxCredits: number;
+            /**
+             * Maxdailyminutes
+             * @default 360
+             */
+            maxDailyMinutes: number;
+            /** Maxgapminutes */
+            maxGapMinutes?: number | null;
+            /**
+             * Mincredits
+             * @default 15
+             */
+            minCredits: number;
+            /**
+             * Minlunchminutes
+             * @default 60
+             */
+            minLunchMinutes: number;
+            /**
+             * Minimizechanges
+             * @default true
+             */
+            minimizeChanges: boolean;
+            /**
+             * Preferredfreedays
+             * @default []
+             */
+            preferredFreeDays: ("월" | "화" | "수" | "목" | "금" | "토" | "일")[];
+            /**
+             * Targetcredits
+             * @default 18
+             */
+            targetCredits: number;
+        };
+        /** TimetableRead */
+        TimetableRead: {
+            /**
+             * Createdat
+             * Format: date-time
+             */
+            createdAt: string;
+            /** Dataversion */
+            dataVersion: string | null;
+            /** Favorite */
+            favorite: boolean;
+            /** Id */
+            id: string;
+            /** Items */
+            items: components["schemas"]["TimetableItem"][];
+            /** Name */
+            name: string;
+            preferences: components["schemas"]["TimetablePreferences"];
+            /** Semester */
+            semester: string;
+            /**
+             * Updatedat
+             * Format: date-time
+             */
+            updatedAt: string;
+        };
+        /** TimetableShareCreate */
+        TimetableShareCreate: {
+            /** Expiresat */
+            expiresAt?: string | null;
+        };
+        /** TimetableShareRead */
+        TimetableShareRead: {
+            /** Expiresat */
+            expiresAt: string | null;
+            /** Sharecode */
+            shareCode: string;
+            /** Shareurl */
+            shareUrl: string;
+        };
+        /** TimetableUpdate */
+        TimetableUpdate: {
+            /** Dataversion */
+            dataVersion?: string | null;
+            /** Name */
+            name?: string | null;
+            preferences?: components["schemas"]["TimetablePreferences"] | null;
+        };
+        /** UserDeleteRequest */
+        UserDeleteRequest: {
+            /** Confirmation */
+            confirmation: string;
+        };
+        /** UserRead */
+        UserRead: {
+            /** Admissionyear */
+            admissionYear: number | null;
+            /**
+             * Createdat
+             * Format: date-time
+             */
+            createdAt: string;
+            /** Department */
+            department: string | null;
+            /** Entrytype */
+            entryType: string | null;
+            /** Grade */
+            grade: number | null;
+            /** Id */
+            id: string;
+            /** Majorpath */
+            majorPath: string | null;
+            /** Name */
+            name: string | null;
+            /** Profilecompleted */
+            profileCompleted: boolean;
+            /** Sectiongroup */
+            sectionGroup: string | null;
+            /** Studentnumber */
+            studentNumber: string;
+            /** Studenttype */
+            studentType: string | null;
+            /**
+             * Updatedat
+             * Format: date-time
+             */
+            updatedAt: string;
+        };
+        /** UserUpdate */
+        UserUpdate: {
+            /** Admissionyear */
+            admissionYear?: number | null;
+            /** Department */
+            department?: string | null;
+            /** Entrytype */
+            entryType?: ("FRESHMAN" | "TRANSFER") | null;
+            /** Grade */
+            grade?: number | null;
+            /** Majorpath */
+            majorPath?: ("ADVANCED_MAJOR" | "DOUBLE_MAJOR" | "MINOR" | "MICRO_MAJOR") | null;
+            /** Name */
+            name?: string | null;
+            /** Sectiongroup */
+            sectionGroup?: ("ODD" | "EVEN" | "UNKNOWN") | null;
+            /** Studenttype */
+            studentType?: ("DOMESTIC" | "INTERNATIONAL" | "UNKNOWN") | null;
         };
         /** ValidationError */
         ValidationError: {
@@ -683,6 +1917,283 @@ export interface operations {
             };
         };
     };
+    list_courses_api_v1_courses_get: {
+        parameters: {
+            query?: {
+                semester?: string;
+                keyword?: string | null;
+                professor?: string | null;
+                departmentId?: string | null;
+                category?: string | null;
+                area?: string | null;
+                grade?: number | null;
+                day?: string | null;
+                sort?: string;
+                order?: string;
+                page?: number;
+                size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CourseListRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_course_api_v1_courses__course_code__get: {
+        parameters: {
+            query?: {
+                semester?: string;
+            };
+            header?: never;
+            path: {
+                course_code: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CourseDetailRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_rating_summary_api_v1_courses__course_code__ratings_get: {
+        parameters: {
+            query?: {
+                professor?: string | null;
+            };
+            header?: never;
+            path: {
+                course_code: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RatingSummary"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_course_reviews_api_v1_courses__course_code__reviews_get: {
+        parameters: {
+            query?: {
+                professor?: string | null;
+                semester?: string | null;
+                sort?: string;
+                page?: number;
+                size?: number;
+            };
+            header?: never;
+            path: {
+                course_code: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReviewList"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_review_api_v1_courses__course_code__reviews_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                course_code: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReviewCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReviewMutationResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_course_sections_api_v1_courses__course_code__sections_get: {
+        parameters: {
+            query?: {
+                semester?: string;
+                professor?: string | null;
+                day?: string | null;
+            };
+            header?: never;
+            path: {
+                course_code: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Section"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_departments_api_v1_departments_get: {
+        parameters: {
+            query?: {
+                keyword?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DepartmentListRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_department_api_v1_departments__department_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                department_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DepartmentRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     live_api_v1_health_live_get: {
         parameters: {
             query?: never;
@@ -765,6 +2276,39 @@ export interface operations {
             };
         };
     };
+    compare_candidates_api_v1_optimizations_compare_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CandidateCompareRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CandidateCompareResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     get_optimization_api_v1_optimizations__job_id__get: {
         parameters: {
             query?: never;
@@ -827,6 +2371,292 @@ export interface operations {
             };
         };
     };
+    common_rules_api_v1_requirements_common_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+        };
+    };
+    evaluate_requirements_api_v1_requirements_evaluate_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RequirementProfile"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RequirementEvaluation"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    requirement_recommendations_api_v1_requirements_recommendations_get: {
+        parameters: {
+            query: {
+                semester?: string;
+                admissionYear: number;
+                departmentId: string;
+                studentType: string;
+                programPath: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RequirementRecommendation"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_requirement_rules_api_v1_requirements_rules_get: {
+        parameters: {
+            query: {
+                admissionYear: number;
+                departmentId: string;
+                studentType: string;
+                programPath: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RequirementRuleList"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_requirement_source_api_v1_requirements_sources__source_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                source_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RequirementSource"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_review_api_v1_reviews__review_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                review_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReviewDeleteResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_review_api_v1_reviews__review_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                review_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReviewUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReviewMutationResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_section_api_v1_sections__section_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                section_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Section"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_alternatives_api_v1_sections__section_id__alternatives_get: {
+        parameters: {
+            query?: {
+                sameProfessor?: boolean;
+                timetableId?: string | null;
+            };
+            header?: never;
+            path: {
+                section_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Section"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     semesters_api_v1_semesters_get: {
         parameters: {
             query?: never;
@@ -843,6 +2673,796 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Semester"][];
+                };
+            };
+        };
+    };
+    semester_version_api_v1_semesters__semester__version_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                semester: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SemesterVersionRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_shared_timetable_api_v1_shared_timetables__share_code__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                share_code: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SharedTimetableRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    copy_shared_timetable_api_v1_shared_timetables__share_code__copy_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                share_code: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TimetableCopyRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TimetableDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_timetables_api_v1_timetables_get: {
+        parameters: {
+            query?: {
+                semester?: string | null;
+                favorite?: boolean | null;
+                page?: number;
+                size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TimetableList"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_timetable_api_v1_timetables_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TimetableCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TimetableDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    timetable_history_api_v1_timetables_history_get: {
+        parameters: {
+            query?: {
+                semester?: string | null;
+                page?: number;
+                size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TimetableList"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_timetable_api_v1_timetables__timetable_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                timetable_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TimetableDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_timetable_api_v1_timetables__timetable_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                timetable_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DeleteResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_timetable_api_v1_timetables__timetable_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                timetable_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TimetableUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TimetableRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    copy_timetable_api_v1_timetables__timetable_id__copy_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                timetable_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TimetableCopyRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TimetableDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_favorite_api_v1_timetables__timetable_id__favorite_patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                timetable_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TimetableFavoriteUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TimetableRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_timetable_sections_api_v1_timetables__timetable_id__sections_patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                timetable_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TimetableItemsUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TimetableDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_share_api_v1_timetables__timetable_id__shares_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                timetable_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TimetableShareCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TimetableShareRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_me_api_v1_users_me_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserRead"];
+                };
+            };
+        };
+    };
+    delete_me_api_v1_users_me_delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UserDeleteRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DeleteResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_me_api_v1_users_me_patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UserUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_completed_courses_api_v1_users_me_completed_courses_get: {
+        parameters: {
+            query?: {
+                status?: string | null;
+                semester?: string | null;
+                category?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CompletedCourseList"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_completed_course_api_v1_users_me_completed_courses_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CompletedCourseCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CompletedCourseRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    import_timetable_courses_api_v1_users_me_completed_courses_import_timetable_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TimetableCourseImport"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TimetableCourseImportResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_credit_summary_api_v1_users_me_completed_courses_summary_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CreditSummary"];
+                };
+            };
+        };
+    };
+    delete_completed_course_api_v1_users_me_completed_courses__completed_course_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                completed_course_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DeleteResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_completed_course_api_v1_users_me_completed_courses__completed_course_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                completed_course_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CompletedCourseUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CompletedCourseRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_consents_api_v1_users_me_consents_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConsentRead"][];
+                };
+            };
+        };
+    };
+    create_consent_api_v1_users_me_consents_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ConsentCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConsentRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_my_reviews_api_v1_users_me_reviews_get: {
+        parameters: {
+            query?: {
+                page?: number;
+                size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReviewList"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

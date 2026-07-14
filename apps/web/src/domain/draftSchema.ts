@@ -5,8 +5,12 @@ export const DEFAULT_PREFERENCES: Readonly<Preferences> = {
   minCredits: 15,
   maxCredits: 21,
   preferredFreeDays: [],
+  excludedDays: [],
   avoidBefore: null,
   avoidAfter: null,
+  hardStart: null,
+  hardEnd: null,
+  maxGapMinutes: null,
   minLunchMinutes: 60,
   maxDailyMinutes: 360,
   compactness: 70,
@@ -33,10 +37,16 @@ function normalizedNumber(
   return typeof value === 'number' && Number.isFinite(value) && value >= minimum && value <= maximum ? value : null
 }
 
-function normalizedTime(source: Record<string, unknown>, key: 'avoidBefore' | 'avoidAfter'): string | null | undefined {
+function normalizedTime(source: Record<string, unknown>, key: 'avoidBefore' | 'avoidAfter' | 'hardStart' | 'hardEnd'): string | null | undefined {
   const value = source[key]
   if (value === undefined || value === null) return null
   return typeof value === 'string' && TIME_PATTERN.test(value) ? value : undefined
+}
+
+function normalizedNullableNumber(source: Record<string, unknown>, key: keyof Preferences, minimum: number, maximum: number): number | null | undefined {
+  const value = source[key]
+  if (value === undefined || value === null) return null
+  return typeof value === 'number' && Number.isFinite(value) && value >= minimum && value <= maximum ? value : undefined
 }
 
 export function normalizePreferences(value: unknown): Preferences | null {
@@ -48,10 +58,13 @@ export function normalizePreferences(value: unknown): Preferences | null {
   const compactness = normalizedNumber(value, 'compactness', DEFAULT_PREFERENCES.compactness, 0, 100)
   const avoidBefore = normalizedTime(value, 'avoidBefore')
   const avoidAfter = normalizedTime(value, 'avoidAfter')
+  const hardStart = normalizedTime(value, 'hardStart')
+  const hardEnd = normalizedTime(value, 'hardEnd')
+  const maxGapMinutes = normalizedNullableNumber(value, 'maxGapMinutes', 0, 24 * 60)
   const rawTargetCredits = normalizedNumber(value, 'targetCredits', DEFAULT_PREFERENCES.targetCredits, 0, 30)
   if ([rawTargetCredits, minCredits, maxCredits, minLunchMinutes, maxDailyMinutes, compactness].some((item) => item === null)) return null
   if (![rawTargetCredits, minCredits, maxCredits].every((item) => Number.isInteger(item))) return null
-  if (avoidBefore === undefined || avoidAfter === undefined) return null
+  if (avoidBefore === undefined || avoidAfter === undefined || hardStart === undefined || hardEnd === undefined || maxGapMinutes === undefined) return null
 
   const daysValue = value.preferredFreeDays
   const preferredFreeDays = daysValue === undefined
@@ -59,8 +72,16 @@ export function normalizePreferences(value: unknown): Preferences | null {
     : Array.isArray(daysValue) && daysValue.every((day) => typeof day === 'string' && DAY_SET.has(day))
       ? [...new Set(daysValue)] as Preferences['preferredFreeDays']
       : null
+  const excludedDaysValue = value.excludedDays
+  const excludedDays = excludedDaysValue === undefined
+    ? [...DEFAULT_PREFERENCES.excludedDays]
+    : Array.isArray(excludedDaysValue) && excludedDaysValue.every((day) => typeof day === 'string' && DAY_SET.has(day))
+      ? [...new Set(excludedDaysValue)] as Preferences['excludedDays']
+      : null
   const minimizeChanges = value.minimizeChanges === undefined ? DEFAULT_PREFERENCES.minimizeChanges : value.minimizeChanges
-  if (!preferredFreeDays || typeof minimizeChanges !== 'boolean') return null
+  if (!preferredFreeDays || !excludedDays || typeof minimizeChanges !== 'boolean') return null
+  if (preferredFreeDays.some((day) => excludedDays.includes(day))) return null
+  if (hardStart && hardEnd && hardStart >= hardEnd) return null
   if (minCredits! > maxCredits!) return null
   const targetCredits = Math.min(maxCredits!, Math.max(minCredits!, rawTargetCredits!))
 
@@ -69,8 +90,12 @@ export function normalizePreferences(value: unknown): Preferences | null {
     minCredits: minCredits!,
     maxCredits: maxCredits!,
     preferredFreeDays,
+    excludedDays,
     avoidBefore,
     avoidAfter,
+    hardStart,
+    hardEnd,
+    maxGapMinutes,
     minLunchMinutes: minLunchMinutes!,
     maxDailyMinutes: maxDailyMinutes!,
     compactness: compactness!,

@@ -1,7 +1,7 @@
 import { cleanup, fireEvent, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import type { AcademicProfile, Section } from '../types'
+import type { AcademicProfile, CourseStats, Section } from '../types'
 import { CourseSearchSheet } from './CourseSearchSheet'
 
 const section = (courseCode: string, sectionCode: string, name: string, day: '월' | '화' | null, start = '09:00'): Section => ({
@@ -154,5 +154,23 @@ describe('course search sheet', () => {
     await userEvent.click(screen.getByRole('button', { name: 'AI시대의컴퓨팅사고 후보로 담기' }))
     expect(onAdd).toHaveBeenCalledWith(catalog[0], 'backup')
     expect(screen.queryByRole('button', { name: /01분반.*추가/ })).not.toBeInTheDocument()
+  })
+
+  it('filters by grade, sorts by review popularity, and opens reviews', async () => {
+    const onReviews = vi.fn()
+    const stats = new Map<string, CourseStats>([
+      ['922601', { courseCode: '922601', name: 'AI시대의컴퓨팅사고', category: '교양필수', credits: 2, grade: 1, sectionCount: 2, professors: [], averageRating: 4.5, reviewCount: 20, popularityScore: 19 }],
+      ['100001', { courseCode: '100001', name: '선택과목', category: '교양필수', credits: 2, grade: 2, sectionCount: 2, professors: [], averageRating: 3, reviewCount: 2, popularityScore: 4 }],
+    ])
+    render(<CourseSearchSheet open sections={catalog.slice(0, 4)} items={[]} profile={null} courseStats={stats} onClose={() => undefined} onAdd={() => undefined} onReviews={onReviews} />)
+
+    await userEvent.click(screen.getByRole('button', { name: '세부 필터' }))
+    await userEvent.selectOptions(screen.getByRole('combobox', { name: '정렬' }), 'POPULARITY')
+    expect(screen.getAllByRole('button', { name: /분반 보기/ })[0]).toHaveAccessibleName(/AI시대의컴퓨팅사고/)
+
+    await userEvent.selectOptions(screen.getByRole('combobox', { name: '학년' }), '2')
+    expect(screen.getAllByRole('button', { name: /분반 보기/ })).toHaveLength(1)
+    await userEvent.click(screen.getByRole('button', { name: '리뷰' }))
+    expect(onReviews).toHaveBeenCalledWith(catalog[2])
   })
 })

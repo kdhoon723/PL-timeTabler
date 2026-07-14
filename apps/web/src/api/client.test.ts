@@ -18,7 +18,18 @@ describe('optimizer API request mapping', () => {
         { sectionId: 'A-1', role: 'want' as const, locked: false, professorLocked: true },
         { sectionId: 'B-1', role: 'backup' as const, locked: true },
       ],
-      preferences: { ...emptyDraft().preferences, minCredits: 3, maxCredits: 6, targetCredits: 6, compactness: 90, minimizeChanges: false },
+      preferences: {
+        ...emptyDraft().preferences,
+        minCredits: 3,
+        maxCredits: 6,
+        targetCredits: 6,
+        excludedDays: ['금' as const],
+        hardStart: '09:00',
+        hardEnd: '18:00',
+        maxGapMinutes: 60,
+        compactness: 90,
+        minimizeChanges: false,
+      },
     }
     const fetchMock = vi.fn().mockResolvedValue(new Response(JSON.stringify({ id: 'job', status: 'QUEUED' }), { status: 202, headers: { 'Content-Type': 'application/json' } }))
     vi.stubGlobal('fetch', fetchMock)
@@ -27,7 +38,14 @@ describe('optimizer API request mapping', () => {
 
     const body = JSON.parse(String((fetchMock.mock.calls[0]?.[1] as RequestInit).body)) as Record<string, unknown>
     expect(body).toMatchObject({ targetCredits: 6, lockedSectionIds: [], professorConstraints: [{ courseCode: 'A', professor: '김교수' }] })
-    expect(body.preferences).toMatchObject({ gapWeightPercent: 90, minimizeChanges: false })
+    expect(body.preferences).toMatchObject({
+      excludedDays: ['금'],
+      hardStartMinute: 540,
+      hardEndMinute: 1080,
+      maxGapMinutes: 60,
+      gapWeightPercent: 90,
+      minimizeChanges: false,
+    })
   })
 })
 

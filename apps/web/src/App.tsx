@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from 'react'
-import { loadAuthSession, loadCatalog, loadCommonRules, loadDepartmentSources, loadMajorRequiredCourses } from './api/client'
+import { loadAuthSession, loadCatalog, loadCommonRules, loadCourseStats, loadCurrentUser, loadDepartmentSources, loadMajorRequiredCourses, updateCurrentUser } from './api/client'
 import { findAlternatives, findConflicts } from './domain/conflicts'
 import { diffCandidate } from './domain/candidateDiff'
 import { optimizationDraftFingerprint } from './domain/optimizationDraft'
@@ -8,7 +8,7 @@ import { encodeDraft } from './domain/share'
 import { exportTimetablePng } from './domain/exportImage'
 import { completeOnboardingWithoutProfile, hasCompletedOnboarding, loadAcademicProfile, saveAcademicProfile } from './domain/profile'
 import { draftReducer, itemsWithAppliedBackup, itemsWithCourseRole, loadSavedDraft, planItemsForCandidate } from './state/draft'
-import type { AcademicProfile, AuthSession, Candidate, CommonRules, CourseRole, DepartmentSource, MajorRequiredCourses, Section } from './types'
+import type { AcademicProfile, AuthSession, Candidate, CommonRules, CourseRole, CourseStats, DepartmentSource, MajorRequiredCourses, Section, UserInfo } from './types'
 import { AppHeader } from './components/AppHeader'
 import { ApplicationListSheet } from './components/ApplicationListSheet'
 import { AuthSheet } from './components/AuthSheet'
@@ -23,10 +23,13 @@ import { PlusIcon, SlidersIcon } from './components/Icons'
 import { PreferencesPanel } from './components/PreferencesPanel'
 import { RequiredCourseSheet } from './components/RequiredCourseSheet'
 import { RequirementsPage } from './components/RequirementsPage'
+import { ReviewSheet } from './components/ReviewSheet'
 import { SectionDetailSheet } from './components/SectionDetailSheet'
+import { SharedTimetablePage } from './components/SharedTimetablePage'
 import { SelectedCourseList } from './components/SelectedCourseList'
 import { TimetableGrid } from './components/TimetableGrid'
 import { Toast } from './components/Toast'
+import { MyPage } from './components/MyPage'
 
 function useMediaQuery(query: string): boolean {
   const [matches, setMatches] = useState(() => typeof matchMedia === 'function' && matchMedia(query).matches)
@@ -62,6 +65,10 @@ export default function App() {
   const [profileEditorOpen, setProfileEditorOpen] = useState(false)
   const [authOpen, setAuthOpen] = useState(false)
   const [authSession, setAuthSession] = useState<AuthSession>({ available: false, authenticated: false, studentNumber: null, expiresAt: null })
+  const [, setCurrentUser] = useState<UserInfo | null>(null)
+  const [sessionExpired, setSessionExpired] = useState(false)
+  const [reviewSection, setReviewSection] = useState<Section | null>(null)
+  const [courseStats, setCourseStats] = useState<ReadonlyMap<string, CourseStats>>(new Map())
   const [commonRules, setCommonRules] = useState<CommonRules | null>(null)
   const [departments, setDepartments] = useState<DepartmentSource[]>([])
   const [majorRequired, setMajorRequired] = useState<MajorRequiredCourses | null>(null)
@@ -102,6 +109,22 @@ export default function App() {
     setToast(message)
     setToastUndoable(undoable)
   }, [])
+  const handleUserChange = useCallback((user: UserInfo | null) => {
+    setCurrentUser(user)
+    if (!user) {
+      setAuthSession((current) => ({ available: current.available, authenticated: false, studentNumber: null, expiresAt: null }))
+      return
+    }
+    if (user.department && user.grade) {
+      setProfile((current) => ({
+        schemaVersion: 2,
+        department: user.department!,
+        currentGrade: user.grade as 1 | 2 | 3 | 4,
+        academicBasis: current?.academicBasis ?? null,
+        updatedAt: new Date().toISOString(),
+      }))
+    }
+  }, [])
   const focusPreviewBar = useCallback(() => requestAnimationFrame(() => requestAnimationFrame(() => {
     previewBarRef.current?.scrollIntoView?.({ block: 'start' })
     previewBarRef.current?.focus()
@@ -126,10 +149,26 @@ export default function App() {
 
   useEffect(() => { fetchCatalog() }, []) // initial catalog load only
   useEffect(() => {
-    loadAuthSession().then(setAuthSession).catch(() => { /* guest mode remains available */ })
+    loadAuthSession().then(async (session) => {
+      setAuthSession(session)
+      if (session.authenticated) {
+        const user = await loadCurrentUser()
+        setCurrentUser(user)
+      }
+    }).catch(() => { /* guest mode remains available */ })
+    loadCourseStats().then((items) => setCourseStats(new Map(items.map((item) => [item.courseCode, item])))).catch(() => { /* search remains available without review aggregates */ })
     loadCommonRules().then(setCommonRules).catch(() => { /* requirements UI shows its fallback state */ })
     loadDepartmentSources().then((value) => setDepartments(value.departments)).catch(() => { /* profile can be edited after a retry/reload */ })
     loadMajorRequiredCourses().then(setMajorRequired).catch(() => { /* never guess major-required courses */ })
+  }, [])
+  useEffect(() => {
+    const expired = () => {
+      setAuthSession((current) => ({ available: current.available, authenticated: false, studentNumber: null, expiresAt: null }))
+      setCurrentUser(null)
+      setSessionExpired(true)
+    }
+    addEventListener('timetabler:session-expired', expired)
+    return () => removeEventListener('timetabler:session-expired', expired)
   }, [])
   useEffect(() => {
     try { localStorage.setItem('pl-timetabler:draft:v1', JSON.stringify(state.present)) } catch { showToast('브라우저 저장 공간이 부족해 자동 저장하지 못했습니다.') }
@@ -292,23 +331,51 @@ export default function App() {
   }
   const exportImage = () => exportTimetablePng(activeSections, state.present.semester)
 
+  const refreshCourseStats = () => loadCourseStats().then((items) => setCourseStats(new Map(items.map((item) => [item.courseCode, item])))).catch(() => undefined)
+  const handleAuthSession = (session: AuthSession) => {
+    setAuthSession(session)
+    if (!session.authenticated) { setCurrentUser(null); return }
+    setSessionExpired(false)
+    loadCurrentUser().then((user) => {
+      setCurrentUser(user)
+      if (!user.profileCompleted) {
+        showToast('이름과 학적정보, 개인정보 동의를 등록해 주세요.')
+        navigate('/mypage')
+      }
+    }).catch(() => undefined)
+  }
+
   const completeProfile = (next: AcademicProfile) => {
     try { saveAcademicProfile(next) } catch { showToast('학적 정보를 브라우저에 저장하지 못했습니다.') }
     setProfile(next); setCandidatePreview(null); setOnboardingOpen(false); setProfileEditorOpen(false); showToast(`${next.department} 기준을 적용했습니다.`)
+    if (authSession.authenticated) updateCurrentUser({
+      grade: next.currentGrade,
+      department: next.department,
+      admissionYear: next.academicBasis?.admissionYear ?? null,
+      entryType: next.academicBasis?.entryType ?? null,
+      studentType: next.academicBasis?.studentType ?? null,
+      sectionGroup: next.academicBasis?.sectionGroup ?? null,
+    }).then(setCurrentUser).catch(() => showToast('브라우저에는 저장했지만 계정정보 동기화에 실패했습니다.'))
   }
   const skipOnboarding = () => {
     try { completeOnboardingWithoutProfile() } catch { /* the current visit can still continue */ }
     setOnboardingOpen(false)
   }
 
-  if (route === '/requirements') return <><RequirementsPage catalog={catalog} profile={profile} onBack={() => navigate('/')} onAddCourse={(section) => { addSection(section, 'must'); navigate('/') }} /><Toast message={toast} onClose={() => setToast(null)} /></>
+  const authNotice = sessionExpired && <div className="session-expired-notice" role="alert"><span>로그인 세션이 만료되었습니다. 다시 로그인해 주세요.</span><button type="button" onClick={() => setAuthOpen(true)}>다시 로그인</button></div>
+  if (route === '/requirements') return <>{authNotice}<RequirementsPage catalog={catalog} profile={profile} majorRequired={majorRequired} authenticated={authSession.authenticated} onBack={() => navigate('/')} onAddCourse={(section) => { addSection(section, 'must'); navigate('/') }} /><AuthSheet open={authOpen} session={authSession} onSession={handleAuthSession} onClose={() => setAuthOpen(false)} /><Toast message={toast} onClose={() => setToast(null)} /></>
+  if (route === '/mypage') return <>{authNotice}{authSession.authenticated ? <MyPage currentDraft={state.present} departments={departments} onBack={() => navigate('/')} onLoadTimetable={(draft) => { dispatch({ type: 'LOAD', snapshot: draft }); navigate('/'); showToast('저장한 시간표를 불러왔습니다.') }} onUserChange={handleUserChange} onMessage={showToast} /> : <main className="status-page"><h1>로그인이 필요합니다.</h1><p>시간표 저장, 이수과목과 리뷰는 학교 이메일 로그인 후 이용할 수 있습니다.</p><button type="button" className="primary-button" onClick={() => setAuthOpen(true)}>학교 이메일 로그인</button><button type="button" className="text-button" onClick={() => navigate('/')}>시간표로 돌아가기</button></main>}<AuthSheet open={authOpen} session={authSession} onSession={handleAuthSession} onClose={() => setAuthOpen(false)} /><Toast message={toast} onClose={() => setToast(null)} /></>
+  const sharedCode = route.startsWith('/shared/') ? decodeURIComponent(route.slice('/shared/'.length)) : null
+  if (sharedCode) return <><SharedTimetablePage code={sharedCode} onBack={() => navigate('/')} onLoad={(draft) => { dispatch({ type: 'LOAD', snapshot: draft }); navigate('/'); showToast('공유 시간표를 편집기로 복사했습니다.') }} /><Toast message={toast} onClose={() => setToast(null)} /></>
+  if (route !== '/') return <main className="status-page"><h1>페이지를 찾을 수 없습니다.</h1><p>주소가 올바른지 확인해 주세요.</p><button type="button" className="primary-button" onClick={() => navigate('/')}>시간표로 이동</button></main>
 
   const candidateBasket = () => <CandidateCourseBasket items={state.present.items} sectionById={sectionById} onAdd={openCandidateSearch} onPromote={(section) => addSection(section, 'want')} onRemove={removePassiveCourse} />
   const toolsContent = <>{!isDesktopDrag && candidateBasket()}<PreferencesPanel preferences={state.present.preferences} onChange={(preferences) => dispatch({ type: 'PREFERENCES', preferences })} /><OptimizerPanel draft={state.present} draftFingerprint={draftFingerprint} sections={catalog} onPreview={previewCandidate} /></>
   const courseEntry = (compact = false) => <CourseEntryPanel compact={compact} profile={profile} onRequired={() => setRequiredOpen(true)} onEditProfile={() => setProfileEditorOpen(true)} onSearch={() => openCourseSearch()} />
 
   return <div className="app-shell">
-    <AppHeader credits={metrics.credits} profile={profile} authSession={authSession} canUndo={!!state.past.length} canRedo={!!state.future.length} applicationCount={activeSections.length} onUndo={() => dispatch({ type: 'UNDO' })} onRedo={() => dispatch({ type: 'REDO' })} onShare={share} onApplicationList={() => setApplicationListOpen(true)} onNavigate={navigate} onProfile={() => setProfileEditorOpen(true)} onAccount={() => setAuthOpen(true)} />
+    {authNotice}
+    <AppHeader credits={metrics.credits} profile={profile} authSession={authSession} canUndo={!!state.past.length} canRedo={!!state.future.length} applicationCount={activeSections.length} onUndo={() => dispatch({ type: 'UNDO' })} onRedo={() => dispatch({ type: 'REDO' })} onShare={share} onApplicationList={() => setApplicationListOpen(true)} onNavigate={navigate} onProfile={() => setProfileEditorOpen(true)} onAccount={() => authSession.authenticated ? navigate('/mypage') : setAuthOpen(true)} />
     {catalogError && <div className="global-error" role="alert"><span>{catalogError}</span><button type="button" onClick={fetchCatalog}>다시 시도</button></div>}
     {catalogMeta?.offline && <div className="data-status" role="status"><strong>저장된 데이터 사용 중</strong><span>{catalogMeta.updatedAt} 갱신본 · 연결 복구 후 자동 확인</span></div>}
     <main className="editor-layout">
@@ -319,12 +386,13 @@ export default function App() {
       {isDesktopTools ? <aside className="tools-panel" aria-label="자동완성">{toolsContent}</aside> : <dialog className="tools-dialog" ref={toolsDialogRef} aria-labelledby="tools-dialog-title" onCancel={(event) => { event.preventDefault(); closeTools() }}><div className="mobile-tools-header"><h2 id="tools-dialog-title">자동완성</h2><button ref={toolsCloseRef} type="button" onClick={() => closeTools()}>닫기</button></div>{toolsContent}</dialog>}
     </main>
     <div className="mobile-action-bar"><button type="button" className="secondary-button" onClick={(event) => openTools(event.currentTarget)}><SlidersIcon />자동완성</button><button type="button" className="primary-button" onClick={() => openCourseSearch()}><PlusIcon />과목 찾기</button></div>
-    <CourseSearchSheet open={searchOpen} initialMode={searchMode} destination={searchDestination} sections={catalog} items={state.present.items} profile={profile} onClose={() => setSearchOpen(false)} onAdd={addSection} />
+    <CourseSearchSheet open={searchOpen} initialMode={searchMode} destination={searchDestination} sections={catalog} items={state.present.items} profile={profile} courseStats={courseStats} onClose={() => setSearchOpen(false)} onAdd={addSection} onReviews={(section) => { setSearchOpen(false); requestAnimationFrame(() => setReviewSection(section)) }} />
     <RequiredCourseSheet open={requiredOpen} profile={profile} rules={commonRules} majorRequired={majorRequired} catalog={catalog} items={state.present.items} sectionById={sectionById} onClose={() => setRequiredOpen(false)} onEditProfile={editProfileFromRequired} onAddRequired={(section) => addSection(section, 'must')} />
     <ApplicationListSheet open={applicationListOpen} items={state.present.items} sectionById={sectionById} onApplyBackup={applyBackup} onMessage={(message) => showToast(message)} onExportPng={exportImage} onExportPdf={() => print()} onClose={() => setApplicationListOpen(false)} />
     <SectionDetailSheet section={selectedSection} role={selectedItem?.role ?? 'want'} locked={selectedItem?.locked ?? false} professorLocked={selectedItem?.professorLocked ?? false} professorLockAvailable={professorLockAvailable} alternatives={alternatives} onClose={() => setSelectedId(null)} onRole={(role) => selectedSection && dispatch({ type: 'ITEMS', items: itemsWithCourseRole(selectedSection.id, role, state.present.items, sectionById) })} onAdjustmentMode={(mode) => selectedSection && dispatch({ type: 'PATCH_ITEM', sectionId: selectedSection.id, patch: { locked: mode === 'SECTION', professorLocked: mode === 'PROFESSOR' } })} onRemove={removeSection} onSwap={swapSection} />
     {(onboardingOpen || profileEditorOpen) && <Onboarding departments={departments} initialProfile={profile} mode={profileEditorOpen ? 'EDIT' : 'FIRST_RUN'} authAvailable={authSession.available} onComplete={completeProfile} onSkip={profileEditorOpen ? () => setProfileEditorOpen(false) : skipOnboarding} onLogin={() => setAuthOpen(true)} />}
-    <AuthSheet open={authOpen} session={authSession} onSession={setAuthSession} onClose={() => setAuthOpen(false)} />
+    <ReviewSheet section={reviewSection} authSession={authSession} onClose={() => setReviewSection(null)} onLogin={() => { setReviewSection(null); setAuthOpen(true) }} onChanged={refreshCourseStats} />
+    <AuthSheet open={authOpen} session={authSession} onSession={handleAuthSession} onClose={() => setAuthOpen(false)} />
     <Toast message={toast} onClose={() => setToast(null)} onUndo={toastUndoable && state.past.length ? () => { dispatch({ type: 'UNDO' }); setToast(null); setToastUndoable(false) } : undefined} />
   </div>
 }

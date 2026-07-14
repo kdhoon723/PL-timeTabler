@@ -3,6 +3,7 @@ from typing import Annotated
 from fastapi import APIRouter, HTTPException, Query
 
 from timetabler.api.dependencies import CatalogDependency
+from timetabler.api.resource_schemas import SemesterVersionRead
 from timetabler.catalog.models import CatalogPage, Semester
 
 router = APIRouter(tags=["catalog"])
@@ -11,6 +12,21 @@ router = APIRouter(tags=["catalog"])
 @router.get("/semesters", response_model=tuple[Semester, ...])
 async def semesters(catalog: CatalogDependency) -> tuple[Semester, ...]:
     return catalog.semesters()
+
+
+@router.get("/semesters/{semester}/version", response_model=SemesterVersionRead)
+async def semester_version(
+    semester: str,
+    catalog: CatalogDependency,
+) -> SemesterVersionRead:
+    snapshot = catalog.snapshot
+    if semester != snapshot.semester:
+        raise HTTPException(status_code=404, detail="semester not found")
+    return SemesterVersionRead(
+        semester=snapshot.semester,
+        dataset_version=snapshot.dataset_version,
+        updated_at=snapshot.prepared_at,
+    )
 
 
 @router.get("/catalog/{semester}", response_model=CatalogPage)

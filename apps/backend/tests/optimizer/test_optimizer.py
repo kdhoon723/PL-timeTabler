@@ -221,6 +221,30 @@ class BacktrackingOptimizerTests(unittest.TestCase):
         self.assertEqual(result.status, SolverStatus.FAILED)
         self.assertIn("multiple current", result.error or "")
 
+    def test_hard_day_time_and_daily_gap_constraints(self) -> None:
+        too_early = section("A-1", "A", 3, Session(0, 8 * 60, 9 * 60))
+        allowed = section("A-2", "A", 3, Session(1, 9 * 60, 10 * 60))
+        long_gap = section("B-1", "B", 3, Session(1, 12 * 60, 13 * 60))
+        short_gap = section("B-2", "B", 3, Session(1, 10 * 60 + 30, 11 * 60 + 30))
+        excluded_day = section("C-1", "C", 3, Session(4, 9 * 60, 10 * 60))
+        request = OptimizationRequest(
+            sections=(too_early, allowed, long_gap, short_gap, excluded_day),
+            min_credits=6,
+            max_credits=6,
+            required_course_ids=frozenset({"A", "B"}),
+            preferences=Preferences(
+                excluded_days=frozenset({4}),
+                hard_earliest_start_minute=9 * 60,
+                hard_latest_end_minute=18 * 60,
+                max_gap_minutes=60,
+            ),
+        )
+
+        result = BacktrackingOptimizer().solve(request)
+
+        self.assertEqual(result.status, SolverStatus.OPTIMAL)
+        self.assertEqual(result.candidates[0].section_ids, ("A-2", "B-2"))
+
 
 @unittest.skipUnless(
     CpSatOptimizer().solve(OptimizationRequest(sections=())).error is None,
@@ -270,6 +294,30 @@ class CpSatOptimizerTests(unittest.TestCase):
 
         self.assertEqual(result.status, SolverStatus.INFEASIBLE)
         self.assertTrue(result.relaxations)
+
+    def test_cp_sat_enforces_hard_day_time_and_gap_preferences(self) -> None:
+        early = section("A-1", "A", 3, Session(0, 8 * 60, 9 * 60))
+        allowed = section("A-2", "A", 3, Session(1, 9 * 60, 10 * 60))
+        long_gap = section("B-1", "B", 3, Session(1, 12 * 60, 13 * 60))
+        compact = section("B-2", "B", 3, Session(1, 10 * 60 + 30, 11 * 60 + 30))
+        request = OptimizationRequest(
+            sections=(early, allowed, long_gap, compact),
+            min_credits=6,
+            max_credits=6,
+            required_course_ids=frozenset({"A", "B"}),
+            preferences=Preferences(
+                excluded_days=frozenset({0}),
+                hard_earliest_start_minute=9 * 60,
+                hard_latest_end_minute=18 * 60,
+                max_gap_minutes=60,
+            ),
+            max_candidates=1,
+        )
+
+        result = CpSatOptimizer().solve(request)
+
+        self.assertTrue(result.candidates)
+        self.assertEqual(result.candidates[0].section_ids, ("A-2", "B-2"))
 
     def test_target_credits_prefers_closest_feasible_credit_total(self) -> None:
         two_credits = section("A-1", "A", 2, Session(0, 9 * 60, 10 * 60))

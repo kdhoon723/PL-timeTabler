@@ -22,6 +22,21 @@ describe('optimizer credit preferences', () => {
     fireEvent.change(screen.getByRole('spinbutton', { name: '목표 학점' }), { target: { value: '24' } })
     expect(screen.getByRole('spinbutton', { name: '최대 학점' })).toHaveValue(24)
   })
+
+  it('exposes strict day, time and maximum-gap constraints', () => {
+    render(<Harness />)
+    fireEvent.click(screen.getByRole('checkbox', { name: '금요일 완전 제외' }))
+    expect(screen.getByRole('checkbox', { name: '금요일 완전 제외' })).toBeChecked()
+
+    fireEvent.click(screen.getByText('세부 조건 조정'))
+    fireEvent.change(screen.getByLabelText('수업 시작 가능 시각'), { target: { value: '09:00' } })
+    fireEvent.change(screen.getByLabelText('수업 종료 제한 시각'), { target: { value: '18:00' } })
+    fireEvent.change(screen.getByLabelText('하루 허용 공강 합계'), { target: { value: '60' } })
+
+    expect(screen.getByLabelText('수업 시작 가능 시각')).toHaveValue('09:00')
+    expect(screen.getByLabelText('수업 종료 제한 시각')).toHaveValue('18:00')
+    expect(screen.getByLabelText('하루 허용 공강 합계')).toHaveValue('60')
+  })
 })
 
 describe('student-language preference presets', () => {

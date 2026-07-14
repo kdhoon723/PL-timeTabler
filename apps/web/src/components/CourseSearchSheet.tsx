@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import type { AcademicProfile, CourseRole, Day, PlanItem, Section } from '../types'
+import type { AcademicProfile, CourseRole, CourseStats, Day, PlanItem, Section } from '../types'
 import { canPlace } from '../domain/conflicts'
 import { formatSession } from '../domain/time'
 import { useSheetSwipeDismiss } from '../hooks/useSheetSwipeDismiss'
@@ -12,8 +12,10 @@ interface Props {
   sections: Section[]
   items: PlanItem[]
   profile: AcademicProfile | null
+  courseStats?: ReadonlyMap<string, CourseStats>
   onClose: () => void
   onAdd: (section: Section, role?: CourseRole) => void
+  onReviews?: (section: Section) => void
 }
 
 export type CourseSearchMode = 'ALL' | 'MAJOR' | 'LIBERAL'
@@ -31,13 +33,17 @@ function academicUnitFromCategory(category: string): string | null {
   return slash < 0 ? null : category.slice(slash + 1, -1)
 }
 
-export function CourseSearchSheet({ open, initialMode = 'ALL', destination = 'TIMETABLE', sections, items, profile, onClose, onAdd }: Props) {
+type CourseSort = 'NAME_ASC' | 'NAME_DESC' | 'POPULARITY' | 'RATING' | 'REVIEWS'
+
+export function CourseSearchSheet({ open, initialMode = 'ALL', destination = 'TIMETABLE', sections, items, profile, courseStats, onClose, onAdd, onReviews }: Props) {
   const dialogRef = useRef<HTMLDialogElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
   const wasOpenRef = useRef(false)
   const [query, setQuery] = useState('')
   const [category, setCategory] = useState('전체')
   const [day, setDay] = useState<'전체' | Day>('전체')
+  const [grade, setGrade] = useState<'전체' | '1' | '2' | '3' | '4'>('전체')
+  const [sort, setSort] = useState<CourseSort>('NAME_ASC')
   const [advancedFiltersOpen, setAdvancedFiltersOpen] = useState(false)
   const [expandedCourseCode, setExpandedCourseCode] = useState<string | null>(null)
   const preferredCategory = useMemo(() => {
@@ -80,6 +86,8 @@ export function CourseSearchSheet({ open, initialMode = 'ALL', destination = 'TI
       setCategory(categories.includes(initialCategory) ? initialCategory : '전체')
       setQuery('')
       setDay('전체')
+      setGrade('전체')
+      setSort('NAME_ASC')
       setAdvancedFiltersOpen(false)
       setExpandedCourseCode(null)
     }
@@ -97,12 +105,25 @@ export function CourseSearchSheet({ open, initialMode = 'ALL', destination = 'TI
       const categoryMatches = category === '전체'
         || category === LIBERAL_ELECTIVE_CATEGORY && section.category.startsWith('교양선택')
         || section.category === category
-      return (!normalized || haystack.includes(normalized)) && categoryMatches && (day === '전체' || section.sessions.some((session) => session.day === day))
+      const sectionGrade = courseStats?.get(section.courseCode)?.grade
+      return (!normalized || haystack.includes(normalized)) && categoryMatches && (day === '전체' || section.sessions.some((session) => session.day === day)) && (grade === '전체' || sectionGrade === Number(grade))
     })
     const grouped = new Map<string, Section[]>()
     for (const section of matched) grouped.set(section.courseCode, [...(grouped.get(section.courseCode) ?? []), section])
-    return Array.from(grouped.values()).slice(0, 20)
-  }, [category, day, query, sections])
+    const result = Array.from(grouped.values())
+    result.sort((left, right) => {
+      const a = left[0]!
+      const b = right[0]!
+      const aStats = courseStats?.get(a.courseCode)
+      const bStats = courseStats?.get(b.courseCode)
+      if (sort === 'NAME_DESC') return b.name.localeCompare(a.name, 'ko') || b.courseCode.localeCompare(a.courseCode)
+      if (sort === 'POPULARITY') return (bStats?.popularityScore ?? 0) - (aStats?.popularityScore ?? 0) || a.name.localeCompare(b.name, 'ko')
+      if (sort === 'RATING') return (bStats?.averageRating ?? 0) - (aStats?.averageRating ?? 0) || (bStats?.reviewCount ?? 0) - (aStats?.reviewCount ?? 0) || a.name.localeCompare(b.name, 'ko')
+      if (sort === 'REVIEWS') return (bStats?.reviewCount ?? 0) - (aStats?.reviewCount ?? 0) || (bStats?.averageRating ?? 0) - (aStats?.averageRating ?? 0) || a.name.localeCompare(b.name, 'ko')
+      return a.name.localeCompare(b.name, 'ko') || a.courseCode.localeCompare(b.courseCode)
+    })
+    return result.slice(0, 20)
+  }, [category, courseStats, day, grade, query, sections, sort])
 
   const closeSheet = () => {
     setExpandedCourseCode(null)
@@ -111,7 +132,7 @@ export function CourseSearchSheet({ open, initialMode = 'ALL', destination = 'TI
 
   const candidateMode = destination === 'CANDIDATES'
   const liberalFilterAvailable = categories.includes(LIBERAL_ELECTIVE_CATEGORY)
-  const activeFilterCount = Number(category !== '전체') + Number(day !== '전체')
+  const activeFilterCount = Number(category !== '전체') + Number(day !== '전체') + Number(grade !== '전체')
 
   const toggleCategory = (nextCategory: string) => {
     setCategory((value) => value === nextCategory ? '전체' : nextCategory)
@@ -121,6 +142,7 @@ export function CourseSearchSheet({ open, initialMode = 'ALL', destination = 'TI
   const resetFilters = () => {
     setCategory('전체')
     setDay('전체')
+    setGrade('전체')
     setExpandedCourseCode(null)
   }
   const sheetDrag = useSheetSwipeDismiss(dialogRef, closeSheet)
@@ -141,6 +163,8 @@ export function CourseSearchSheet({ open, initialMode = 'ALL', destination = 'TI
       {advancedFiltersOpen && <div className="filter-row">
         <label><span>이수구분</span><select value={category} onChange={(event) => { setCategory(event.target.value); setExpandedCourseCode(null) }}>{categories.map((value) => <option value={value} key={value}>{value === preferredCategory && profile ? `내 전공 · ${profile.department}` : value}</option>)}</select></label>
         <label><span>요일</span><select value={day} onChange={(event) => { setDay(event.target.value as '전체' | Day); setExpandedCourseCode(null) }}>{['전체', '월', '화', '수', '목', '금', '토'].map((value) => <option value={value} key={value}>{value}</option>)}</select></label>
+        <label><span>학년</span><select value={grade} onChange={(event) => { setGrade(event.target.value as typeof grade); setExpandedCourseCode(null) }}><option value="전체">전체</option><option value="1">1학년</option><option value="2">2학년</option><option value="3">3학년</option><option value="4">4학년</option></select></label>
+        <label><span>정렬</span><select value={sort} onChange={(event) => setSort(event.target.value as CourseSort)}><option value="NAME_ASC">이름순</option><option value="NAME_DESC">이름 역순</option><option value="POPULARITY">인기순</option><option value="RATING">평점순</option><option value="REVIEWS">리뷰 많은 순</option></select></label>
       </div>}
     </div>
     <div className="search-results" aria-live="polite">
@@ -154,6 +178,7 @@ export function CourseSearchSheet({ open, initialMode = 'ALL', destination = 'TI
         const titleId = `course-${first.courseCode}-title`
         const sectionsId = `course-${first.courseCode}-sections`
         const coursePlanned = plannedCourseCodes.has(first.courseCode)
+        const stats = courseStats?.get(first.courseCode)
         if (candidateMode) return <section className="course-group candidate-course-group" key={first.courseCode} aria-labelledby={titleId}>
           <div className="candidate-course-row">
             <button type="button" className="course-group-toggle" id={titleId} aria-expanded={expanded} aria-controls={sectionsId} onClick={() => setExpandedCourseCode((value) => value === first.courseCode ? null : first.courseCode)}>
@@ -165,8 +190,9 @@ export function CourseSearchSheet({ open, initialMode = 'ALL', destination = 'TI
         </section>
         return <section className="course-group" key={first.courseCode} aria-labelledby={titleId}>
           <button type="button" className="course-group-toggle" id={titleId} aria-expanded={expanded} aria-controls={sectionsId} onClick={() => setExpandedCourseCode((value) => value === first.courseCode ? null : first.courseCode)}>
-            <span><strong>{first.name}</strong><small>{first.courseCode} · {first.category} · {first.credits}학점</small></span><span>{group.length}개 분반 보기</span>
+            <span><strong>{first.name}</strong><small>{first.courseCode} · {first.category} · {first.credits}학점{stats?.reviewCount ? ` · ★ ${stats.averageRating.toFixed(1)} (${stats.reviewCount})` : ''}</small></span><span>{group.length}개 분반 보기</span>
           </button>
+          {onReviews && <button type="button" className="course-review-link" onClick={() => onReviews(first)}>리뷰</button>}
           {expanded && <div className="section-options" id={sectionsId}>
             {group.map((section) => {
               const current = currentSection?.id === section.id

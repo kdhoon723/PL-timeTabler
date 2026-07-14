@@ -43,8 +43,12 @@ export interface Preferences {
   minCredits: number
   maxCredits: number
   preferredFreeDays: Day[]
+  excludedDays: Day[]
   avoidBefore: string | null
   avoidAfter: string | null
+  hardStart: string | null
+  hardEnd: string | null
+  maxGapMinutes: number | null
   minLunchMinutes: number
   maxDailyMinutes: number
   compactness: number
@@ -193,4 +197,97 @@ export interface AuthSession {
   authenticated: boolean
   studentNumber: string | null
   expiresAt: string | null
+}
+
+export interface UserInfo {
+  id: string
+  studentNumber: string
+  name: string | null
+  grade: number | null
+  department: string | null
+  admissionYear: number | null
+  entryType: EntryType | null
+  studentType: StudentClassification | null
+  sectionGroup: SectionGroup | null
+  majorPath: 'ADVANCED_MAJOR' | 'DOUBLE_MAJOR' | 'MINOR' | 'MICRO_MAJOR' | null
+  profileCompleted: boolean
+  createdAt: string
+  updatedAt: string
+}
+
+export interface PrivacyConsent {
+  id: string
+  consentVersion: string
+  agreed: boolean
+  agreedAt: string
+}
+
+export interface SavedTimetable {
+  id: string
+  name: string
+  semester: string
+  dataVersion: string | null
+  items: PlanItem[]
+  preferences: Preferences
+  favorite: boolean
+  createdAt: string
+  updatedAt: string
+}
+
+export interface SavedTimetableDetail {
+  timetable: SavedTimetable
+  sections: Section[]
+  metrics: { credits: number; campusDays: number; gapMinutes: number }
+  conflictSectionIds: [string, string][]
+}
+
+export interface RatingSummary {
+  averageRating: number
+  reviewCount: number
+  popularityScore: number
+}
+
+export interface CourseStats extends RatingSummary {
+  courseCode: string
+  name: string
+  category: string
+  credits: number
+  grade: number | null
+  sectionCount: number
+  professors: string[]
+}
+
+export interface CourseReview {
+  id: string
+  courseCode: string
+  courseName: string
+  professor: string | null
+  semester: string
+  rating: number
+  content: string
+  mine: boolean
+  createdAt: string
+  updatedAt: string
+}
+
+export type CompletedCourseStatus = 'IN_PROGRESS' | 'COMPLETED'
+
+export interface CompletedCourse {
+  id: string
+  courseCode: string | null
+  courseName: string
+  credits: number
+  category: string
+  area: string | null
+  semester: string | null
+  status: CompletedCourseStatus
+  createdAt: string
+  updatedAt: string
+}
+
+export interface CreditSummary {
+  totalCredits: number
+  majorCredits: number
+  liberalCredits: number
+  areaCredits: Record<string, number>
 }

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from collections import Counter
+from collections import Counter, defaultdict
 from itertools import combinations
 
 from .models import OptimizationRequest, Section, Session
@@ -88,6 +88,20 @@ def selection_is_feasible(request: OptimizationRequest, selected: tuple[Section,
         return False
     if any(section.verified_eligible is False for section in selected):
         return False
+    if any(
+        session.day in request.preferences.excluded_days
+        or (
+            request.preferences.hard_earliest_start_minute is not None
+            and session.start_minute < request.preferences.hard_earliest_start_minute
+        )
+        or (
+            request.preferences.hard_latest_end_minute is not None
+            and session.end_minute > request.preferences.hard_latest_end_minute
+        )
+        for section in selected
+        for session in section.sessions
+    ):
+        return False
 
     credits = sum(section.credits for section in selected)
     if not request.min_credits <= credits <= request.max_credits:
@@ -96,6 +110,18 @@ def selection_is_feasible(request: OptimizationRequest, selected: tuple[Section,
     for group in request.required_groups:
         if len(selected_courses & group.course_ids) < group.minimum_courses:
             return False
+
+    if request.preferences.max_gap_minutes is not None:
+        meetings_by_day: dict[int, list[Session]] = defaultdict(list)
+        for section in selected:
+            for meeting in section.sessions:
+                meetings_by_day[meeting.day].append(meeting)
+        for meetings in meetings_by_day.values():
+            first = min(meeting.start_minute for meeting in meetings)
+            last = max(meeting.end_minute for meeting in meetings)
+            occupied = sum(meeting.end_minute - meeting.start_minute for meeting in meetings)
+            if last - first - occupied > request.preferences.max_gap_minutes:
+                return False
 
     return not any(sections_conflict(left, right) for left, right in combinations(selected, 2))
 

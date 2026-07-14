@@ -35,7 +35,7 @@ describe('candidate preview integration', () => {
   beforeEach(() => {
     localStorage.clear()
     localStorage.setItem('pl-timetabler:onboarding:v1', 'complete')
-    const draft: DraftSnapshot = { schemaVersion: 1, semester: '2026-1', dataVersion: 'test', items: [{ sectionId: current.id, role: 'want', locked: false }], preferences: { targetCredits: 18, minCredits: 15, maxCredits: 21, preferredFreeDays: [], avoidBefore: null, avoidAfter: null, minLunchMinutes: 0, maxDailyMinutes: 480, compactness: 50, minimizeChanges: true }, updatedAt: '2026-07-11T00:00:00Z' }
+    const draft: DraftSnapshot = { schemaVersion: 1, semester: '2026-1', dataVersion: 'test', items: [{ sectionId: current.id, role: 'want', locked: false }], preferences: { targetCredits: 18, minCredits: 15, maxCredits: 21, preferredFreeDays: [], excludedDays: [], avoidBefore: null, avoidAfter: null, hardStart: null, hardEnd: null, maxGapMinutes: null, minLunchMinutes: 0, maxDailyMinutes: 480, compactness: 50, minimizeChanges: true }, updatedAt: '2026-07-11T00:00:00Z' }
     localStorage.setItem('pl-timetabler:draft:v1', JSON.stringify(draft))
     history.replaceState({}, '', '/')
     vi.mocked(loadCatalog).mockResolvedValue({ catalog, offline: false })

@@ -114,8 +114,14 @@ def _to_request(job: ClaimedJob, catalog: CatalogRepository) -> OptimizationRequ
             preferred_days_off=frozenset(
                 "월화수목금토일".index(d) for d in job.request.preferences.preferred_days_off
             ),
+            excluded_days=frozenset(
+                "월화수목금토일".index(d) for d in job.request.preferences.excluded_days
+            ),
             earliest_start_minute=job.request.preferences.avoid_before_minute,
             latest_end_minute=job.request.preferences.avoid_after_minute,
+            hard_earliest_start_minute=job.request.preferences.hard_start_minute,
+            hard_latest_end_minute=job.request.preferences.hard_end_minute,
+            max_gap_minutes=job.request.preferences.max_gap_minutes,
             max_daily_minutes=job.request.preferences.max_daily_minutes,
             min_lunch_minutes=job.request.preferences.min_lunch_minutes,
             gap_weight_percent=(

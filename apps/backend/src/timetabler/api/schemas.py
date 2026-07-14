@@ -52,8 +52,12 @@ class OptimizationJobStatus(StrEnum):
 
 class OptimizationPreferences(APIModel):
     preferred_days_off: tuple[Day, ...] = ()
+    excluded_days: tuple[Day, ...] = ()
     avoid_before_minute: int | None = Field(default=None, ge=0, lt=24 * 60)
     avoid_after_minute: int | None = Field(default=None, gt=0, le=24 * 60)
+    hard_start_minute: int | None = Field(default=None, ge=0, lt=24 * 60)
+    hard_end_minute: int | None = Field(default=None, gt=0, le=24 * 60)
+    max_gap_minutes: int | None = Field(default=None, ge=0, le=24 * 60)
     minimize_campus_days: bool = True
     minimize_gap_minutes: bool = True
     gap_weight_percent: int = Field(default=50, ge=0, le=100)
@@ -65,6 +69,16 @@ class OptimizationPreferences(APIModel):
     def validate_days_off(self) -> OptimizationPreferences:
         if len(set(self.preferred_days_off)) != len(self.preferred_days_off):
             raise ValueError("preferredDaysOff contains duplicates")
+        if len(set(self.excluded_days)) != len(self.excluded_days):
+            raise ValueError("excludedDays contains duplicates")
+        if set(self.preferred_days_off) & set(self.excluded_days):
+            raise ValueError("preferredDaysOff and excludedDays must be disjoint")
+        if (
+            self.hard_start_minute is not None
+            and self.hard_end_minute is not None
+            and self.hard_start_minute >= self.hard_end_minute
+        ):
+            raise ValueError("hardStartMinute must be before hardEndMinute")
         return self
 
 
@@ -123,6 +137,38 @@ class CandidateMetrics(APIModel):
     last_class_minute: int | None
     target_credit_deviation: float = 0
     unknown_time_sections: int = 0
+
+
+class CandidateCompareRequest(APIModel):
+    current_section_ids: tuple[str, ...] = ()
+    candidate_section_ids: tuple[tuple[str, ...], ...] = Field(min_length=1, max_length=5)
+
+    @model_validator(mode="after")
+    def validate_candidates(self) -> CandidateCompareRequest:
+        if len(set(self.current_section_ids)) != len(self.current_section_ids):
+            raise ValueError("currentSectionIds contains duplicates")
+        if any(len(set(candidate)) != len(candidate) for candidate in self.candidate_section_ids):
+            raise ValueError("candidateSectionIds contains duplicate section ids")
+        return self
+
+
+class CandidateSwapRead(APIModel):
+    from_section_id: str
+    to_section_id: str
+
+
+class CandidateComparisonRead(APIModel):
+    rank: int = Field(ge=1)
+    section_ids: tuple[str, ...]
+    metrics: CandidateMetrics
+    added: tuple[str, ...]
+    removed: tuple[str, ...]
+    swapped: tuple[CandidateSwapRead, ...]
+    conflicts: tuple[tuple[str, str], ...]
+
+
+class CandidateCompareResponse(APIModel):
+    candidates: tuple[CandidateComparisonRead, ...]
 
 
 class OptimizationCandidate(APIModel):

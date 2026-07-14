@@ -34,8 +34,12 @@ describe('optimization draft fingerprint', () => {
       { ...base.preferences, minCredits: base.preferences.minCredits - 1 },
       { ...base.preferences, maxCredits: base.preferences.maxCredits + 1 },
       { ...base.preferences, preferredFreeDays: ['화'] },
+      { ...base.preferences, excludedDays: ['금'] },
       { ...base.preferences, avoidBefore: '09:00' },
       { ...base.preferences, avoidAfter: '18:00' },
+      { ...base.preferences, hardStart: '09:00' },
+      { ...base.preferences, hardEnd: '18:00' },
+      { ...base.preferences, maxGapMinutes: 60 },
       { ...base.preferences, minLunchMinutes: base.preferences.minLunchMinutes + 30 },
       { ...base.preferences, maxDailyMinutes: base.preferences.maxDailyMinutes - 60 },
       { ...base.preferences, compactness: base.preferences.compactness - 10 },
@@ -47,6 +51,7 @@ describe('optimization draft fingerprint', () => {
       { ...base, items: base.items.map((item, index) => index === 0 ? { ...item, sectionId: 'B-2' } : item) },
       { ...base, items: base.items.map((item, index) => index === 0 ? { ...item, role: 'backup' } : item) },
       { ...base, items: base.items.map((item, index) => index === 0 ? { ...item, locked: true } : item) },
+      { ...base, items: base.items.map((item, index) => index === 0 ? { ...item, professorLocked: true } : item) },
       ...changedPreferences.map((preferences) => ({ ...base, preferences })),
     ]
 

@@ -83,8 +83,12 @@ class Preferences:
 
     preferred_days_off: frozenset[int] = frozenset()
     avoided_days: frozenset[int] = frozenset()
+    excluded_days: frozenset[int] = frozenset()
     earliest_start_minute: int | None = None
     latest_end_minute: int | None = None
+    hard_earliest_start_minute: int | None = None
+    hard_latest_end_minute: int | None = None
+    max_gap_minutes: int | None = None
     max_campus_days: int | None = None
     max_daily_minutes: int | None = None
     min_lunch_minutes: int = 0
@@ -92,7 +96,7 @@ class Preferences:
     minimize_changes: bool = True
 
     def __post_init__(self) -> None:
-        for day in self.preferred_days_off | self.avoided_days:
+        for day in self.preferred_days_off | self.avoided_days | self.excluded_days:
             if not 0 <= day <= 6:
                 raise ValueError("preference day must be between 0 and 6")
         if (
@@ -102,6 +106,22 @@ class Preferences:
             raise ValueError("earliest_start_minute must be within a day")
         if self.latest_end_minute is not None and not 0 <= self.latest_end_minute <= 24 * 60:
             raise ValueError("latest_end_minute must be within a day")
+        if self.hard_earliest_start_minute is not None and not (
+            0 <= self.hard_earliest_start_minute < 24 * 60
+        ):
+            raise ValueError("hard_earliest_start_minute must be within a day")
+        if self.hard_latest_end_minute is not None and not (
+            0 < self.hard_latest_end_minute <= 24 * 60
+        ):
+            raise ValueError("hard_latest_end_minute must be within a day")
+        if (
+            self.hard_earliest_start_minute is not None
+            and self.hard_latest_end_minute is not None
+            and self.hard_earliest_start_minute >= self.hard_latest_end_minute
+        ):
+            raise ValueError("hard time bounds are invalid")
+        if self.max_gap_minutes is not None and not 0 <= self.max_gap_minutes <= 24 * 60:
+            raise ValueError("max_gap_minutes must be within a day")
         if self.max_campus_days is not None and not 0 <= self.max_campus_days <= 7:
             raise ValueError("max_campus_days must be between 0 and 7")
         if self.max_daily_minutes is not None and not 0 < self.max_daily_minutes <= 24 * 60:
