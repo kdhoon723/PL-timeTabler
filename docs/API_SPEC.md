@@ -4,6 +4,8 @@
 OpenAPI 3.1 원본은 [`contracts/openapi.json`](../contracts/openapi.json)이며, 구현과
 충돌할 경우 OpenAPI snapshot과 FastAPI 라우트가 기준이다.
 
+PostgreSQL 테이블·관계·제약조건은 [`ERD.md`](ERD.md)에 별도로 정리한다.
+
 ## 1. API와 저장소 경계
 
 PostgreSQL과 파일 snapshot을 함께 사용한다. PostgreSQL을 사용하지 않는 구조가
