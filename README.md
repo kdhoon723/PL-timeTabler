@@ -182,7 +182,7 @@ docker compose logs -f api optimizer web
 
 - [`DESIGN.md`](DESIGN.md) — 모바일 우선 제품·UI/UX 규칙
 - [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — 기술·배포·최적화 경계
-- [`docs/ERD.md`](docs/ERD.md) — 실제 PostgreSQL 테이블·관계·제약조건
+- [`docs/ERD.md`](docs/ERD.md) · [`HTML`](docs/ERD.html) — 실제 PostgreSQL 테이블·관계·제약조건
 - [`docs/API_SPEC.md`](docs/API_SPEC.md) — 파일·PostgreSQL 저장 경계와 HTTP API 계약
 - [`docs/PRODUCT_PLAN.md`](docs/PRODUCT_PLAN.md) — 기능과 출시 기준
 - [`docs/IMPLEMENTATION_READINESS.md`](docs/IMPLEMENTATION_READINESS.md) — OR-Tools 검증 기준

@@ -3,6 +3,15 @@
 이 문서는 PL-timeTabler의 **실제 PostgreSQL 스키마**를 나타낸다. 기준 migration은
 Alembic `20260710_0003`이며, 시스템용 `alembic_version` 테이블은 ERD에서 제외한다.
 
+브라우저에서 확대·축소하며 볼 수 있는 버전은 [`ERD.html`](ERD.html)이다.
+
+저장소 루트에서 다음처럼 열 수 있다.
+
+```bash
+python3 -m http.server 8088 --directory docs
+# http://127.0.0.1:8088/ERD.html
+```
+
 API별 저장 위치와 HTTP 계약은 [`API_SPEC.md`](API_SPEC.md), 서비스 경계와 배포 구조는
 [`ARCHITECTURE.md`](ARCHITECTURE.md)를 참고한다.
 
