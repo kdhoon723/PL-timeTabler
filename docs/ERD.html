@@ -3,1141 +3,341 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta
-      name="description"
-      content="PL-timeTabler PostgreSQL 10개 테이블의 관계, 키, 저장 경계를 시각화한 ERD"
-    />
-    <title>PL-timeTabler · PostgreSQL ERD</title>
+    <title>PL-timeTabler ERD</title>
     <style>
-      :root {
-        color-scheme: light dark;
-        --page: #f4f7fb;
-        --page-glow: rgba(37, 99, 235, 0.13);
-        --surface: rgba(255, 255, 255, 0.88);
-        --surface-solid: #ffffff;
-        --surface-soft: #f8fafc;
-        --ink: #172033;
-        --muted: #64748b;
-        --line: #d8e0eb;
-        --line-strong: #b8c5d6;
-        --blue: #2563eb;
-        --blue-soft: #e9f0ff;
-        --teal: #0b6f68;
-        --teal-soft: #e2f8f4;
-        --violet: #7c3aed;
-        --violet-soft: #f1eafe;
-        --amber: #854200;
-        --amber-soft: #fff3df;
-        --danger: #be334a;
-        --danger-soft: #ffe9ed;
-        --shadow: 0 18px 55px rgba(30, 46, 80, 0.12);
-        --entity-shadow: 0 12px 30px rgba(44, 60, 93, 0.12);
-        --grid: rgba(97, 116, 151, 0.09);
-      }
-
-      @media (prefers-color-scheme: dark) {
-        :root {
-          --page: #0b1020;
-          --page-glow: rgba(69, 123, 255, 0.18);
-          --surface: rgba(18, 26, 47, 0.9);
-          --surface-solid: #151e34;
-          --surface-soft: #11192c;
-          --ink: #edf3ff;
-          --muted: #a3b0c6;
-          --line: #2a3853;
-          --line-strong: #435470;
-          --blue: #72a0ff;
-          --blue-soft: #1c315e;
-          --teal: #54d4c4;
-          --teal-soft: #153c3b;
-          --violet: #b993ff;
-          --violet-soft: #352456;
-          --amber: #ffc36d;
-          --amber-soft: #4a321b;
-          --danger: #ff8ba0;
-          --danger-soft: #4d2630;
-          --shadow: 0 22px 70px rgba(0, 0, 0, 0.35);
-          --entity-shadow: 0 14px 34px rgba(0, 0, 0, 0.25);
-          --grid: rgba(137, 157, 197, 0.08);
-        }
-      }
-
       * {
         box-sizing: border-box;
       }
 
-      html {
-        background: var(--page);
-        scroll-behavior: smooth;
-      }
-
       body {
-        min-width: 320px;
         margin: 0;
-        color: var(--ink);
-        background:
-          radial-gradient(circle at 10% -10%, var(--page-glow), transparent 34rem),
-          radial-gradient(circle at 92% 4%, rgba(15, 143, 131, 0.09), transparent 30rem),
-          var(--page);
-        font-family:
-          Inter, Pretendard, "Noto Sans KR", "Apple SD Gothic Neo", system-ui, -apple-system,
-          BlinkMacSystemFont, "Segoe UI", sans-serif;
-      }
-
-      button,
-      a {
-        font: inherit;
-      }
-
-      a {
-        color: var(--blue);
-      }
-
-      .page-shell {
-        width: min(100% - 32px, 1760px);
-        margin: 0 auto;
-        padding: 48px 0 72px;
-      }
-
-      .hero {
-        display: grid;
-        grid-template-columns: minmax(0, 1fr) auto;
-        gap: 28px;
-        align-items: end;
-        margin-bottom: 24px;
-      }
-
-      .eyebrow {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        margin: 0 0 12px;
-        color: var(--blue);
-        font-size: 0.76rem;
-        font-weight: 800;
-        letter-spacing: 0.14em;
-        text-transform: uppercase;
-      }
-
-      .eyebrow::before {
-        width: 26px;
-        height: 2px;
-        border-radius: 99px;
-        background: currentColor;
-        content: "";
+        padding: 24px;
+        color: #111827;
+        background: #ffffff;
+        font-family: Arial, "Noto Sans KR", sans-serif;
       }
 
       h1 {
-        max-width: 900px;
-        margin: 0;
-        font-size: clamp(2rem, 5vw, 4.4rem);
-        font-weight: 840;
-        letter-spacing: -0.055em;
-        line-height: 0.98;
+        margin: 0 0 16px;
+        font-size: 24px;
       }
 
-      .lead {
-        max-width: 760px;
-        margin: 18px 0 0;
-        color: var(--muted);
-        font-size: clamp(0.98rem, 1.6vw, 1.16rem);
-        line-height: 1.7;
-      }
-
-      .revision {
-        display: grid;
-        gap: 6px;
-        min-width: 210px;
-        padding: 15px 17px;
-        border: 1px solid var(--line);
-        border-radius: 16px;
-        background: var(--surface);
-        box-shadow: 0 8px 24px rgba(30, 46, 80, 0.08);
-        backdrop-filter: blur(14px);
-      }
-
-      .revision span {
-        color: var(--muted);
-        font-size: 0.72rem;
-        font-weight: 750;
-        letter-spacing: 0.08em;
-        text-transform: uppercase;
-      }
-
-      .revision strong {
-        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-        font-size: 0.93rem;
-      }
-
-      .toolbar {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 10px;
-        align-items: center;
-        justify-content: space-between;
-        margin-bottom: 12px;
-      }
-
-      .legend,
-      .zoom-controls {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 8px;
-        align-items: center;
-      }
-
-      .legend-item {
-        display: inline-flex;
-        gap: 7px;
-        align-items: center;
-        min-height: 34px;
-        padding: 0 11px;
-        border: 1px solid var(--line);
-        border-radius: 99px;
-        color: var(--muted);
-        background: var(--surface);
-        font-size: 0.76rem;
-        font-weight: 700;
-      }
-
-      .legend-dot {
-        width: 9px;
-        height: 9px;
-        border-radius: 50%;
-      }
-
-      .legend-dot.catalog {
-        background: var(--blue);
-      }
-
-      .legend-dot.job {
-        background: var(--teal);
-      }
-
-      .legend-dot.auth {
-        background: var(--violet);
-      }
-
-      .button {
-        min-width: 38px;
-        height: 38px;
-        padding: 0 12px;
-        border: 1px solid var(--line);
-        border-radius: 11px;
-        color: var(--ink);
-        background: var(--surface-solid);
-        box-shadow: 0 4px 12px rgba(28, 43, 73, 0.07);
-        cursor: pointer;
-        font-size: 0.84rem;
-        font-weight: 750;
-      }
-
-      .button:hover {
-        border-color: var(--line-strong);
-        transform: translateY(-1px);
-      }
-
-      .button:focus-visible,
-      a:focus-visible {
-        outline: 3px solid color-mix(in srgb, var(--blue) 45%, transparent);
-        outline-offset: 3px;
-      }
-
-      #zoom-value {
-        min-width: 58px;
-        color: var(--muted);
-        text-align: center;
-        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-        font-size: 0.8rem;
-      }
-
-      .diagram-surface {
-        overflow: hidden;
-        border: 1px solid var(--line);
-        border-radius: 24px;
-        background: var(--surface);
-        box-shadow: var(--shadow);
-        backdrop-filter: blur(16px);
-      }
-
-      .surface-header {
-        display: flex;
-        gap: 18px;
-        align-items: center;
-        justify-content: space-between;
-        padding: 16px 20px;
-        border-bottom: 1px solid var(--line);
-        color: var(--muted);
-        font-size: 0.78rem;
-      }
-
-      .surface-header strong {
-        color: var(--ink);
-      }
-
-      .viewport {
+      .erd-scroll {
         overflow: auto;
-        width: 100%;
-        min-height: 700px;
-        max-height: min(76vh, 1060px);
-        overscroll-behavior: contain;
-        scrollbar-color: var(--line-strong) transparent;
+        border: 1px solid #d1d5db;
       }
 
-      .canvas-shell {
+      .erd {
         position: relative;
-        width: 1600px;
-        height: 1420px;
-      }
-
-      .diagram {
-        position: absolute;
-        inset: 0 auto auto 0;
-        width: 1600px;
-        height: 1420px;
-        overflow: hidden;
-        background-color: var(--surface-soft);
+        width: 1380px;
+        height: 1280px;
+        background-color: #ffffff;
         background-image:
-          linear-gradient(var(--grid) 1px, transparent 1px),
-          linear-gradient(90deg, var(--grid) 1px, transparent 1px);
-        background-size: 24px 24px;
-        transform-origin: top left;
-      }
-
-      .diagram::before {
-        position: absolute;
-        inset: 0;
-        background:
-          radial-gradient(circle at 6% 8%, var(--blue-soft), transparent 28rem),
-          radial-gradient(circle at 80% 80%, var(--violet-soft), transparent 30rem);
-        opacity: 0.5;
-        pointer-events: none;
-        content: "";
-      }
-
-      .domain-label {
-        position: absolute;
-        z-index: 2;
-        display: flex;
-        gap: 10px;
-        align-items: center;
-        color: var(--muted);
-        font-size: 0.74rem;
-        font-weight: 850;
-        letter-spacing: 0.14em;
-        text-transform: uppercase;
-      }
-
-      .domain-label::after {
-        width: 70px;
-        height: 1px;
-        background: var(--line-strong);
-        content: "";
-      }
-
-      .domain-label.catalog {
-        top: 28px;
-        left: 50px;
-      }
-
-      .domain-label.operations {
-        top: 790px;
-        left: 50px;
+          linear-gradient(#eef0f2 1px, transparent 1px),
+          linear-gradient(90deg, #eef0f2 1px, transparent 1px);
+        background-size: 20px 20px;
       }
 
       .relations {
         position: absolute;
-        z-index: 1;
         inset: 0;
         width: 100%;
         height: 100%;
-        overflow: visible;
         pointer-events: none;
       }
 
       .relation {
         fill: none;
-        stroke: var(--line-strong);
-        stroke-width: 2.5;
+        stroke: #6b7280;
+        stroke-width: 2;
         stroke-linecap: round;
         stroke-linejoin: round;
       }
 
-      .relation.catalog {
-        stroke: color-mix(in srgb, var(--blue) 62%, var(--line-strong));
-      }
-
-      .relation.optional {
-        stroke-dasharray: 7 8;
+      .relation.optional,
+      .relation.logical {
+        stroke-dasharray: 6 6;
       }
 
       .relation.logical {
-        stroke: color-mix(in srgb, var(--violet) 60%, var(--line-strong));
-        stroke-dasharray: 5 7;
+        stroke: #8b5cf6;
       }
 
-      .endpoint {
-        fill: var(--surface-solid);
-        stroke-width: 2.5;
-      }
-
-      .endpoint.catalog {
-        stroke: var(--blue);
-      }
-
-      .endpoint.logical {
-        stroke: var(--violet);
-      }
-
-      .relation-label rect {
-        fill: var(--surface-solid);
-        stroke: var(--line);
-      }
-
-      .relation-label text {
-        fill: var(--muted);
-        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      .relation-label {
+        fill: #4b5563;
         font-size: 11px;
-        font-weight: 750;
-        letter-spacing: 0.02em;
+        font-weight: 700;
       }
 
       .entity {
-        --accent: var(--blue);
-        --accent-soft: var(--blue-soft);
         position: absolute;
-        z-index: 3;
         overflow: hidden;
-        border: 1px solid color-mix(in srgb, var(--accent) 24%, var(--line));
-        border-radius: 16px;
-        background: var(--surface-solid);
-        box-shadow: var(--entity-shadow);
+        border: 1px solid #9ca3af;
+        border-radius: 6px;
+        background: #ffffff;
       }
 
-      .entity.job {
-        --accent: var(--teal);
-        --accent-soft: var(--teal-soft);
+      .entity header {
+        padding: 9px 11px;
+        border-bottom: 1px solid #d1d5db;
+        background: #f3f4f6;
       }
 
-      .entity.auth {
-        --accent: var(--violet);
-        --accent-soft: var(--violet-soft);
-      }
-
-      .entity-header {
-        display: flex;
-        gap: 12px;
-        align-items: center;
-        justify-content: space-between;
-        min-height: 51px;
-        padding: 11px 14px 10px;
-        border-bottom: 1px solid var(--line);
-        background: linear-gradient(110deg, var(--accent-soft), var(--surface-solid) 78%);
-      }
-
-      .entity-name {
-        min-width: 0;
-      }
-
-      .entity-name small {
-        display: block;
-        margin-bottom: 2px;
-        color: var(--accent);
-        font-size: 0.62rem;
-        font-weight: 900;
-        letter-spacing: 0.12em;
-      }
-
-      .entity-name h2 {
-        overflow: hidden;
+      .entity h2 {
         margin: 0;
-        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-        font-size: 0.96rem;
-        font-weight: 820;
-        letter-spacing: -0.025em;
-        text-overflow: ellipsis;
-        white-space: nowrap;
+        font-family: Consolas, "Courier New", monospace;
+        font-size: 14px;
       }
 
-      .row-count {
-        flex: 0 0 auto;
-        display: inline-grid;
-        place-items: center;
-        min-width: 28px;
-        height: 24px;
-        padding: 0 8px;
-        border: 1px solid color-mix(in srgb, var(--accent) 25%, var(--line));
-        border-radius: 99px;
-        color: var(--accent);
-        background: color-mix(in srgb, var(--accent-soft) 72%, transparent);
-        font-size: 0.68rem;
-        font-weight: 850;
+      .entity header p {
+        margin: 3px 0 0;
+        color: #4b5563;
+        font-size: 11px;
       }
 
       .fields {
         margin: 0;
-        padding: 7px 0;
+        padding: 6px 0;
         list-style: none;
       }
 
       .field {
         display: grid;
-        grid-template-columns: 48px minmax(0, 1fr) auto;
-        gap: 7px;
+        grid-template-columns: 46px minmax(0, 1fr) auto;
+        gap: 6px;
         align-items: center;
-        min-height: 29px;
-        padding: 4px 12px;
-      }
-
-      .field:hover {
-        background: color-mix(in srgb, var(--accent-soft) 48%, transparent);
+        min-height: 27px;
+        padding: 3px 10px;
       }
 
       .keys {
         display: flex;
-        gap: 3px;
-        align-items: center;
-        min-height: 18px;
+        gap: 2px;
       }
 
       .key {
-        display: inline-grid;
-        place-items: center;
-        min-width: 21px;
-        height: 17px;
-        padding: 0 4px;
-        border-radius: 5px;
-        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-        font-size: 0.52rem;
-        font-weight: 900;
-        letter-spacing: 0.02em;
+        display: inline-block;
+        min-width: 20px;
+        padding: 2px 3px;
+        border: 1px solid #d1d5db;
+        border-radius: 3px;
+        color: #374151;
+        background: #f9fafb;
+        text-align: center;
+        font-size: 8px;
+        font-weight: 700;
       }
 
-      .key.pk {
-        color: var(--amber);
-        background: var(--amber-soft);
-      }
-
-      .key.fk {
-        color: var(--blue);
-        background: var(--blue-soft);
-      }
-
-      .key.uk {
-        color: var(--danger);
-        background: var(--danger-soft);
+      .column,
+      .type {
+        font-family: Consolas, "Courier New", monospace;
       }
 
       .column {
         overflow: hidden;
-        color: var(--ink);
-        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-        font-size: 0.72rem;
-        font-weight: 680;
-        letter-spacing: -0.025em;
+        font-size: 11px;
+        font-weight: 700;
         text-overflow: ellipsis;
         white-space: nowrap;
       }
 
       .type {
-        color: var(--muted);
-        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-        font-size: 0.63rem;
+        color: #6b7280;
+        font-size: 9px;
         white-space: nowrap;
       }
 
       .nullable::after {
-        margin-left: 3px;
-        color: var(--muted);
         content: "?";
       }
 
-      .semesters {
-        top: 105px;
-        left: 50px;
-        width: 255px;
-      }
+      .semesters { top: 70px; left: 30px; width: 240px; }
+      .courses { top: 70px; left: 330px; width: 250px; }
+      .sections { top: 50px; left: 640px; width: 285px; }
+      .sessions { top: 40px; left: 990px; width: 300px; }
+      .data-imports { top: 390px; left: 330px; width: 270px; }
+      .rooms { top: 390px; left: 640px; width: 285px; }
+      .optimization-jobs { top: 760px; left: 30px; width: 315px; }
+      .auth-otp-challenges { top: 760px; left: 385px; width: 315px; }
+      .auth-sessions { top: 760px; left: 750px; width: 295px; }
+      .auth-rate-events { top: 760px; left: 1090px; width: 260px; }
 
-      .courses {
-        top: 105px;
-        left: 380px;
-        width: 260px;
-      }
-
-      .sections {
-        top: 80px;
-        left: 725px;
-        width: 300px;
-      }
-
-      .sessions {
-        top: 65px;
-        left: 1110px;
-        width: 310px;
-      }
-
-      .data-imports {
-        top: 430px;
-        left: 380px;
-        width: 285px;
-      }
-
-      .rooms {
-        top: 430px;
-        left: 725px;
-        width: 300px;
-      }
-
-      .optimization-jobs {
-        top: 845px;
-        left: 50px;
-        width: 330px;
-      }
-
-      .auth-otp-challenges {
-        top: 845px;
-        left: 455px;
-        width: 330px;
-      }
-
-      .auth-sessions {
-        top: 845px;
-        left: 870px;
-        width: 310px;
-      }
-
-      .auth-rate-events {
-        top: 845px;
-        left: 1260px;
-        width: 290px;
-      }
-
-      .notes-grid {
-        display: grid;
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-        gap: 14px;
-        margin-top: 18px;
-      }
-
-      .note {
-        padding: 20px;
-        border: 1px solid var(--line);
-        border-radius: 18px;
-        background: var(--surface);
-        box-shadow: 0 10px 28px rgba(30, 46, 80, 0.07);
-      }
-
-      .note-label {
-        display: inline-flex;
-        margin-bottom: 11px;
-        padding: 5px 8px;
-        border-radius: 7px;
-        color: var(--blue);
-        background: var(--blue-soft);
-        font-size: 0.67rem;
-        font-weight: 850;
-        letter-spacing: 0.07em;
-        text-transform: uppercase;
-      }
-
-      .note:nth-child(2) .note-label {
-        color: var(--teal);
-        background: var(--teal-soft);
-      }
-
-      .note:nth-child(3) .note-label {
-        color: var(--violet);
-        background: var(--violet-soft);
-      }
-
-      .note h2 {
-        margin: 0 0 7px;
-        font-size: 1rem;
-        letter-spacing: -0.025em;
-      }
-
-      .note p {
-        margin: 0;
-        color: var(--muted);
-        font-size: 0.87rem;
-        line-height: 1.65;
-      }
-
-      .footer {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 10px 20px;
-        align-items: center;
-        justify-content: space-between;
-        padding: 24px 4px 0;
-        color: var(--muted);
-        font-size: 0.78rem;
-      }
-
-      .footer-links {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 14px;
-      }
-
-      @media (max-width: 820px) {
-        .page-shell {
-          width: min(100% - 20px, 1760px);
-          padding-top: 28px;
-        }
-
-        .hero {
-          grid-template-columns: 1fr;
-          align-items: start;
-        }
-
-        .revision {
-          width: fit-content;
-        }
-
-        .surface-header {
-          align-items: flex-start;
-          flex-direction: column;
-          gap: 4px;
-        }
-
-        .viewport {
-          min-height: 390px;
-          max-height: 72vh;
-        }
-
-        .notes-grid {
-          grid-template-columns: 1fr;
-        }
-      }
-
-      @media print {
-        @page {
-          size: A3 landscape;
-          margin: 8mm;
-        }
-
+      @media (max-width: 700px) {
         body {
-          background: white;
+          padding: 12px;
         }
 
-        .page-shell {
-          width: 100%;
-          padding: 0;
-        }
-
-        .toolbar,
-        .surface-header,
-        .notes-grid,
-        .footer {
-          display: none;
-        }
-
-        .hero {
-          margin-bottom: 12px;
-        }
-
-        .lead,
-        .revision {
-          display: none;
-        }
-
-        .diagram-surface,
-        .viewport {
-          overflow: visible;
-          max-height: none;
-          border: 0;
-          box-shadow: none;
+        h1 {
+          font-size: 20px;
         }
       }
     </style>
   </head>
   <body>
-    <main class="page-shell">
-      <header class="hero">
-        <div>
-          <p class="eyebrow">Database architecture</p>
-          <h1>PL-timeTabler<br />PostgreSQL ERD</h1>
-          <p class="lead">
-            현재 운영 migration을 기준으로 10개 업무 테이블, 복합키, FK 관계와 독립적인
-            최적화·인증 저장소를 한 화면에 정리했습니다.
-          </p>
+    <main>
+      <h1>PL-timeTabler ERD</h1>
+      <div class="erd-scroll">
+        <div class="erd">
+          <svg class="relations" viewBox="0 0 1380 1280" aria-hidden="true">
+            <path class="relation" data-from="semesters" data-to="courses" d="M270 170 H330" />
+            <text class="relation-label" x="287" y="162">1:N</text>
+
+            <path class="relation" data-from="courses" data-to="sections" d="M580 170 H640" />
+            <text class="relation-label" x="597" y="162">1:N</text>
+
+            <path class="relation" data-from="sections" data-to="sessions" d="M925 170 H990" />
+            <text class="relation-label" x="944" y="162">1:N</text>
+
+            <path class="relation" data-from="semesters" data-to="data_imports" d="M150 300 V520 H330" />
+            <text class="relation-label" x="257" y="512">1:N</text>
+
+            <path class="relation" data-from="semesters" data-to="rooms" d="M270 230 H300 V700 H620 V520 H640" />
+            <text class="relation-label" x="455" y="692">1:N</text>
+
+            <path class="relation optional" data-from="rooms" data-to="sessions" d="M925 520 H960 V330 H990" />
+            <text class="relation-label" x="929" y="424">0..1:N</text>
+
+            <path class="relation logical" data-from="auth_otp_challenges" data-to="auth_sessions" d="M700 950 H750" />
+            <text class="relation-label" x="704" y="942">논리 연결</text>
+          </svg>
+
+          <article class="entity semesters" data-table="semesters">
+            <header><h2>semesters</h2><p>학기와 데이터 버전</p></header>
+            <ul class="fields">
+              <li class="field" data-column="id"><span class="keys"><span class="key">PK</span></span><span class="column">id</span><span class="type">varchar(20)</span></li>
+              <li class="field" data-column="prepared_at"><span class="keys"></span><span class="column">prepared_at</span><span class="type">date</span></li>
+              <li class="field" data-column="dataset_version"><span class="keys"><span class="key">UK</span></span><span class="column">dataset_version</span><span class="type">varchar(64)</span></li>
+              <li class="field" data-column="source_checksum"><span class="keys"></span><span class="column">source_checksum</span><span class="type">varchar(64)</span></li>
+              <li class="field" data-column="is_active"><span class="keys"></span><span class="column">is_active</span><span class="type">boolean</span></li>
+              <li class="field" data-column="created_at"><span class="keys"></span><span class="column">created_at</span><span class="type">timestamptz</span></li>
+            </ul>
+          </article>
+
+          <article class="entity courses" data-table="courses">
+            <header><h2>courses</h2><p>학기별 과목 정보</p></header>
+            <ul class="fields">
+              <li class="field" data-column="semester_id"><span class="keys"><span class="key">PK</span><span class="key">FK</span></span><span class="column">semester_id</span><span class="type">varchar(20)</span></li>
+              <li class="field" data-column="course_code"><span class="keys"><span class="key">PK</span></span><span class="column">course_code</span><span class="type">varchar(40)</span></li>
+              <li class="field" data-column="name"><span class="keys"></span><span class="column">name</span><span class="type">text</span></li>
+              <li class="field" data-column="category"><span class="keys"></span><span class="column">category</span><span class="type">text</span></li>
+              <li class="field" data-column="credits"><span class="keys"></span><span class="column">credits</span><span class="type">numeric(5,2)</span></li>
+            </ul>
+          </article>
+
+          <article class="entity sections" data-table="sections">
+            <header><h2>sections</h2><p>과목별 분반 정보</p></header>
+            <ul class="fields">
+              <li class="field" data-column="semester_id"><span class="keys"><span class="key">PK</span><span class="key">FK</span></span><span class="column">semester_id</span><span class="type">varchar(20)</span></li>
+              <li class="field" data-column="course_code"><span class="keys"><span class="key">PK</span><span class="key">FK</span></span><span class="column">course_code</span><span class="type">varchar(40)</span></li>
+              <li class="field" data-column="section_code"><span class="keys"><span class="key">PK</span></span><span class="column">section_code</span><span class="type">varchar(20)</span></li>
+              <li class="field" data-column="professor"><span class="keys"></span><span class="column">professor</span><span class="type nullable">text</span></li>
+              <li class="field" data-column="raw_lecture_time"><span class="keys"></span><span class="column">raw_lecture_time</span><span class="type">text</span></li>
+              <li class="field" data-column="time_to_be_announced"><span class="keys"></span><span class="column">time_to_be_announced</span><span class="type">boolean</span></li>
+              <li class="field" data-column="warning_codes"><span class="keys"></span><span class="column">warning_codes</span><span class="type">jsonb</span></li>
+            </ul>
+          </article>
+
+          <article class="entity sessions" data-table="sessions">
+            <header><h2>sessions</h2><p>분반별 수업 시간</p></header>
+            <ul class="fields">
+              <li class="field" data-column="id"><span class="keys"><span class="key">PK</span></span><span class="column">id</span><span class="type">bigint</span></li>
+              <li class="field" data-column="semester_id"><span class="keys"><span class="key">FK</span></span><span class="column">semester_id</span><span class="type">varchar(20)</span></li>
+              <li class="field" data-column="course_code"><span class="keys"><span class="key">FK</span></span><span class="column">course_code</span><span class="type">varchar(40)</span></li>
+              <li class="field" data-column="section_code"><span class="keys"><span class="key">FK</span></span><span class="column">section_code</span><span class="type">varchar(20)</span></li>
+              <li class="field" data-column="day"><span class="keys"></span><span class="column">day</span><span class="type">varchar(1)</span></li>
+              <li class="field" data-column="start_minute"><span class="keys"></span><span class="column">start_minute</span><span class="type">smallint</span></li>
+              <li class="field" data-column="end_minute"><span class="keys"></span><span class="column">end_minute</span><span class="type">smallint</span></li>
+              <li class="field" data-column="room_code"><span class="keys"><span class="key">FK</span></span><span class="column">room_code</span><span class="type nullable">varchar(40)</span></li>
+            </ul>
+          </article>
+
+          <article class="entity data-imports" data-table="data_imports">
+            <header><h2>data_imports</h2><p>카탈로그 반입 이력</p></header>
+            <ul class="fields">
+              <li class="field" data-column="id"><span class="keys"><span class="key">PK</span></span><span class="column">id</span><span class="type">varchar(36)</span></li>
+              <li class="field" data-column="semester_id"><span class="keys"><span class="key">FK</span></span><span class="column">semester_id</span><span class="type">varchar(20)</span></li>
+              <li class="field" data-column="checksum"><span class="keys"><span class="key">UK</span></span><span class="column">checksum</span><span class="type">varchar(64)</span></li>
+              <li class="field" data-column="parser_version"><span class="keys"><span class="key">UK</span></span><span class="column">parser_version</span><span class="type">varchar(40)</span></li>
+              <li class="field" data-column="status"><span class="keys"></span><span class="column">status</span><span class="type">varchar(24)</span></li>
+              <li class="field" data-column="report"><span class="keys"></span><span class="column">report</span><span class="type">jsonb</span></li>
+              <li class="field" data-column="created_at"><span class="keys"></span><span class="column">created_at</span><span class="type">timestamptz</span></li>
+            </ul>
+          </article>
+
+          <article class="entity rooms" data-table="rooms">
+            <header><h2>rooms</h2><p>강의실과 건물 정보</p></header>
+            <ul class="fields">
+              <li class="field" data-column="semester_id"><span class="keys"><span class="key">PK</span><span class="key">FK</span></span><span class="column">semester_id</span><span class="type">varchar(20)</span></li>
+              <li class="field" data-column="code"><span class="keys"><span class="key">PK</span></span><span class="column">code</span><span class="type">varchar(40)</span></li>
+              <li class="field" data-column="building_code"><span class="keys"></span><span class="column">building_code</span><span class="type nullable">varchar(40)</span></li>
+              <li class="field" data-column="building_name"><span class="keys"></span><span class="column">building_name</span><span class="type nullable">text</span></li>
+              <li class="field" data-column="label"><span class="keys"></span><span class="column">label</span><span class="type nullable">text</span></li>
+              <li class="field" data-column="room_type"><span class="keys"></span><span class="column">room_type</span><span class="type nullable">text</span></li>
+              <li class="field" data-column="capacity"><span class="keys"></span><span class="column">capacity</span><span class="type nullable">integer</span></li>
+            </ul>
+          </article>
+
+          <article class="entity optimization-jobs" data-table="optimization_jobs">
+            <header><h2>optimization_jobs</h2><p>시간표 최적화 작업</p></header>
+            <ul class="fields">
+              <li class="field" data-column="id"><span class="keys"><span class="key">PK</span></span><span class="column">id</span><span class="type">varchar(36)</span></li>
+              <li class="field" data-column="status"><span class="keys"></span><span class="column">status</span><span class="type">varchar(24)</span></li>
+              <li class="field" data-column="input_snapshot"><span class="keys"></span><span class="column">input_snapshot</span><span class="type">jsonb</span></li>
+              <li class="field" data-column="result_snapshot"><span class="keys"></span><span class="column">result_snapshot</span><span class="type nullable">jsonb</span></li>
+              <li class="field" data-column="error_code"><span class="keys"></span><span class="column">error_code</span><span class="type nullable">varchar(80)</span></li>
+              <li class="field" data-column="error_message"><span class="keys"></span><span class="column">error_message</span><span class="type nullable">text</span></li>
+              <li class="field" data-column="attempts"><span class="keys"></span><span class="column">attempts</span><span class="type">integer</span></li>
+              <li class="field" data-column="cancel_requested"><span class="keys"></span><span class="column">cancel_requested</span><span class="type">boolean</span></li>
+              <li class="field" data-column="lease_token"><span class="keys"><span class="key">UK</span></span><span class="column">lease_token</span><span class="type nullable">varchar(36)</span></li>
+              <li class="field" data-column="worker_id"><span class="keys"></span><span class="column">worker_id</span><span class="type nullable">varchar(120)</span></li>
+              <li class="field" data-column="leased_until"><span class="keys"></span><span class="column">leased_until</span><span class="type nullable">timestamptz</span></li>
+              <li class="field" data-column="heartbeat_at"><span class="keys"></span><span class="column">heartbeat_at</span><span class="type nullable">timestamptz</span></li>
+              <li class="field" data-column="deadline_at"><span class="keys"></span><span class="column">deadline_at</span><span class="type">timestamptz</span></li>
+              <li class="field" data-column="created_at"><span class="keys"></span><span class="column">created_at</span><span class="type">timestamptz</span></li>
+              <li class="field" data-column="updated_at"><span class="keys"></span><span class="column">updated_at</span><span class="type">timestamptz</span></li>
+            </ul>
+          </article>
+
+          <article class="entity auth-otp-challenges" data-table="auth_otp_challenges">
+            <header><h2>auth_otp_challenges</h2><p>이메일 인증번호</p></header>
+            <ul class="fields">
+              <li class="field" data-column="id"><span class="keys"><span class="key">PK</span></span><span class="column">id</span><span class="type">varchar(36)</span></li>
+              <li class="field" data-column="student_number"><span class="keys"></span><span class="column">student_number</span><span class="type">varchar(20)</span></li>
+              <li class="field" data-column="code_digest"><span class="keys"></span><span class="column">code_digest</span><span class="type">varchar(64)</span></li>
+              <li class="field" data-column="attempts"><span class="keys"></span><span class="column">attempts</span><span class="type">integer</span></li>
+              <li class="field" data-column="expires_at"><span class="keys"></span><span class="column">expires_at</span><span class="type">timestamptz</span></li>
+              <li class="field" data-column="last_sent_at"><span class="keys"></span><span class="column">last_sent_at</span><span class="type">timestamptz</span></li>
+              <li class="field" data-column="consumed_at"><span class="keys"></span><span class="column">consumed_at</span><span class="type nullable">timestamptz</span></li>
+              <li class="field" data-column="invalidated_at"><span class="keys"></span><span class="column">invalidated_at</span><span class="type nullable">timestamptz</span></li>
+              <li class="field" data-column="created_at"><span class="keys"></span><span class="column">created_at</span><span class="type">timestamptz</span></li>
+            </ul>
+          </article>
+
+          <article class="entity auth-sessions" data-table="auth_sessions">
+            <header><h2>auth_sessions</h2><p>로그인 세션</p></header>
+            <ul class="fields">
+              <li class="field" data-column="id"><span class="keys"><span class="key">PK</span></span><span class="column">id</span><span class="type">varchar(36)</span></li>
+              <li class="field" data-column="student_number"><span class="keys"></span><span class="column">student_number</span><span class="type">varchar(20)</span></li>
+              <li class="field" data-column="token_digest"><span class="keys"><span class="key">UK</span></span><span class="column">token_digest</span><span class="type">varchar(64)</span></li>
+              <li class="field" data-column="expires_at"><span class="keys"></span><span class="column">expires_at</span><span class="type">timestamptz</span></li>
+              <li class="field" data-column="revoked_at"><span class="keys"></span><span class="column">revoked_at</span><span class="type nullable">timestamptz</span></li>
+              <li class="field" data-column="rotated_at"><span class="keys"></span><span class="column">rotated_at</span><span class="type">timestamptz</span></li>
+              <li class="field" data-column="created_at"><span class="keys"></span><span class="column">created_at</span><span class="type">timestamptz</span></li>
+            </ul>
+          </article>
+
+          <article class="entity auth-rate-events" data-table="auth_rate_events">
+            <header><h2>auth_rate_events</h2><p>인증 요청 제한 기록</p></header>
+            <ul class="fields">
+              <li class="field" data-column="id"><span class="keys"><span class="key">PK</span></span><span class="column">id</span><span class="type">varchar(36)</span></li>
+              <li class="field" data-column="kind"><span class="keys"></span><span class="column">kind</span><span class="type">varchar(20)</span></li>
+              <li class="field" data-column="account_digest"><span class="keys"></span><span class="column">account_digest</span><span class="type">varchar(64)</span></li>
+              <li class="field" data-column="ip_digest"><span class="keys"></span><span class="column">ip_digest</span><span class="type">varchar(64)</span></li>
+              <li class="field" data-column="created_at"><span class="keys"></span><span class="column">created_at</span><span class="type">timestamptz</span></li>
+            </ul>
+          </article>
         </div>
-        <div class="revision" aria-label="스키마 버전">
-          <span>Alembic head</span>
-          <strong>20260710_0003</strong>
-        </div>
-      </header>
-
-      <section class="toolbar" aria-label="ERD 도구와 범례">
-        <div class="legend" aria-label="영역 범례">
-          <span class="legend-item"><span class="legend-dot catalog"></span>카탈로그</span>
-          <span class="legend-item"><span class="legend-dot job"></span>최적화 작업</span>
-          <span class="legend-item"><span class="legend-dot auth"></span>선택형 인증</span>
-          <span class="legend-item"><span class="key pk">PK</span>Primary key</span>
-          <span class="legend-item"><span class="key fk">FK</span>Foreign key</span>
-          <span class="legend-item"><span class="key uk">UK</span>Unique key</span>
-        </div>
-        <div class="zoom-controls" aria-label="확대 및 인쇄">
-          <button class="button" id="zoom-out" type="button" aria-label="축소">−</button>
-          <span id="zoom-value" aria-live="polite">100%</span>
-          <button class="button" id="zoom-in" type="button" aria-label="확대">+</button>
-          <button class="button" id="zoom-fit" type="button">화면 맞춤</button>
-          <button class="button" id="print" type="button">인쇄</button>
-        </div>
-      </section>
-
-      <section class="diagram-surface" aria-labelledby="diagram-title">
-        <div class="surface-header">
-          <span id="diagram-title"><strong>업무 테이블 10개</strong> · 시스템 테이블 제외</span>
-          <span>가로·세로로 스크롤하거나 위 도구로 배율을 조절하세요.</span>
-        </div>
-        <div class="viewport" id="viewport" tabindex="0">
-          <div class="canvas-shell" id="canvas-shell">
-            <div class="diagram" id="diagram">
-              <div class="domain-label catalog">Catalog domain</div>
-              <div class="domain-label operations">Operational state</div>
-
-              <svg class="relations" viewBox="0 0 1600 1420" aria-hidden="true">
-                <path
-                  class="relation catalog"
-                  data-from="semesters"
-                  data-to="courses"
-                  d="M 305 205 H 380"
-                />
-                <circle class="endpoint catalog" cx="305" cy="205" r="4" />
-                <circle class="endpoint catalog" cx="380" cy="205" r="4" />
-                <g class="relation-label" transform="translate(319 186)">
-                  <rect width="48" height="20" rx="7" />
-                  <text x="24" y="14" text-anchor="middle">1 : N</text>
-                </g>
-
-                <path
-                  class="relation catalog"
-                  data-from="courses"
-                  data-to="sections"
-                  d="M 640 195 H 725"
-                />
-                <circle class="endpoint catalog" cx="640" cy="195" r="4" />
-                <circle class="endpoint catalog" cx="725" cy="195" r="4" />
-                <g class="relation-label" transform="translate(658 176)">
-                  <rect width="48" height="20" rx="7" />
-                  <text x="24" y="14" text-anchor="middle">1 : N</text>
-                </g>
-
-                <path
-                  class="relation catalog"
-                  data-from="sections"
-                  data-to="sessions"
-                  d="M 1025 205 H 1110"
-                />
-                <circle class="endpoint catalog" cx="1025" cy="205" r="4" />
-                <circle class="endpoint catalog" cx="1110" cy="205" r="4" />
-                <g class="relation-label" transform="translate(1043 186)">
-                  <rect width="48" height="20" rx="7" />
-                  <text x="24" y="14" text-anchor="middle">1 : N</text>
-                </g>
-
-                <path
-                  class="relation catalog"
-                  data-from="semesters"
-                  data-to="data_imports"
-                  d="M 178 332 V 556 H 380"
-                />
-                <circle class="endpoint catalog" cx="178" cy="332" r="4" />
-                <circle class="endpoint catalog" cx="380" cy="556" r="4" />
-                <g class="relation-label" transform="translate(235 537)">
-                  <rect width="48" height="20" rx="7" />
-                  <text x="24" y="14" text-anchor="middle">1 : N</text>
-                </g>
-
-                <path
-                  class="relation catalog"
-                  data-from="semesters"
-                  data-to="rooms"
-                  d="M 305 270 H 335 V 735 H 690 V 560 H 725"
-                />
-                <circle class="endpoint catalog" cx="305" cy="270" r="4" />
-                <circle class="endpoint catalog" cx="725" cy="560" r="4" />
-                <g class="relation-label" transform="translate(496 716)">
-                  <rect width="48" height="20" rx="7" />
-                  <text x="24" y="14" text-anchor="middle">1 : N</text>
-                </g>
-
-                <path
-                  class="relation catalog optional"
-                  data-from="rooms"
-                  data-to="sessions"
-                  d="M 1025 560 H 1065 V 340 H 1110"
-                />
-                <circle class="endpoint catalog" cx="1025" cy="560" r="4" />
-                <circle class="endpoint catalog" cx="1110" cy="340" r="4" />
-                <g class="relation-label" transform="translate(1031 425)">
-                  <rect width="69" height="20" rx="7" />
-                  <text x="34.5" y="14" text-anchor="middle">0..1 : N</text>
-                </g>
-
-                <path
-                  class="relation logical"
-                  data-from="auth_otp_challenges"
-                  data-to="auth_sessions"
-                  d="M 785 1035 H 870"
-                />
-                <circle class="endpoint logical" cx="785" cy="1035" r="4" />
-                <circle class="endpoint logical" cx="870" cy="1035" r="4" />
-                <g class="relation-label" transform="translate(790 1005)">
-                  <rect width="75" height="20" rx="7" />
-                  <text x="37.5" y="14" text-anchor="middle">logical only</text>
-                </g>
-              </svg>
-
-              <article class="entity catalog semesters" data-table="semesters">
-                <header class="entity-header">
-                  <div class="entity-name"><small>TABLE</small><h2>semesters</h2></div>
-                  <span class="row-count">6</span>
-                </header>
-                <ul class="fields">
-                  <li class="field" data-column="id"><span class="keys"><span class="key pk">PK</span></span><span class="column">id</span><span class="type">varchar(20)</span></li>
-                  <li class="field" data-column="prepared_at"><span class="keys"></span><span class="column">prepared_at</span><span class="type">date</span></li>
-                  <li class="field" data-column="dataset_version"><span class="keys"><span class="key uk">UK</span></span><span class="column">dataset_version</span><span class="type">varchar(64)</span></li>
-                  <li class="field" data-column="source_checksum"><span class="keys"></span><span class="column">source_checksum</span><span class="type">varchar(64)</span></li>
-                  <li class="field" data-column="is_active"><span class="keys"></span><span class="column">is_active</span><span class="type">boolean</span></li>
-                  <li class="field" data-column="created_at"><span class="keys"></span><span class="column">created_at</span><span class="type">timestamptz</span></li>
-                </ul>
-              </article>
-
-              <article class="entity catalog courses" data-table="courses">
-                <header class="entity-header">
-                  <div class="entity-name"><small>TABLE</small><h2>courses</h2></div>
-                  <span class="row-count">5</span>
-                </header>
-                <ul class="fields">
-                  <li class="field" data-column="semester_id"><span class="keys"><span class="key pk">PK</span><span class="key fk">FK</span></span><span class="column">semester_id</span><span class="type">varchar(20)</span></li>
-                  <li class="field" data-column="course_code"><span class="keys"><span class="key pk">PK</span></span><span class="column">course_code</span><span class="type">varchar(40)</span></li>
-                  <li class="field" data-column="name"><span class="keys"></span><span class="column">name</span><span class="type">text</span></li>
-                  <li class="field" data-column="category"><span class="keys"></span><span class="column">category</span><span class="type">text</span></li>
-                  <li class="field" data-column="credits"><span class="keys"></span><span class="column">credits</span><span class="type">numeric(5,2)</span></li>
-                </ul>
-              </article>
-
-              <article class="entity catalog sections" data-table="sections">
-                <header class="entity-header">
-                  <div class="entity-name"><small>TABLE</small><h2>sections</h2></div>
-                  <span class="row-count">7</span>
-                </header>
-                <ul class="fields">
-                  <li class="field" data-column="semester_id"><span class="keys"><span class="key pk">PK</span><span class="key fk">FK</span></span><span class="column">semester_id</span><span class="type">varchar(20)</span></li>
-                  <li class="field" data-column="course_code"><span class="keys"><span class="key pk">PK</span><span class="key fk">FK</span></span><span class="column">course_code</span><span class="type">varchar(40)</span></li>
-                  <li class="field" data-column="section_code"><span class="keys"><span class="key pk">PK</span></span><span class="column">section_code</span><span class="type">varchar(20)</span></li>
-                  <li class="field" data-column="professor"><span class="keys"></span><span class="column">professor</span><span class="type nullable">text</span></li>
-                  <li class="field" data-column="raw_lecture_time"><span class="keys"></span><span class="column">raw_lecture_time</span><span class="type">text</span></li>
-                  <li class="field" data-column="time_to_be_announced"><span class="keys"></span><span class="column">time_to_be_announced</span><span class="type">boolean</span></li>
-                  <li class="field" data-column="warning_codes"><span class="keys"></span><span class="column">warning_codes</span><span class="type">jsonb</span></li>
-                </ul>
-              </article>
-
-              <article class="entity catalog sessions" data-table="sessions">
-                <header class="entity-header">
-                  <div class="entity-name"><small>TABLE</small><h2>sessions</h2></div>
-                  <span class="row-count">8</span>
-                </header>
-                <ul class="fields">
-                  <li class="field" data-column="id"><span class="keys"><span class="key pk">PK</span></span><span class="column">id</span><span class="type">bigint</span></li>
-                  <li class="field" data-column="semester_id"><span class="keys"><span class="key fk">FK</span></span><span class="column">semester_id</span><span class="type">varchar(20)</span></li>
-                  <li class="field" data-column="course_code"><span class="keys"><span class="key fk">FK</span></span><span class="column">course_code</span><span class="type">varchar(40)</span></li>
-                  <li class="field" data-column="section_code"><span class="keys"><span class="key fk">FK</span></span><span class="column">section_code</span><span class="type">varchar(20)</span></li>
-                  <li class="field" data-column="day"><span class="keys"></span><span class="column">day</span><span class="type">varchar(1)</span></li>
-                  <li class="field" data-column="start_minute"><span class="keys"></span><span class="column">start_minute</span><span class="type">smallint</span></li>
-                  <li class="field" data-column="end_minute"><span class="keys"></span><span class="column">end_minute</span><span class="type">smallint</span></li>
-                  <li class="field" data-column="room_code"><span class="keys"><span class="key fk">FK</span></span><span class="column">room_code</span><span class="type nullable">varchar(40)</span></li>
-                </ul>
-              </article>
-
-              <article class="entity catalog data-imports" data-table="data_imports">
-                <header class="entity-header">
-                  <div class="entity-name"><small>TABLE</small><h2>data_imports</h2></div>
-                  <span class="row-count">7</span>
-                </header>
-                <ul class="fields">
-                  <li class="field" data-column="id"><span class="keys"><span class="key pk">PK</span></span><span class="column">id</span><span class="type">varchar(36)</span></li>
-                  <li class="field" data-column="semester_id"><span class="keys"><span class="key fk">FK</span></span><span class="column">semester_id</span><span class="type">varchar(20)</span></li>
-                  <li class="field" data-column="checksum"><span class="keys"><span class="key uk">UK</span></span><span class="column">checksum</span><span class="type">varchar(64)</span></li>
-                  <li class="field" data-column="parser_version"><span class="keys"><span class="key uk">UK</span></span><span class="column">parser_version</span><span class="type">varchar(40)</span></li>
-                  <li class="field" data-column="status"><span class="keys"></span><span class="column">status</span><span class="type">varchar(24)</span></li>
-                  <li class="field" data-column="report"><span class="keys"></span><span class="column">report</span><span class="type">jsonb</span></li>
-                  <li class="field" data-column="created_at"><span class="keys"></span><span class="column">created_at</span><span class="type">timestamptz</span></li>
-                </ul>
-              </article>
-
-              <article class="entity catalog rooms" data-table="rooms">
-                <header class="entity-header">
-                  <div class="entity-name"><small>TABLE</small><h2>rooms</h2></div>
-                  <span class="row-count">7</span>
-                </header>
-                <ul class="fields">
-                  <li class="field" data-column="semester_id"><span class="keys"><span class="key pk">PK</span><span class="key fk">FK</span></span><span class="column">semester_id</span><span class="type">varchar(20)</span></li>
-                  <li class="field" data-column="code"><span class="keys"><span class="key pk">PK</span></span><span class="column">code</span><span class="type">varchar(40)</span></li>
-                  <li class="field" data-column="building_code"><span class="keys"></span><span class="column">building_code</span><span class="type nullable">varchar(40)</span></li>
-                  <li class="field" data-column="building_name"><span class="keys"></span><span class="column">building_name</span><span class="type nullable">text</span></li>
-                  <li class="field" data-column="label"><span class="keys"></span><span class="column">label</span><span class="type nullable">text</span></li>
-                  <li class="field" data-column="room_type"><span class="keys"></span><span class="column">room_type</span><span class="type nullable">text</span></li>
-                  <li class="field" data-column="capacity"><span class="keys"></span><span class="column">capacity</span><span class="type nullable">integer</span></li>
-                </ul>
-              </article>
-
-              <article class="entity job optimization-jobs" data-table="optimization_jobs">
-                <header class="entity-header">
-                  <div class="entity-name"><small>TABLE · JOB QUEUE</small><h2>optimization_jobs</h2></div>
-                  <span class="row-count">15</span>
-                </header>
-                <ul class="fields">
-                  <li class="field" data-column="id"><span class="keys"><span class="key pk">PK</span></span><span class="column">id</span><span class="type">varchar(36)</span></li>
-                  <li class="field" data-column="status"><span class="keys"></span><span class="column">status</span><span class="type">varchar(24)</span></li>
-                  <li class="field" data-column="input_snapshot"><span class="keys"></span><span class="column">input_snapshot</span><span class="type">jsonb</span></li>
-                  <li class="field" data-column="result_snapshot"><span class="keys"></span><span class="column">result_snapshot</span><span class="type nullable">jsonb</span></li>
-                  <li class="field" data-column="error_code"><span class="keys"></span><span class="column">error_code</span><span class="type nullable">varchar(80)</span></li>
-                  <li class="field" data-column="error_message"><span class="keys"></span><span class="column">error_message</span><span class="type nullable">text</span></li>
-                  <li class="field" data-column="attempts"><span class="keys"></span><span class="column">attempts</span><span class="type">integer</span></li>
-                  <li class="field" data-column="cancel_requested"><span class="keys"></span><span class="column">cancel_requested</span><span class="type">boolean</span></li>
-                  <li class="field" data-column="lease_token"><span class="keys"><span class="key uk">UK</span></span><span class="column">lease_token</span><span class="type nullable">varchar(36)</span></li>
-                  <li class="field" data-column="worker_id"><span class="keys"></span><span class="column">worker_id</span><span class="type nullable">varchar(120)</span></li>
-                  <li class="field" data-column="leased_until"><span class="keys"></span><span class="column">leased_until</span><span class="type nullable">timestamptz</span></li>
-                  <li class="field" data-column="heartbeat_at"><span class="keys"></span><span class="column">heartbeat_at</span><span class="type nullable">timestamptz</span></li>
-                  <li class="field" data-column="deadline_at"><span class="keys"></span><span class="column">deadline_at</span><span class="type">timestamptz</span></li>
-                  <li class="field" data-column="created_at"><span class="keys"></span><span class="column">created_at</span><span class="type">timestamptz</span></li>
-                  <li class="field" data-column="updated_at"><span class="keys"></span><span class="column">updated_at</span><span class="type">timestamptz</span></li>
-                </ul>
-              </article>
-
-              <article class="entity auth auth-otp-challenges" data-table="auth_otp_challenges">
-                <header class="entity-header">
-                  <div class="entity-name"><small>TABLE · AUTH</small><h2>auth_otp_challenges</h2></div>
-                  <span class="row-count">9</span>
-                </header>
-                <ul class="fields">
-                  <li class="field" data-column="id"><span class="keys"><span class="key pk">PK</span></span><span class="column">id</span><span class="type">varchar(36)</span></li>
-                  <li class="field" data-column="student_number"><span class="keys"></span><span class="column">student_number</span><span class="type">varchar(20)</span></li>
-                  <li class="field" data-column="code_digest"><span class="keys"></span><span class="column">code_digest</span><span class="type">varchar(64)</span></li>
-                  <li class="field" data-column="attempts"><span class="keys"></span><span class="column">attempts</span><span class="type">integer</span></li>
-                  <li class="field" data-column="expires_at"><span class="keys"></span><span class="column">expires_at</span><span class="type">timestamptz</span></li>
-                  <li class="field" data-column="last_sent_at"><span class="keys"></span><span class="column">last_sent_at</span><span class="type">timestamptz</span></li>
-                  <li class="field" data-column="consumed_at"><span class="keys"></span><span class="column">consumed_at</span><span class="type nullable">timestamptz</span></li>
-                  <li class="field" data-column="invalidated_at"><span class="keys"></span><span class="column">invalidated_at</span><span class="type nullable">timestamptz</span></li>
-                  <li class="field" data-column="created_at"><span class="keys"></span><span class="column">created_at</span><span class="type">timestamptz</span></li>
-                </ul>
-              </article>
-
-              <article class="entity auth auth-sessions" data-table="auth_sessions">
-                <header class="entity-header">
-                  <div class="entity-name"><small>TABLE · AUTH</small><h2>auth_sessions</h2></div>
-                  <span class="row-count">7</span>
-                </header>
-                <ul class="fields">
-                  <li class="field" data-column="id"><span class="keys"><span class="key pk">PK</span></span><span class="column">id</span><span class="type">varchar(36)</span></li>
-                  <li class="field" data-column="student_number"><span class="keys"></span><span class="column">student_number</span><span class="type">varchar(20)</span></li>
-                  <li class="field" data-column="token_digest"><span class="keys"><span class="key uk">UK</span></span><span class="column">token_digest</span><span class="type">varchar(64)</span></li>
-                  <li class="field" data-column="expires_at"><span class="keys"></span><span class="column">expires_at</span><span class="type">timestamptz</span></li>
-                  <li class="field" data-column="revoked_at"><span class="keys"></span><span class="column">revoked_at</span><span class="type nullable">timestamptz</span></li>
-                  <li class="field" data-column="rotated_at"><span class="keys"></span><span class="column">rotated_at</span><span class="type">timestamptz</span></li>
-                  <li class="field" data-column="created_at"><span class="keys"></span><span class="column">created_at</span><span class="type">timestamptz</span></li>
-                </ul>
-              </article>
-
-              <article class="entity auth auth-rate-events" data-table="auth_rate_events">
-                <header class="entity-header">
-                  <div class="entity-name"><small>TABLE · AUTH</small><h2>auth_rate_events</h2></div>
-                  <span class="row-count">5</span>
-                </header>
-                <ul class="fields">
-                  <li class="field" data-column="id"><span class="keys"><span class="key pk">PK</span></span><span class="column">id</span><span class="type">varchar(36)</span></li>
-                  <li class="field" data-column="kind"><span class="keys"></span><span class="column">kind</span><span class="type">varchar(20)</span></li>
-                  <li class="field" data-column="account_digest"><span class="keys"></span><span class="column">account_digest</span><span class="type">varchar(64)</span></li>
-                  <li class="field" data-column="ip_digest"><span class="keys"></span><span class="column">ip_digest</span><span class="type">varchar(64)</span></li>
-                  <li class="field" data-column="created_at"><span class="keys"></span><span class="column">created_at</span><span class="type">timestamptz</span></li>
-                </ul>
-              </article>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section class="notes-grid" aria-label="저장소 경계 설명">
-        <article class="note">
-          <span class="note-label">Files</span>
-          <h2>카탈로그는 파일이 source of truth</h2>
-          <p>
-            학기·분반·강의실 API는 현재 <code>data/</code>의 versioned JSON snapshot을
-            읽습니다. 카탈로그 테이블은 존재하지만 현재 조회 경로에는 연결되지 않습니다.
-          </p>
-        </article>
-        <article class="note">
-          <span class="note-label">PostgreSQL</span>
-          <h2>서버 상태는 DB에 영속화</h2>
-          <p>
-            최적화 작업은 <code>optimization_jobs</code>, 선택형 OTP와 로그인은
-            <code>auth_*</code> 테이블을 사용합니다. API와 worker의 동시성·lease·만료를
-            PostgreSQL이 보장합니다.
-          </p>
-        </article>
-        <article class="note">
-          <span class="note-label">Browser</span>
-          <h2>개인 편집 상태는 브라우저 우선</h2>
-          <p>
-            개인 시간표와 프로필은 서버 테이블에 저장하지 않습니다. 인증 테이블 사이의
-            <code>student_number</code>도 논리적 연결일 뿐 실제 FK는 아닙니다.
-          </p>
-        </article>
-      </section>
-
-      <footer class="footer">
-        <span>실제 PostgreSQL schema · Alembic 20260710_0003</span>
-        <nav class="footer-links" aria-label="관련 문서">
-          <a href="ERD.md">상세 ERD 문서</a>
-          <a href="API_SPEC.md">API 명세</a>
-          <a href="ARCHITECTURE.md">아키텍처</a>
-        </nav>
-      </footer>
+      </div>
     </main>
-
-    <script>
-      (() => {
-        const BASE_WIDTH = 1600;
-        const BASE_HEIGHT = 1420;
-        const MIN_SCALE = 0.2;
-        const MAX_SCALE = 1.4;
-        const STEP = 0.1;
-
-        const viewport = document.querySelector("#viewport");
-        const shell = document.querySelector("#canvas-shell");
-        const diagram = document.querySelector("#diagram");
-        const value = document.querySelector("#zoom-value");
-        let scale = 1;
-
-        const setScale = (nextScale) => {
-          scale = Math.min(MAX_SCALE, Math.max(MIN_SCALE, nextScale));
-          diagram.style.transform = `scale(${scale})`;
-          shell.style.width = `${BASE_WIDTH * scale}px`;
-          shell.style.height = `${BASE_HEIGHT * scale}px`;
-          value.textContent = `${Math.round(scale * 100)}%`;
-        };
-
-        const fit = () => {
-          const horizontalPadding = 24;
-          setScale(Math.min(1, (viewport.clientWidth - horizontalPadding) / BASE_WIDTH));
-          viewport.scrollTo({ top: 0, left: 0, behavior: "smooth" });
-        };
-
-        document.querySelector("#zoom-out").addEventListener("click", () => setScale(scale - STEP));
-        document.querySelector("#zoom-in").addEventListener("click", () => setScale(scale + STEP));
-        document.querySelector("#zoom-fit").addEventListener("click", fit);
-        document.querySelector("#print").addEventListener("click", () => window.print());
-
-        if (window.innerWidth < 1100) {
-          setScale(0.45);
-        } else {
-          requestAnimationFrame(fit);
-        }
-      })();
-    </script>
   </body>
 </html>
