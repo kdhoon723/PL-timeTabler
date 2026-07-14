@@ -1,0 +1,3305 @@
+{
+  "entityData": [
+    {
+      "_id": "Fq2Rxcnq01nb0Jhk0",
+      "_diagramId": "ei2zIX33YRLyVETPk",
+      "position": {
+        "x": 80,
+        "y": 80
+      },
+      "name": "DEPARTMENTS",
+      "pName": "departments",
+      "fields": [
+        {
+          "_id": "4dVSB5oVdlxqbBWAn",
+          "name": "DEPARTMENT_CODE",
+          "pName": "department_code",
+          "domain": "",
+          "type": "VARCHAR(30)",
+          "defaultValue": "",
+          "isAllowNull": false,
+          "comment": "학과 코드; UNIQUE",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "W83BjNqQYrHPmpDx1",
+          "name": "DEPARTMENT_NAME",
+          "pName": "department_name",
+          "domain": "",
+          "type": "VARCHAR(100)",
+          "defaultValue": "",
+          "isAllowNull": false,
+          "comment": "학과명",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "EPPQYbuxCZ962oc4v",
+          "name": "IS_ACTIVE",
+          "pName": "is_active",
+          "domain": "",
+          "type": "BOOLEAN",
+          "defaultValue": "true",
+          "isAllowNull": false,
+          "comment": "사용 여부",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "0AVYp03QXUfSXmOAd",
+          "name": "CREATED_AT",
+          "pName": "created_at",
+          "domain": "",
+          "type": "TIMESTAMPTZ",
+          "defaultValue": "CURRENT_TIMESTAMP",
+          "isAllowNull": false,
+          "comment": "생성 일시",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        }
+      ],
+      "keys": {
+        "pks": [
+          {
+            "_id": "BNtm59Iy0OCidDA4Q",
+            "name": "DEPARTMENT_ID",
+            "pName": "department_id",
+            "domain": "",
+            "type": "BIGINT",
+            "defaultValue": "IDENTITY",
+            "isAllowNull": false,
+            "comment": "학과 식별자",
+            "relEntity": null,
+            "relFieldId": null,
+            "relType": null,
+            "relGroupId": null
+          }
+        ],
+        "fks": []
+      },
+      "color": "rgba(26, 115, 232, 0.45)"
+    },
+    {
+      "_id": "GrK6WbQHgghwiHMis",
+      "_diagramId": "ei2zIX33YRLyVETPk",
+      "position": {
+        "x": 80,
+        "y": 400
+      },
+      "name": "USERS",
+      "pName": "users",
+      "fields": [
+        {
+          "_id": "5NPeZLB7gdONTEvdp",
+          "name": "DEPARTMENT_ID",
+          "pName": "department_id",
+          "domain": "",
+          "type": "BIGINT",
+          "defaultValue": "",
+          "isAllowNull": false,
+          "comment": "소속 학과",
+          "relEntity": "Fq2Rxcnq01nb0Jhk0",
+          "relFieldId": "BNtm59Iy0OCidDA4Q",
+          "relType": "MANY",
+          "relGroupId": "ClOvvTqYw6kz3vWxH"
+        },
+        {
+          "_id": "PSfNin1OJgDtoJcyw",
+          "name": "SCHOOL_EMAIL",
+          "pName": "school_email",
+          "domain": "",
+          "type": "VARCHAR(255)",
+          "defaultValue": "",
+          "isAllowNull": false,
+          "comment": "학교 이메일; UNIQUE",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "puDTBBpHNfBBEkUzP",
+          "name": "NAME",
+          "pName": "name",
+          "domain": "",
+          "type": "VARCHAR(100)",
+          "defaultValue": "",
+          "isAllowNull": false,
+          "comment": "사용자 이름",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "mpo3LXxMzTGrYhH8A",
+          "name": "STUDENT_NUMBER",
+          "pName": "student_number",
+          "domain": "",
+          "type": "VARCHAR(30)",
+          "defaultValue": "",
+          "isAllowNull": false,
+          "comment": "학번; UNIQUE",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "Vy7FeEfFirFSZdn4c",
+          "name": "CURRENT_GRADE",
+          "pName": "current_grade",
+          "domain": "",
+          "type": "SMALLINT",
+          "defaultValue": "",
+          "isAllowNull": true,
+          "comment": "현재 학년",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "D5mQsyWSFChHJVHHb",
+          "name": "ADMISSION_YEAR",
+          "pName": "admission_year",
+          "domain": "",
+          "type": "SMALLINT",
+          "defaultValue": "",
+          "isAllowNull": true,
+          "comment": "입학 연도",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "IbPrjrSLoOptlk1d7",
+          "name": "ENTRY_TYPE",
+          "pName": "entry_type",
+          "domain": "",
+          "type": "VARCHAR(20)",
+          "defaultValue": "",
+          "isAllowNull": true,
+          "comment": "입학 유형: FRESHMAN/TRANSFER",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "5QlfB3Lu2sAuNypwF",
+          "name": "STUDENT_TYPE",
+          "pName": "student_type",
+          "domain": "",
+          "type": "VARCHAR(20)",
+          "defaultValue": "",
+          "isAllowNull": true,
+          "comment": "학생 구분",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "KYiZe9E0qM2Bylcjg",
+          "name": "ROLE",
+          "pName": "role",
+          "domain": "",
+          "type": "VARCHAR(20)",
+          "defaultValue": "'USER'",
+          "isAllowNull": false,
+          "comment": "권한: USER/ADMIN",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "yzuInzNOGGeKrJWeJ",
+          "name": "EMAIL_VERIFIED_AT",
+          "pName": "email_verified_at",
+          "domain": "",
+          "type": "TIMESTAMPTZ",
+          "defaultValue": "",
+          "isAllowNull": true,
+          "comment": "이메일 인증 일시",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "4aaXTFttqCnmAZoes",
+          "name": "CREATED_AT",
+          "pName": "created_at",
+          "domain": "",
+          "type": "TIMESTAMPTZ",
+          "defaultValue": "CURRENT_TIMESTAMP",
+          "isAllowNull": false,
+          "comment": "가입 일시",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "zgnOZOGHAny0pWTi8",
+          "name": "UPDATED_AT",
+          "pName": "updated_at",
+          "domain": "",
+          "type": "TIMESTAMPTZ",
+          "defaultValue": "CURRENT_TIMESTAMP",
+          "isAllowNull": false,
+          "comment": "수정 일시",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "Ryvq5GZ1wmeMTVHMi",
+          "name": "DELETED_AT",
+          "pName": "deleted_at",
+          "domain": "",
+          "type": "TIMESTAMPTZ",
+          "defaultValue": "",
+          "isAllowNull": true,
+          "comment": "탈퇴 일시",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        }
+      ],
+      "keys": {
+        "pks": [
+          {
+            "_id": "tY0S2y5HF20Ydj2lZ",
+            "name": "USER_ID",
+            "pName": "user_id",
+            "domain": "",
+            "type": "UUID",
+            "defaultValue": "gen_random_uuid()",
+            "isAllowNull": false,
+            "comment": "사용자 식별자",
+            "relEntity": null,
+            "relFieldId": null,
+            "relType": null,
+            "relGroupId": null
+          }
+        ],
+        "fks": []
+      },
+      "color": "rgba(26, 115, 232, 0.45)"
+    },
+    {
+      "_id": "5a7SdxLorb7SsYmpR",
+      "_diagramId": "ei2zIX33YRLyVETPk",
+      "position": {
+        "x": 80,
+        "y": 980
+      },
+      "name": "USER_OAUTH_ACCOUNTS",
+      "pName": "user_oauth_accounts",
+      "fields": [
+        {
+          "_id": "kqeafxrMS2BqYz1Oi",
+          "name": "USER_ID",
+          "pName": "user_id",
+          "domain": "",
+          "type": "UUID",
+          "defaultValue": "",
+          "isAllowNull": false,
+          "comment": "사용자",
+          "relEntity": "GrK6WbQHgghwiHMis",
+          "relFieldId": "tY0S2y5HF20Ydj2lZ",
+          "relType": "MANY",
+          "relGroupId": "na1rgRO2vdgaJLJLg"
+        },
+        {
+          "_id": "REM2UlBJAkGCO1AA4",
+          "name": "PROVIDER",
+          "pName": "provider",
+          "domain": "",
+          "type": "VARCHAR(30)",
+          "defaultValue": "",
+          "isAllowNull": false,
+          "comment": "로그인 제공자",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "82nq5K3Pq3lgcrsMW",
+          "name": "PROVIDER_USER_ID",
+          "pName": "provider_user_id",
+          "domain": "",
+          "type": "VARCHAR(255)",
+          "defaultValue": "",
+          "isAllowNull": false,
+          "comment": "제공자 사용자 ID; provider와 복합 UNIQUE",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "OpdE87PgKXITvQFwW",
+          "name": "PROVIDER_EMAIL",
+          "pName": "provider_email",
+          "domain": "",
+          "type": "VARCHAR(255)",
+          "defaultValue": "",
+          "isAllowNull": true,
+          "comment": "제공자 이메일",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "EC0SP2pxCOKQFyMAL",
+          "name": "CREATED_AT",
+          "pName": "created_at",
+          "domain": "",
+          "type": "TIMESTAMPTZ",
+          "defaultValue": "CURRENT_TIMESTAMP",
+          "isAllowNull": false,
+          "comment": "연결 일시",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        }
+      ],
+      "keys": {
+        "pks": [
+          {
+            "_id": "0sBAJDEVDgo31XqvP",
+            "name": "OAUTH_ACCOUNT_ID",
+            "pName": "oauth_account_id",
+            "domain": "",
+            "type": "UUID",
+            "defaultValue": "gen_random_uuid()",
+            "isAllowNull": false,
+            "comment": "소셜 계정 식별자",
+            "relEntity": null,
+            "relFieldId": null,
+            "relType": null,
+            "relGroupId": null
+          }
+        ],
+        "fks": []
+      },
+      "color": "rgba(26, 115, 232, 0.45)"
+    },
+    {
+      "_id": "HvvR79mqPf43njfiv",
+      "_diagramId": "ei2zIX33YRLyVETPk",
+      "position": {
+        "x": 80,
+        "y": 1320
+      },
+      "name": "AUTH_SESSIONS",
+      "pName": "auth_sessions",
+      "fields": [
+        {
+          "_id": "5g2wKt8vPXUc1Sdkl",
+          "name": "USER_ID",
+          "pName": "user_id",
+          "domain": "",
+          "type": "UUID",
+          "defaultValue": "",
+          "isAllowNull": false,
+          "comment": "사용자",
+          "relEntity": "GrK6WbQHgghwiHMis",
+          "relFieldId": "tY0S2y5HF20Ydj2lZ",
+          "relType": "MANY",
+          "relGroupId": "eSwJplyHHMEzcWhFI"
+        },
+        {
+          "_id": "qrVIARLZ9JGSxQMqE",
+          "name": "REFRESH_TOKEN_HASH",
+          "pName": "refresh_token_hash",
+          "domain": "",
+          "type": "VARCHAR(255)",
+          "defaultValue": "",
+          "isAllowNull": false,
+          "comment": "리프레시 토큰 해시",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "fl2H4W8R0zOWP1Lcg",
+          "name": "EXPIRES_AT",
+          "pName": "expires_at",
+          "domain": "",
+          "type": "TIMESTAMPTZ",
+          "defaultValue": "",
+          "isAllowNull": false,
+          "comment": "만료 일시",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "E3Qptp5q6DMaUT6sD",
+          "name": "REVOKED_AT",
+          "pName": "revoked_at",
+          "domain": "",
+          "type": "TIMESTAMPTZ",
+          "defaultValue": "",
+          "isAllowNull": true,
+          "comment": "폐기 일시",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "oiNL7oqBpsqSBrAgE",
+          "name": "LAST_USED_AT",
+          "pName": "last_used_at",
+          "domain": "",
+          "type": "TIMESTAMPTZ",
+          "defaultValue": "",
+          "isAllowNull": true,
+          "comment": "최근 사용 일시",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "EFkk9kKcKecb9ebET",
+          "name": "CREATED_AT",
+          "pName": "created_at",
+          "domain": "",
+          "type": "TIMESTAMPTZ",
+          "defaultValue": "CURRENT_TIMESTAMP",
+          "isAllowNull": false,
+          "comment": "생성 일시",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        }
+      ],
+      "keys": {
+        "pks": [
+          {
+            "_id": "lndkPKAWPV3plo2XR",
+            "name": "SESSION_ID",
+            "pName": "session_id",
+            "domain": "",
+            "type": "UUID",
+            "defaultValue": "gen_random_uuid()",
+            "isAllowNull": false,
+            "comment": "세션 식별자",
+            "relEntity": null,
+            "relFieldId": null,
+            "relType": null,
+            "relGroupId": null
+          }
+        ],
+        "fks": []
+      },
+      "color": "rgba(26, 115, 232, 0.45)"
+    },
+    {
+      "_id": "5C4wcbP1HnG24v0Kv",
+      "_diagramId": "ei2zIX33YRLyVETPk",
+      "position": {
+        "x": 80,
+        "y": 1680
+      },
+      "name": "USER_CONSENTS",
+      "pName": "user_consents",
+      "fields": [
+        {
+          "_id": "65cAQVuOH0G958Wb4",
+          "name": "USER_ID",
+          "pName": "user_id",
+          "domain": "",
+          "type": "UUID",
+          "defaultValue": "",
+          "isAllowNull": false,
+          "comment": "사용자",
+          "relEntity": "GrK6WbQHgghwiHMis",
+          "relFieldId": "tY0S2y5HF20Ydj2lZ",
+          "relType": "MANY",
+          "relGroupId": "uh8fDy9xGxZ9EJPZp"
+        },
+        {
+          "_id": "nrBP8HXXMhOZbNErl",
+          "name": "CONSENT_TYPE",
+          "pName": "consent_type",
+          "domain": "",
+          "type": "VARCHAR(50)",
+          "defaultValue": "",
+          "isAllowNull": false,
+          "comment": "동의서 종류",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "QtIGUYDJYR2OMdY4f",
+          "name": "DOCUMENT_VERSION",
+          "pName": "document_version",
+          "domain": "",
+          "type": "VARCHAR(30)",
+          "defaultValue": "",
+          "isAllowNull": false,
+          "comment": "동의서 버전",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "dqLJ8rwnEOJGI7ezZ",
+          "name": "IS_AGREED",
+          "pName": "is_agreed",
+          "domain": "",
+          "type": "BOOLEAN",
+          "defaultValue": "",
+          "isAllowNull": false,
+          "comment": "동의 여부",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "vKask5Eemu7vCqB6Q",
+          "name": "AGREED_AT",
+          "pName": "agreed_at",
+          "domain": "",
+          "type": "TIMESTAMPTZ",
+          "defaultValue": "",
+          "isAllowNull": false,
+          "comment": "동의 일시",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "OoMR5Ow64twJzIvgX",
+          "name": "REVOKED_AT",
+          "pName": "revoked_at",
+          "domain": "",
+          "type": "TIMESTAMPTZ",
+          "defaultValue": "",
+          "isAllowNull": true,
+          "comment": "철회 일시",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        }
+      ],
+      "keys": {
+        "pks": [
+          {
+            "_id": "UZyZWpqtTRw7skc46",
+            "name": "CONSENT_ID",
+            "pName": "consent_id",
+            "domain": "",
+            "type": "UUID",
+            "defaultValue": "gen_random_uuid()",
+            "isAllowNull": false,
+            "comment": "동의 기록 식별자",
+            "relEntity": null,
+            "relFieldId": null,
+            "relType": null,
+            "relGroupId": null
+          }
+        ],
+        "fks": []
+      },
+      "color": "rgba(26, 115, 232, 0.45)"
+    },
+    {
+      "_id": "YW4KGaaaJmALrZ7r2",
+      "_diagramId": "ei2zIX33YRLyVETPk",
+      "position": {
+        "x": 500,
+        "y": 80
+      },
+      "name": "SEMESTERS",
+      "pName": "semesters",
+      "fields": [
+        {
+          "_id": "YZ6ctvPH4KECXzjs9",
+          "name": "YEAR",
+          "pName": "year",
+          "domain": "",
+          "type": "SMALLINT",
+          "defaultValue": "",
+          "isAllowNull": false,
+          "comment": "개설 연도",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "rLO236jIaL5s1BR8C",
+          "name": "TERM",
+          "pName": "term",
+          "domain": "",
+          "type": "VARCHAR(20)",
+          "defaultValue": "",
+          "isAllowNull": false,
+          "comment": "학기; year와 복합 UNIQUE",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "SKsHcqtEb55lYixWs",
+          "name": "CATALOG_VERSION",
+          "pName": "catalog_version",
+          "domain": "",
+          "type": "VARCHAR(64)",
+          "defaultValue": "",
+          "isAllowNull": true,
+          "comment": "강의 데이터 버전",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "Qr7cSwQhZnjC5Ws5Q",
+          "name": "IS_ACTIVE",
+          "pName": "is_active",
+          "domain": "",
+          "type": "BOOLEAN",
+          "defaultValue": "true",
+          "isAllowNull": false,
+          "comment": "현재 학기 여부",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "Mu0OZh3kAYDtceObB",
+          "name": "STARTS_AT",
+          "pName": "starts_at",
+          "domain": "",
+          "type": "DATE",
+          "defaultValue": "",
+          "isAllowNull": true,
+          "comment": "학기 시작일",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "22VpPYEIK14NmHeUf",
+          "name": "ENDS_AT",
+          "pName": "ends_at",
+          "domain": "",
+          "type": "DATE",
+          "defaultValue": "",
+          "isAllowNull": true,
+          "comment": "학기 종료일",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "gmBF8JEHUfJ9UcIwA",
+          "name": "CREATED_AT",
+          "pName": "created_at",
+          "domain": "",
+          "type": "TIMESTAMPTZ",
+          "defaultValue": "CURRENT_TIMESTAMP",
+          "isAllowNull": false,
+          "comment": "생성 일시",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        }
+      ],
+      "keys": {
+        "pks": [
+          {
+            "_id": "pevn44hF6rwar7Ypu",
+            "name": "SEMESTER_ID",
+            "pName": "semester_id",
+            "domain": "",
+            "type": "BIGINT",
+            "defaultValue": "IDENTITY",
+            "isAllowNull": false,
+            "comment": "학기 식별자",
+            "relEntity": null,
+            "relFieldId": null,
+            "relType": null,
+            "relGroupId": null
+          }
+        ],
+        "fks": []
+      },
+      "color": "rgba(0, 137, 123, 0.45)"
+    },
+    {
+      "_id": "cNuNsFeBAY3V056dC",
+      "_diagramId": "ei2zIX33YRLyVETPk",
+      "position": {
+        "x": 500,
+        "y": 450
+      },
+      "name": "COURSE_CATEGORIES",
+      "pName": "course_categories",
+      "fields": [
+        {
+          "_id": "q7jRVuVTIuVL5zkrL",
+          "name": "CATEGORY_CODE",
+          "pName": "category_code",
+          "domain": "",
+          "type": "VARCHAR(30)",
+          "defaultValue": "",
+          "isAllowNull": false,
+          "comment": "분류 코드; UNIQUE",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "HAkcmSWXXrWKIJ5Tj",
+          "name": "CATEGORY_NAME",
+          "pName": "category_name",
+          "domain": "",
+          "type": "VARCHAR(100)",
+          "defaultValue": "",
+          "isAllowNull": false,
+          "comment": "전공/교양/일반선택 등",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "avANi87ZR7MdtmAWb",
+          "name": "IS_ACTIVE",
+          "pName": "is_active",
+          "domain": "",
+          "type": "BOOLEAN",
+          "defaultValue": "true",
+          "isAllowNull": false,
+          "comment": "사용 여부",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        }
+      ],
+      "keys": {
+        "pks": [
+          {
+            "_id": "074owdx7mMLd6g888",
+            "name": "CATEGORY_ID",
+            "pName": "category_id",
+            "domain": "",
+            "type": "BIGINT",
+            "defaultValue": "IDENTITY",
+            "isAllowNull": false,
+            "comment": "과목 분류 식별자",
+            "relEntity": null,
+            "relFieldId": null,
+            "relType": null,
+            "relGroupId": null
+          }
+        ],
+        "fks": []
+      },
+      "color": "rgba(0, 137, 123, 0.45)"
+    },
+    {
+      "_id": "FMixt93Pksc7SleFD",
+      "_diagramId": "ei2zIX33YRLyVETPk",
+      "position": {
+        "x": 500,
+        "y": 720
+      },
+      "name": "CURRICULUM_AREAS",
+      "pName": "curriculum_areas",
+      "fields": [
+        {
+          "_id": "oM1gskZRwo2MukM5t",
+          "name": "AREA_CODE",
+          "pName": "area_code",
+          "domain": "",
+          "type": "VARCHAR(30)",
+          "defaultValue": "",
+          "isAllowNull": false,
+          "comment": "영역 코드; UNIQUE",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "1Pj6khTyGNehU7EPH",
+          "name": "AREA_NAME",
+          "pName": "area_name",
+          "domain": "",
+          "type": "VARCHAR(100)",
+          "defaultValue": "",
+          "isAllowNull": false,
+          "comment": "5영역 등 교육영역",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "nOBeMsEGvjXIGgN3h",
+          "name": "DESCRIPTION",
+          "pName": "description",
+          "domain": "",
+          "type": "TEXT",
+          "defaultValue": "",
+          "isAllowNull": true,
+          "comment": "영역 설명",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "Nd4Kfs3pk1cW0rFwp",
+          "name": "IS_ACTIVE",
+          "pName": "is_active",
+          "domain": "",
+          "type": "BOOLEAN",
+          "defaultValue": "true",
+          "isAllowNull": false,
+          "comment": "사용 여부",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        }
+      ],
+      "keys": {
+        "pks": [
+          {
+            "_id": "ghMIeAJwCmmaf1PzD",
+            "name": "CURRICULUM_AREA_ID",
+            "pName": "curriculum_area_id",
+            "domain": "",
+            "type": "BIGINT",
+            "defaultValue": "IDENTITY",
+            "isAllowNull": false,
+            "comment": "교육영역 식별자",
+            "relEntity": null,
+            "relFieldId": null,
+            "relType": null,
+            "relGroupId": null
+          }
+        ],
+        "fks": []
+      },
+      "color": "rgba(0, 137, 123, 0.45)"
+    },
+    {
+      "_id": "9WiDSv423oVVly6Q4",
+      "_diagramId": "ei2zIX33YRLyVETPk",
+      "position": {
+        "x": 500,
+        "y": 1020
+      },
+      "name": "COURSES",
+      "pName": "courses",
+      "fields": [
+        {
+          "_id": "rpTt0lVGKTeCTjavI",
+          "name": "DEPARTMENT_ID",
+          "pName": "department_id",
+          "domain": "",
+          "type": "BIGINT",
+          "defaultValue": "",
+          "isAllowNull": true,
+          "comment": "주관 학과",
+          "relEntity": "Fq2Rxcnq01nb0Jhk0",
+          "relFieldId": "BNtm59Iy0OCidDA4Q",
+          "relType": "MANY",
+          "relGroupId": "5rQ76YtgXAAOX8trd"
+        },
+        {
+          "_id": "An1HZuZS0PcCmwz25",
+          "name": "CATEGORY_ID",
+          "pName": "category_id",
+          "domain": "",
+          "type": "BIGINT",
+          "defaultValue": "",
+          "isAllowNull": true,
+          "comment": "과목 분류",
+          "relEntity": "cNuNsFeBAY3V056dC",
+          "relFieldId": "074owdx7mMLd6g888",
+          "relType": "MANY",
+          "relGroupId": "DvVJ6FerDhqolrqsR"
+        },
+        {
+          "_id": "P7gzhbSoaNU3j0vjI",
+          "name": "CURRICULUM_AREA_ID",
+          "pName": "curriculum_area_id",
+          "domain": "",
+          "type": "BIGINT",
+          "defaultValue": "",
+          "isAllowNull": true,
+          "comment": "교육영역",
+          "relEntity": "FMixt93Pksc7SleFD",
+          "relFieldId": "ghMIeAJwCmmaf1PzD",
+          "relType": "MANY",
+          "relGroupId": "cJU3TsGrS6J9xvVTt"
+        },
+        {
+          "_id": "7wjrvo8SNq4LP2nWG",
+          "name": "COURSE_CODE",
+          "pName": "course_code",
+          "domain": "",
+          "type": "VARCHAR(30)",
+          "defaultValue": "",
+          "isAllowNull": false,
+          "comment": "과목 코드; UNIQUE",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "1qn2b1Cjqzau5pFyU",
+          "name": "COURSE_NAME",
+          "pName": "course_name",
+          "domain": "",
+          "type": "VARCHAR(200)",
+          "defaultValue": "",
+          "isAllowNull": false,
+          "comment": "과목명",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "fshQTB4vi8kBoJ2ls",
+          "name": "RECOMMENDED_GRADE",
+          "pName": "recommended_grade",
+          "domain": "",
+          "type": "SMALLINT",
+          "defaultValue": "",
+          "isAllowNull": true,
+          "comment": "권장 학년",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "ZeGgBnQd0IP8iILr2",
+          "name": "CREDIT",
+          "pName": "credit",
+          "domain": "",
+          "type": "NUMERIC(3,1)",
+          "defaultValue": "",
+          "isAllowNull": false,
+          "comment": "학점",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "EnI6jfvCLy56ssUf4",
+          "name": "DESCRIPTION",
+          "pName": "description",
+          "domain": "",
+          "type": "TEXT",
+          "defaultValue": "",
+          "isAllowNull": true,
+          "comment": "과목 설명",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "LNQFnT8gRvwkzlMDt",
+          "name": "CREATED_AT",
+          "pName": "created_at",
+          "domain": "",
+          "type": "TIMESTAMPTZ",
+          "defaultValue": "CURRENT_TIMESTAMP",
+          "isAllowNull": false,
+          "comment": "생성 일시",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "qqu8Inn3sXB7x20eZ",
+          "name": "UPDATED_AT",
+          "pName": "updated_at",
+          "domain": "",
+          "type": "TIMESTAMPTZ",
+          "defaultValue": "CURRENT_TIMESTAMP",
+          "isAllowNull": false,
+          "comment": "수정 일시",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        }
+      ],
+      "keys": {
+        "pks": [
+          {
+            "_id": "TUa9a3A8wos29GLHx",
+            "name": "COURSE_ID",
+            "pName": "course_id",
+            "domain": "",
+            "type": "BIGINT",
+            "defaultValue": "IDENTITY",
+            "isAllowNull": false,
+            "comment": "과목 식별자",
+            "relEntity": null,
+            "relFieldId": null,
+            "relType": null,
+            "relGroupId": null
+          }
+        ],
+        "fks": []
+      },
+      "color": "rgba(0, 137, 123, 0.45)"
+    },
+    {
+      "_id": "vZpDT10BVrgZjugbs",
+      "_diagramId": "ei2zIX33YRLyVETPk",
+      "position": {
+        "x": 500,
+        "y": 1530
+      },
+      "name": "COURSE_SECTIONS",
+      "pName": "course_sections",
+      "fields": [
+        {
+          "_id": "zsGKFLhqmgRjydZ6b",
+          "name": "SEMESTER_ID",
+          "pName": "semester_id",
+          "domain": "",
+          "type": "BIGINT",
+          "defaultValue": "",
+          "isAllowNull": false,
+          "comment": "개설 학기",
+          "relEntity": "YW4KGaaaJmALrZ7r2",
+          "relFieldId": "pevn44hF6rwar7Ypu",
+          "relType": "MANY",
+          "relGroupId": "ip2zKyh5gUnDP25T1"
+        },
+        {
+          "_id": "tSS6jkHjwlKKOH6WS",
+          "name": "COURSE_ID",
+          "pName": "course_id",
+          "domain": "",
+          "type": "BIGINT",
+          "defaultValue": "",
+          "isAllowNull": false,
+          "comment": "과목",
+          "relEntity": "9WiDSv423oVVly6Q4",
+          "relFieldId": "TUa9a3A8wos29GLHx",
+          "relType": "MANY",
+          "relGroupId": "7DYu0juClKgZMjYRi"
+        },
+        {
+          "_id": "qU4PF1i2ZA8t6tiq2",
+          "name": "SECTION_CODE",
+          "pName": "section_code",
+          "domain": "",
+          "type": "VARCHAR(20)",
+          "defaultValue": "",
+          "isAllowNull": false,
+          "comment": "분반 코드; 학기/과목과 복합 UNIQUE",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "KxqdilG7irAKdZG2p",
+          "name": "PROFESSOR",
+          "pName": "professor",
+          "domain": "",
+          "type": "VARCHAR(100)",
+          "defaultValue": "",
+          "isAllowNull": true,
+          "comment": "담당 교수",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "3lEmzhkfoAtXO76Ux",
+          "name": "CAPACITY",
+          "pName": "capacity",
+          "domain": "",
+          "type": "INTEGER",
+          "defaultValue": "",
+          "isAllowNull": true,
+          "comment": "수강 정원",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "s0OJBcl7JvMYLVafX",
+          "name": "ENROLLMENT_COUNT",
+          "pName": "enrollment_count",
+          "domain": "",
+          "type": "INTEGER",
+          "defaultValue": "0",
+          "isAllowNull": false,
+          "comment": "현재 신청 인원",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "beSeFxytk1GhqZqkG",
+          "name": "SECTION_GROUP",
+          "pName": "section_group",
+          "domain": "",
+          "type": "VARCHAR(50)",
+          "defaultValue": "",
+          "isAllowNull": true,
+          "comment": "전공 분반 구분",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "L9ApK5ZDzqJhhOuCI",
+          "name": "STATUS",
+          "pName": "status",
+          "domain": "",
+          "type": "VARCHAR(20)",
+          "defaultValue": "'OPEN'",
+          "isAllowNull": false,
+          "comment": "OPEN/CLOSED/CANCELLED",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "NGjJgpnrJCiToxzNP",
+          "name": "CREATED_AT",
+          "pName": "created_at",
+          "domain": "",
+          "type": "TIMESTAMPTZ",
+          "defaultValue": "CURRENT_TIMESTAMP",
+          "isAllowNull": false,
+          "comment": "생성 일시",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "ar4Wfczebp38J9XII",
+          "name": "UPDATED_AT",
+          "pName": "updated_at",
+          "domain": "",
+          "type": "TIMESTAMPTZ",
+          "defaultValue": "CURRENT_TIMESTAMP",
+          "isAllowNull": false,
+          "comment": "수정 일시",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        }
+      ],
+      "keys": {
+        "pks": [
+          {
+            "_id": "j8P1B4EaknoFbF5Pg",
+            "name": "SECTION_ID",
+            "pName": "section_id",
+            "domain": "",
+            "type": "BIGINT",
+            "defaultValue": "IDENTITY",
+            "isAllowNull": false,
+            "comment": "개설 분반 식별자",
+            "relEntity": null,
+            "relFieldId": null,
+            "relType": null,
+            "relGroupId": null
+          }
+        ],
+        "fks": []
+      },
+      "color": "rgba(0, 137, 123, 0.45)"
+    },
+    {
+      "_id": "iy5fHpgEfBvG3ntfs",
+      "_diagramId": "ei2zIX33YRLyVETPk",
+      "position": {
+        "x": 500,
+        "y": 2010
+      },
+      "name": "COURSE_SECTION_TARGETS",
+      "pName": "course_section_targets",
+      "fields": [
+        {
+          "_id": "iJVx5cLZn54rm9c5X",
+          "name": "SECTION_ID",
+          "pName": "section_id",
+          "domain": "",
+          "type": "BIGINT",
+          "defaultValue": "",
+          "isAllowNull": false,
+          "comment": "개설 분반",
+          "relEntity": "vZpDT10BVrgZjugbs",
+          "relFieldId": "j8P1B4EaknoFbF5Pg",
+          "relType": "MANY",
+          "relGroupId": "R6uafxWqZgzQIJ3Lx"
+        },
+        {
+          "_id": "cP6Vq7C0uNtCgUPER",
+          "name": "DEPARTMENT_ID",
+          "pName": "department_id",
+          "domain": "",
+          "type": "BIGINT",
+          "defaultValue": "",
+          "isAllowNull": false,
+          "comment": "대상 학과",
+          "relEntity": "Fq2Rxcnq01nb0Jhk0",
+          "relFieldId": "BNtm59Iy0OCidDA4Q",
+          "relType": "MANY",
+          "relGroupId": "6LL7DUfx1C4UxM2SS"
+        },
+        {
+          "_id": "Uvr9pilcNu7N3qaUM",
+          "name": "TARGET_GRADE",
+          "pName": "target_grade",
+          "domain": "",
+          "type": "SMALLINT",
+          "defaultValue": "",
+          "isAllowNull": true,
+          "comment": "대상 학년",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "2wHflRgRNiuRn8I0v",
+          "name": "DESCRIPTION",
+          "pName": "description",
+          "domain": "",
+          "type": "VARCHAR(200)",
+          "defaultValue": "",
+          "isAllowNull": true,
+          "comment": "분반 대상 설명",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        }
+      ],
+      "keys": {
+        "pks": [
+          {
+            "_id": "MvV63tz9gcHn2RITU",
+            "name": "SECTION_TARGET_ID",
+            "pName": "section_target_id",
+            "domain": "",
+            "type": "BIGINT",
+            "defaultValue": "IDENTITY",
+            "isAllowNull": false,
+            "comment": "분반 대상 식별자",
+            "relEntity": null,
+            "relFieldId": null,
+            "relType": null,
+            "relGroupId": null
+          }
+        ],
+        "fks": []
+      },
+      "color": "rgba(0, 137, 123, 0.45)"
+    },
+    {
+      "_id": "c7P0VY542xBbDaMVf",
+      "_diagramId": "ei2zIX33YRLyVETPk",
+      "position": {
+        "x": 500,
+        "y": 2310
+      },
+      "name": "COURSE_SCHEDULES",
+      "pName": "course_schedules",
+      "fields": [
+        {
+          "_id": "omRXwZXWuBmFx3vDJ",
+          "name": "SECTION_ID",
+          "pName": "section_id",
+          "domain": "",
+          "type": "BIGINT",
+          "defaultValue": "",
+          "isAllowNull": false,
+          "comment": "개설 분반",
+          "relEntity": "vZpDT10BVrgZjugbs",
+          "relFieldId": "j8P1B4EaknoFbF5Pg",
+          "relType": "MANY",
+          "relGroupId": "v7QTMep58YBgMFKTz"
+        },
+        {
+          "_id": "AIeBnDVm86QRoC7XB",
+          "name": "DAY_OF_WEEK",
+          "pName": "day_of_week",
+          "domain": "",
+          "type": "SMALLINT",
+          "defaultValue": "",
+          "isAllowNull": false,
+          "comment": "요일 1~7",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "EYD68zjp3Mc0krxM4",
+          "name": "START_TIME",
+          "pName": "start_time",
+          "domain": "",
+          "type": "TIME",
+          "defaultValue": "",
+          "isAllowNull": false,
+          "comment": "시작 시간",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "8reKXPJcruSTnmWpS",
+          "name": "END_TIME",
+          "pName": "end_time",
+          "domain": "",
+          "type": "TIME",
+          "defaultValue": "",
+          "isAllowNull": false,
+          "comment": "종료 시간; 시작보다 이후",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "Jsk69cT6iz8MxU3jH",
+          "name": "CLASSROOM",
+          "pName": "classroom",
+          "domain": "",
+          "type": "VARCHAR(100)",
+          "defaultValue": "",
+          "isAllowNull": true,
+          "comment": "강의실",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        }
+      ],
+      "keys": {
+        "pks": [
+          {
+            "_id": "1VOyG1DvonoHaH6Nq",
+            "name": "SCHEDULE_ID",
+            "pName": "schedule_id",
+            "domain": "",
+            "type": "BIGINT",
+            "defaultValue": "IDENTITY",
+            "isAllowNull": false,
+            "comment": "수업시간 식별자",
+            "relEntity": null,
+            "relFieldId": null,
+            "relType": null,
+            "relGroupId": null
+          }
+        ],
+        "fks": []
+      },
+      "color": "rgba(0, 137, 123, 0.45)"
+    },
+    {
+      "_id": "TnGEZLAPg8p4YTWKc",
+      "_diagramId": "ei2zIX33YRLyVETPk",
+      "position": {
+        "x": 960,
+        "y": 80
+      },
+      "name": "TIMETABLE_GENERATION_JOBS",
+      "pName": "timetable_generation_jobs",
+      "fields": [
+        {
+          "_id": "LSMIpyQwVZxz0Xf0j",
+          "name": "USER_ID",
+          "pName": "user_id",
+          "domain": "",
+          "type": "UUID",
+          "defaultValue": "",
+          "isAllowNull": false,
+          "comment": "요청 사용자",
+          "relEntity": "GrK6WbQHgghwiHMis",
+          "relFieldId": "tY0S2y5HF20Ydj2lZ",
+          "relType": "MANY",
+          "relGroupId": "aLuj9FSUS8RDVfgTv"
+        },
+        {
+          "_id": "MaWVvXe2DkACyuBFg",
+          "name": "SEMESTER_ID",
+          "pName": "semester_id",
+          "domain": "",
+          "type": "BIGINT",
+          "defaultValue": "",
+          "isAllowNull": false,
+          "comment": "대상 학기",
+          "relEntity": "YW4KGaaaJmALrZ7r2",
+          "relFieldId": "pevn44hF6rwar7Ypu",
+          "relType": "MANY",
+          "relGroupId": "2suPAsSBfiHQo92lX"
+        },
+        {
+          "_id": "OfODVTu4JRakEUyLg",
+          "name": "STATUS",
+          "pName": "status",
+          "domain": "",
+          "type": "VARCHAR(20)",
+          "defaultValue": "",
+          "isAllowNull": false,
+          "comment": "QUEUED/RUNNING/SUCCEEDED/FAILED",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "Vjn3YhYjkxkEbUlYx",
+          "name": "REQUEST_SNAPSHOT",
+          "pName": "request_snapshot",
+          "domain": "",
+          "type": "JSONB",
+          "defaultValue": "",
+          "isAllowNull": false,
+          "comment": "편성 조건 스냅샷",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "Yj3ICMsY6hkxkDqs9",
+          "name": "REQUESTED_AT",
+          "pName": "requested_at",
+          "domain": "",
+          "type": "TIMESTAMPTZ",
+          "defaultValue": "CURRENT_TIMESTAMP",
+          "isAllowNull": false,
+          "comment": "요청 일시",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "pMDgryMu3RDjQ2oxP",
+          "name": "STARTED_AT",
+          "pName": "started_at",
+          "domain": "",
+          "type": "TIMESTAMPTZ",
+          "defaultValue": "",
+          "isAllowNull": true,
+          "comment": "시작 일시",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "rmkSc8HXnFzF5N9vK",
+          "name": "COMPLETED_AT",
+          "pName": "completed_at",
+          "domain": "",
+          "type": "TIMESTAMPTZ",
+          "defaultValue": "",
+          "isAllowNull": true,
+          "comment": "완료 일시",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "2L9wuab1w3t67Pasi",
+          "name": "ERROR_MESSAGE",
+          "pName": "error_message",
+          "domain": "",
+          "type": "TEXT",
+          "defaultValue": "",
+          "isAllowNull": true,
+          "comment": "실패 내용",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        }
+      ],
+      "keys": {
+        "pks": [
+          {
+            "_id": "eiJpFsV3nlCNg7IdQ",
+            "name": "JOB_ID",
+            "pName": "job_id",
+            "domain": "",
+            "type": "UUID",
+            "defaultValue": "gen_random_uuid()",
+            "isAllowNull": false,
+            "comment": "자동 편성 작업 식별자",
+            "relEntity": null,
+            "relFieldId": null,
+            "relType": null,
+            "relGroupId": null
+          }
+        ],
+        "fks": []
+      },
+      "color": "rgba(123, 31, 162, 0.45)"
+    },
+    {
+      "_id": "FxHiN0m8v7CBay2xB",
+      "_diagramId": "ei2zIX33YRLyVETPk",
+      "position": {
+        "x": 960,
+        "y": 500
+      },
+      "name": "TIMETABLES",
+      "pName": "timetables",
+      "fields": [
+        {
+          "_id": "Ddsntoyfa0tdAY1vA",
+          "name": "USER_ID",
+          "pName": "user_id",
+          "domain": "",
+          "type": "UUID",
+          "defaultValue": "",
+          "isAllowNull": false,
+          "comment": "소유 사용자",
+          "relEntity": "GrK6WbQHgghwiHMis",
+          "relFieldId": "tY0S2y5HF20Ydj2lZ",
+          "relType": "MANY",
+          "relGroupId": "0nsVkv450A1e1C2Bt"
+        },
+        {
+          "_id": "6o3heWuxoeP6yac3S",
+          "name": "SEMESTER_ID",
+          "pName": "semester_id",
+          "domain": "",
+          "type": "BIGINT",
+          "defaultValue": "",
+          "isAllowNull": false,
+          "comment": "학기",
+          "relEntity": "YW4KGaaaJmALrZ7r2",
+          "relFieldId": "pevn44hF6rwar7Ypu",
+          "relType": "MANY",
+          "relGroupId": "36ThUBYMOIm4bmvIH"
+        },
+        {
+          "_id": "rogqZoJpmnWzRRoJ3",
+          "name": "GENERATION_JOB_ID",
+          "pName": "generation_job_id",
+          "domain": "",
+          "type": "UUID",
+          "defaultValue": "",
+          "isAllowNull": true,
+          "comment": "생성 작업",
+          "relEntity": "TnGEZLAPg8p4YTWKc",
+          "relFieldId": "eiJpFsV3nlCNg7IdQ",
+          "relType": "MANY",
+          "relGroupId": "5eshktrZH9dT5cUvM"
+        },
+        {
+          "_id": "pgWcQxxJnik8Nwhl4",
+          "name": "TITLE",
+          "pName": "title",
+          "domain": "",
+          "type": "VARCHAR(100)",
+          "defaultValue": "",
+          "isAllowNull": false,
+          "comment": "시간표 제목",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "8V0ydPgTf2UOaCe6K",
+          "name": "SOURCE_TYPE",
+          "pName": "source_type",
+          "domain": "",
+          "type": "VARCHAR(20)",
+          "defaultValue": "",
+          "isAllowNull": false,
+          "comment": "MANUAL/AUTO_GENERATED/COPIED",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "jQN2ZOpvNiiTYS7s4",
+          "name": "VARIANT_NUMBER",
+          "pName": "variant_number",
+          "domain": "",
+          "type": "INTEGER",
+          "defaultValue": "",
+          "isAllowNull": true,
+          "comment": "자동 생성 후보 번호",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "wBjEKA1INbZEoKupk",
+          "name": "STATUS",
+          "pName": "status",
+          "domain": "",
+          "type": "VARCHAR(20)",
+          "defaultValue": "'DRAFT'",
+          "isAllowNull": false,
+          "comment": "DRAFT/SAVED/ARCHIVED",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "Yh76ifpkxldHQaYFz",
+          "name": "IS_FAVORITE",
+          "pName": "is_favorite",
+          "domain": "",
+          "type": "BOOLEAN",
+          "defaultValue": "false",
+          "isAllowNull": false,
+          "comment": "즐겨찾기 여부",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "cf84dpxXt4muMihYk",
+          "name": "CREATED_AT",
+          "pName": "created_at",
+          "domain": "",
+          "type": "TIMESTAMPTZ",
+          "defaultValue": "CURRENT_TIMESTAMP",
+          "isAllowNull": false,
+          "comment": "생성 일시",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "9BWZoUg1Ra2Zm7AbT",
+          "name": "UPDATED_AT",
+          "pName": "updated_at",
+          "domain": "",
+          "type": "TIMESTAMPTZ",
+          "defaultValue": "CURRENT_TIMESTAMP",
+          "isAllowNull": false,
+          "comment": "수정 일시",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        }
+      ],
+      "keys": {
+        "pks": [
+          {
+            "_id": "lJ5SXal0oNabWbcZJ",
+            "name": "TIMETABLE_ID",
+            "pName": "timetable_id",
+            "domain": "",
+            "type": "UUID",
+            "defaultValue": "gen_random_uuid()",
+            "isAllowNull": false,
+            "comment": "시간표 식별자",
+            "relEntity": null,
+            "relFieldId": null,
+            "relType": null,
+            "relGroupId": null
+          }
+        ],
+        "fks": []
+      },
+      "color": "rgba(123, 31, 162, 0.45)"
+    },
+    {
+      "_id": "YKwXpSkaxk1yO3J3t",
+      "_diagramId": "ei2zIX33YRLyVETPk",
+      "position": {
+        "x": 960,
+        "y": 990
+      },
+      "name": "TIMETABLE_ITEMS",
+      "pName": "timetable_items",
+      "fields": [
+        {
+          "_id": "ee5LfidcvvXD8weNX",
+          "name": "TIMETABLE_ID",
+          "pName": "timetable_id",
+          "domain": "",
+          "type": "UUID",
+          "defaultValue": "",
+          "isAllowNull": false,
+          "comment": "시간표",
+          "relEntity": "FxHiN0m8v7CBay2xB",
+          "relFieldId": "lJ5SXal0oNabWbcZJ",
+          "relType": "MANY",
+          "relGroupId": "ll6kfMP2Vy1S6fXmQ"
+        },
+        {
+          "_id": "EmzOn4gXFjnel0ULc",
+          "name": "SECTION_ID",
+          "pName": "section_id",
+          "domain": "",
+          "type": "BIGINT",
+          "defaultValue": "",
+          "isAllowNull": false,
+          "comment": "선택 분반; 시간표와 복합 UNIQUE",
+          "relEntity": "vZpDT10BVrgZjugbs",
+          "relFieldId": "j8P1B4EaknoFbF5Pg",
+          "relType": "MANY",
+          "relGroupId": "zsVSPVYjI56n4oVKm"
+        },
+        {
+          "_id": "vg4pKCRlsf7dEeG6K",
+          "name": "ROLE",
+          "pName": "role",
+          "domain": "",
+          "type": "VARCHAR(20)",
+          "defaultValue": "",
+          "isAllowNull": true,
+          "comment": "MUST/WANT/BACKUP/EXCLUDE",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "c4YWoJ6lxO4eZy23n",
+          "name": "SECTION_LOCKED",
+          "pName": "section_locked",
+          "domain": "",
+          "type": "BOOLEAN",
+          "defaultValue": "false",
+          "isAllowNull": false,
+          "comment": "분반 고정 여부",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "9cb3jegCkYXWP9gnm",
+          "name": "PROFESSOR_LOCKED",
+          "pName": "professor_locked",
+          "domain": "",
+          "type": "BOOLEAN",
+          "defaultValue": "false",
+          "isAllowNull": false,
+          "comment": "교수 고정 여부",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "YPkJXpaWDfqge7fdc",
+          "name": "CREATED_AT",
+          "pName": "created_at",
+          "domain": "",
+          "type": "TIMESTAMPTZ",
+          "defaultValue": "CURRENT_TIMESTAMP",
+          "isAllowNull": false,
+          "comment": "추가 일시",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        }
+      ],
+      "keys": {
+        "pks": [
+          {
+            "_id": "XmDGAjeYEsJ7BFIhm",
+            "name": "TIMETABLE_ITEM_ID",
+            "pName": "timetable_item_id",
+            "domain": "",
+            "type": "UUID",
+            "defaultValue": "gen_random_uuid()",
+            "isAllowNull": false,
+            "comment": "시간표 항목 식별자",
+            "relEntity": null,
+            "relFieldId": null,
+            "relType": null,
+            "relGroupId": null
+          }
+        ],
+        "fks": []
+      },
+      "color": "rgba(123, 31, 162, 0.45)"
+    },
+    {
+      "_id": "SWL2tPQlW4FG04NFl",
+      "_diagramId": "ei2zIX33YRLyVETPk",
+      "position": {
+        "x": 960,
+        "y": 1350
+      },
+      "name": "TIMETABLE_PREFERENCES",
+      "pName": "timetable_preferences",
+      "fields": [
+        {
+          "_id": "7PW3tnrUw8qvs5seQ",
+          "name": "TIMETABLE_ID",
+          "pName": "timetable_id",
+          "domain": "",
+          "type": "UUID",
+          "defaultValue": "",
+          "isAllowNull": false,
+          "comment": "기준 시간표; UNIQUE",
+          "relEntity": "FxHiN0m8v7CBay2xB",
+          "relFieldId": "lJ5SXal0oNabWbcZJ",
+          "relType": "MANY",
+          "relGroupId": "o837DCaSj8GkG1EZ4"
+        },
+        {
+          "_id": "FiJscLuK22ZNbZ6U3",
+          "name": "MINIMUM_CREDIT",
+          "pName": "minimum_credit",
+          "domain": "",
+          "type": "NUMERIC(3,1)",
+          "defaultValue": "",
+          "isAllowNull": true,
+          "comment": "최소 학점",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "qL91U0tsRO4jfFl5n",
+          "name": "MAXIMUM_CREDIT",
+          "pName": "maximum_credit",
+          "domain": "",
+          "type": "NUMERIC(3,1)",
+          "defaultValue": "",
+          "isAllowNull": true,
+          "comment": "최대 학점",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "mEJ6Hp3DuRMhWLD6Z",
+          "name": "MINIMUM_GAP_MINUTES",
+          "pName": "minimum_gap_minutes",
+          "domain": "",
+          "type": "SMALLINT",
+          "defaultValue": "",
+          "isAllowNull": true,
+          "comment": "최소 공강 시간",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "kEXn76hqahyuoartR",
+          "name": "MAXIMUM_GAP_MINUTES",
+          "pName": "maximum_gap_minutes",
+          "domain": "",
+          "type": "SMALLINT",
+          "defaultValue": "",
+          "isAllowNull": true,
+          "comment": "최대 공강 시간",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "inlqtk6IHyn9N23e2",
+          "name": "EARLIEST_START_TIME",
+          "pName": "earliest_start_time",
+          "domain": "",
+          "type": "TIME",
+          "defaultValue": "",
+          "isAllowNull": true,
+          "comment": "가장 이른 시작",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "O8s6r3Zfxmg20Pjpr",
+          "name": "LATEST_END_TIME",
+          "pName": "latest_end_time",
+          "domain": "",
+          "type": "TIME",
+          "defaultValue": "",
+          "isAllowNull": true,
+          "comment": "가장 늦은 종료",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "Y1D2fyjI8XuxsLdqh",
+          "name": "LUNCH_START_TIME",
+          "pName": "lunch_start_time",
+          "domain": "",
+          "type": "TIME",
+          "defaultValue": "",
+          "isAllowNull": true,
+          "comment": "점심 시작",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "Qgtaq4P1OQh4e6Mzv",
+          "name": "LUNCH_END_TIME",
+          "pName": "lunch_end_time",
+          "domain": "",
+          "type": "TIME",
+          "defaultValue": "",
+          "isAllowNull": true,
+          "comment": "점심 종료",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "LQJCJxjWOxQQjdhZI",
+          "name": "COMPACT_SCHEDULE",
+          "pName": "compact_schedule",
+          "domain": "",
+          "type": "BOOLEAN",
+          "defaultValue": "false",
+          "isAllowNull": false,
+          "comment": "시간표 압축 선호",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "UzonLIr2Wqjb70GAI",
+          "name": "UPDATED_AT",
+          "pName": "updated_at",
+          "domain": "",
+          "type": "TIMESTAMPTZ",
+          "defaultValue": "CURRENT_TIMESTAMP",
+          "isAllowNull": false,
+          "comment": "수정 일시",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        }
+      ],
+      "keys": {
+        "pks": [
+          {
+            "_id": "kiEmCQB1dJ5DOFKux",
+            "name": "PREFERENCE_ID",
+            "pName": "preference_id",
+            "domain": "",
+            "type": "UUID",
+            "defaultValue": "gen_random_uuid()",
+            "isAllowNull": false,
+            "comment": "편성 선호조건 식별자",
+            "relEntity": null,
+            "relFieldId": null,
+            "relType": null,
+            "relGroupId": null
+          }
+        ],
+        "fks": []
+      },
+      "color": "rgba(123, 31, 162, 0.45)"
+    },
+    {
+      "_id": "HOTbB18zjdBWqk9kM",
+      "_diagramId": "ei2zIX33YRLyVETPk",
+      "position": {
+        "x": 960,
+        "y": 1840
+      },
+      "name": "TIMETABLE_EXCLUDED_DAYS",
+      "pName": "timetable_excluded_days",
+      "fields": [
+        {
+          "_id": "8CqOoPfBmlPZpjRht",
+          "name": "PREFERENCE_ID",
+          "pName": "preference_id",
+          "domain": "",
+          "type": "UUID",
+          "defaultValue": "",
+          "isAllowNull": false,
+          "comment": "편성 선호조건",
+          "relEntity": "SWL2tPQlW4FG04NFl",
+          "relFieldId": "kiEmCQB1dJ5DOFKux",
+          "relType": "MANY",
+          "relGroupId": "LHZwx9ngXT6Fw7H6A"
+        },
+        {
+          "_id": "ZsPbm4rq0s2idzn2T",
+          "name": "DAY_OF_WEEK",
+          "pName": "day_of_week",
+          "domain": "",
+          "type": "SMALLINT",
+          "defaultValue": "",
+          "isAllowNull": false,
+          "comment": "제외 요일 1~7; preference와 복합 UNIQUE",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        }
+      ],
+      "keys": {
+        "pks": [
+          {
+            "_id": "vCHtIX82bJz9EqKqM",
+            "name": "EXCLUDED_DAY_ID",
+            "pName": "excluded_day_id",
+            "domain": "",
+            "type": "UUID",
+            "defaultValue": "gen_random_uuid()",
+            "isAllowNull": false,
+            "comment": "제외 요일 식별자",
+            "relEntity": null,
+            "relFieldId": null,
+            "relType": null,
+            "relGroupId": null
+          }
+        ],
+        "fks": []
+      },
+      "color": "rgba(123, 31, 162, 0.45)"
+    },
+    {
+      "_id": "8gv7K0IQ5A2rqnhfk",
+      "_diagramId": "ei2zIX33YRLyVETPk",
+      "position": {
+        "x": 960,
+        "y": 2100
+      },
+      "name": "TIMETABLE_CONSTRAINTS",
+      "pName": "timetable_constraints",
+      "fields": [
+        {
+          "_id": "omCwvzAfcXuuCBeNP",
+          "name": "TIMETABLE_ID",
+          "pName": "timetable_id",
+          "domain": "",
+          "type": "UUID",
+          "defaultValue": "",
+          "isAllowNull": false,
+          "comment": "기준 시간표",
+          "relEntity": "FxHiN0m8v7CBay2xB",
+          "relFieldId": "lJ5SXal0oNabWbcZJ",
+          "relType": "MANY",
+          "relGroupId": "nRReDkI7Ixas2HFQE"
+        },
+        {
+          "_id": "F76tbLJsdFmsKbKW0",
+          "name": "COURSE_ID",
+          "pName": "course_id",
+          "domain": "",
+          "type": "BIGINT",
+          "defaultValue": "",
+          "isAllowNull": true,
+          "comment": "대상 과목",
+          "relEntity": "9WiDSv423oVVly6Q4",
+          "relFieldId": "TUa9a3A8wos29GLHx",
+          "relType": "MANY",
+          "relGroupId": "SvdXZs84s1ohAn3We"
+        },
+        {
+          "_id": "C0bNpt0tjShBHhsEL",
+          "name": "SECTION_ID",
+          "pName": "section_id",
+          "domain": "",
+          "type": "BIGINT",
+          "defaultValue": "",
+          "isAllowNull": true,
+          "comment": "대상 분반",
+          "relEntity": "vZpDT10BVrgZjugbs",
+          "relFieldId": "j8P1B4EaknoFbF5Pg",
+          "relType": "MANY",
+          "relGroupId": "EH8iQKmiyZk6NR0co"
+        },
+        {
+          "_id": "iSGyuMVvmDKWr59hF",
+          "name": "CONSTRAINT_TYPE",
+          "pName": "constraint_type",
+          "domain": "",
+          "type": "VARCHAR(30)",
+          "defaultValue": "",
+          "isAllowNull": false,
+          "comment": "REQUIRED/LOCKED/EXCLUDED/PREFERRED",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "lWAtpOD0lK6juQKTr",
+          "name": "PROFESSOR_NAME",
+          "pName": "professor_name",
+          "domain": "",
+          "type": "VARCHAR(100)",
+          "defaultValue": "",
+          "isAllowNull": true,
+          "comment": "대상 교수",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "aoOd5PpXK2TlaSOR7",
+          "name": "PRIORITY",
+          "pName": "priority",
+          "domain": "",
+          "type": "SMALLINT",
+          "defaultValue": "",
+          "isAllowNull": true,
+          "comment": "선호 우선순위",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "erNJdEPF75NoESaDz",
+          "name": "CREATED_AT",
+          "pName": "created_at",
+          "domain": "",
+          "type": "TIMESTAMPTZ",
+          "defaultValue": "CURRENT_TIMESTAMP",
+          "isAllowNull": false,
+          "comment": "생성 일시",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        }
+      ],
+      "keys": {
+        "pks": [
+          {
+            "_id": "UhCcNbRmnxhZjKr17",
+            "name": "CONSTRAINT_ID",
+            "pName": "constraint_id",
+            "domain": "",
+            "type": "UUID",
+            "defaultValue": "gen_random_uuid()",
+            "isAllowNull": false,
+            "comment": "편성 제약 식별자",
+            "relEntity": null,
+            "relFieldId": null,
+            "relType": null,
+            "relGroupId": null
+          }
+        ],
+        "fks": []
+      },
+      "color": "rgba(123, 31, 162, 0.45)"
+    },
+    {
+      "_id": "cYT6NNVf7Ikk3AQrw",
+      "_diagramId": "ei2zIX33YRLyVETPk",
+      "position": {
+        "x": 1400,
+        "y": 80
+      },
+      "name": "FAVORITE_COURSES",
+      "pName": "favorite_courses",
+      "fields": [
+        {
+          "_id": "H2IK9YVTCa9zieicG",
+          "name": "USER_ID",
+          "pName": "user_id",
+          "domain": "",
+          "type": "UUID",
+          "defaultValue": "",
+          "isAllowNull": false,
+          "comment": "사용자",
+          "relEntity": "GrK6WbQHgghwiHMis",
+          "relFieldId": "tY0S2y5HF20Ydj2lZ",
+          "relType": "MANY",
+          "relGroupId": "7f17UTr1O4UWglsjM"
+        },
+        {
+          "_id": "b9RBY8QyNdimUu0En",
+          "name": "COURSE_ID",
+          "pName": "course_id",
+          "domain": "",
+          "type": "BIGINT",
+          "defaultValue": "",
+          "isAllowNull": false,
+          "comment": "과목; 사용자와 복합 UNIQUE",
+          "relEntity": "9WiDSv423oVVly6Q4",
+          "relFieldId": "TUa9a3A8wos29GLHx",
+          "relType": "MANY",
+          "relGroupId": "jO0ERh2dm6Dgklqlo"
+        },
+        {
+          "_id": "54GwQNN0COFoDZq0X",
+          "name": "CREATED_AT",
+          "pName": "created_at",
+          "domain": "",
+          "type": "TIMESTAMPTZ",
+          "defaultValue": "CURRENT_TIMESTAMP",
+          "isAllowNull": false,
+          "comment": "즐겨찾기 일시",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        }
+      ],
+      "keys": {
+        "pks": [
+          {
+            "_id": "Pw5bUOPfMZWimBQGb",
+            "name": "FAVORITE_ID",
+            "pName": "favorite_id",
+            "domain": "",
+            "type": "UUID",
+            "defaultValue": "gen_random_uuid()",
+            "isAllowNull": false,
+            "comment": "과목 즐겨찾기 식별자",
+            "relEntity": null,
+            "relFieldId": null,
+            "relType": null,
+            "relGroupId": null
+          }
+        ],
+        "fks": []
+      },
+      "color": "rgba(239, 108, 0, 0.45)"
+    },
+    {
+      "_id": "7eMOXj2OdvcFN42Qt",
+      "_diagramId": "ei2zIX33YRLyVETPk",
+      "position": {
+        "x": 1400,
+        "y": 390
+      },
+      "name": "USER_COMPLETED_COURSES",
+      "pName": "user_completed_courses",
+      "fields": [
+        {
+          "_id": "fHrSez9E5GcS437va",
+          "name": "USER_ID",
+          "pName": "user_id",
+          "domain": "",
+          "type": "UUID",
+          "defaultValue": "",
+          "isAllowNull": false,
+          "comment": "사용자",
+          "relEntity": "GrK6WbQHgghwiHMis",
+          "relFieldId": "tY0S2y5HF20Ydj2lZ",
+          "relType": "MANY",
+          "relGroupId": "YVfcLiScsxzFSu89v"
+        },
+        {
+          "_id": "NBNKaOanG0bAv7RNy",
+          "name": "COURSE_ID",
+          "pName": "course_id",
+          "domain": "",
+          "type": "BIGINT",
+          "defaultValue": "",
+          "isAllowNull": true,
+          "comment": "연결 과목",
+          "relEntity": "9WiDSv423oVVly6Q4",
+          "relFieldId": "TUa9a3A8wos29GLHx",
+          "relType": "MANY",
+          "relGroupId": "6Kclgkh0bynQkLwbj"
+        },
+        {
+          "_id": "DqxfN3j200xUKT1Sf",
+          "name": "SEMESTER_ID",
+          "pName": "semester_id",
+          "domain": "",
+          "type": "BIGINT",
+          "defaultValue": "",
+          "isAllowNull": true,
+          "comment": "이수 학기",
+          "relEntity": "YW4KGaaaJmALrZ7r2",
+          "relFieldId": "pevn44hF6rwar7Ypu",
+          "relType": "MANY",
+          "relGroupId": "nWwQoylK8GPlBrN1U"
+        },
+        {
+          "_id": "hIm6sv9gaBg55A49H",
+          "name": "CURRICULUM_AREA_ID",
+          "pName": "curriculum_area_id",
+          "domain": "",
+          "type": "BIGINT",
+          "defaultValue": "",
+          "isAllowNull": true,
+          "comment": "인정 교육영역",
+          "relEntity": "FMixt93Pksc7SleFD",
+          "relFieldId": "ghMIeAJwCmmaf1PzD",
+          "relType": "MANY",
+          "relGroupId": "i5womOP8KqQAvQuNF"
+        },
+        {
+          "_id": "DtBme9FyDlW1S2aoh",
+          "name": "COURSE_NAME_SNAPSHOT",
+          "pName": "course_name_snapshot",
+          "domain": "",
+          "type": "VARCHAR(200)",
+          "defaultValue": "",
+          "isAllowNull": false,
+          "comment": "입력 당시 과목명",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "4mSgfSP7vZ0cfWap7",
+          "name": "COURSE_CODE_SNAPSHOT",
+          "pName": "course_code_snapshot",
+          "domain": "",
+          "type": "VARCHAR(30)",
+          "defaultValue": "",
+          "isAllowNull": true,
+          "comment": "입력 당시 과목코드",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "7RoQrJYW1a7f21YJW",
+          "name": "CREDIT",
+          "pName": "credit",
+          "domain": "",
+          "type": "NUMERIC(3,1)",
+          "defaultValue": "",
+          "isAllowNull": false,
+          "comment": "인정 학점",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "yF4JDPrZtUhrMF29t",
+          "name": "GRADE_RESULT",
+          "pName": "grade_result",
+          "domain": "",
+          "type": "VARCHAR(10)",
+          "defaultValue": "",
+          "isAllowNull": true,
+          "comment": "성적",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "e7c7vSv7ngk4nDQ76",
+          "name": "INPUT_SOURCE",
+          "pName": "input_source",
+          "domain": "",
+          "type": "VARCHAR(20)",
+          "defaultValue": "",
+          "isAllowNull": false,
+          "comment": "MANUAL/OCR/TIMETABLE/ADMIN",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "WYSwREUPalXTQGVzj",
+          "name": "CREATED_AT",
+          "pName": "created_at",
+          "domain": "",
+          "type": "TIMESTAMPTZ",
+          "defaultValue": "CURRENT_TIMESTAMP",
+          "isAllowNull": false,
+          "comment": "등록 일시",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        }
+      ],
+      "keys": {
+        "pks": [
+          {
+            "_id": "ELGPGqqNakdS3fDVe",
+            "name": "COMPLETED_COURSE_ID",
+            "pName": "completed_course_id",
+            "domain": "",
+            "type": "UUID",
+            "defaultValue": "gen_random_uuid()",
+            "isAllowNull": false,
+            "comment": "이수과목 식별자",
+            "relEntity": null,
+            "relFieldId": null,
+            "relType": null,
+            "relGroupId": null
+          }
+        ],
+        "fks": []
+      },
+      "color": "rgba(239, 108, 0, 0.45)"
+    },
+    {
+      "_id": "FpmDht9LmJ07vVQl9",
+      "_diagramId": "ei2zIX33YRLyVETPk",
+      "position": {
+        "x": 1400,
+        "y": 870
+      },
+      "name": "OCR_IMPORT_JOBS",
+      "pName": "ocr_import_jobs",
+      "fields": [
+        {
+          "_id": "GmecI6EURdzkhMk7z",
+          "name": "USER_ID",
+          "pName": "user_id",
+          "domain": "",
+          "type": "UUID",
+          "defaultValue": "",
+          "isAllowNull": false,
+          "comment": "요청 사용자",
+          "relEntity": "GrK6WbQHgghwiHMis",
+          "relFieldId": "tY0S2y5HF20Ydj2lZ",
+          "relType": "MANY",
+          "relGroupId": "oYLcKb7rcO4JA9smt"
+        },
+        {
+          "_id": "QFmAcafonGTp1ZkCs",
+          "name": "STORAGE_OBJECT_KEY",
+          "pName": "storage_object_key",
+          "domain": "",
+          "type": "VARCHAR(500)",
+          "defaultValue": "",
+          "isAllowNull": false,
+          "comment": "성적표 이미지 저장 경로",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "LzKN4nT8h6eGgrOIF",
+          "name": "STATUS",
+          "pName": "status",
+          "domain": "",
+          "type": "VARCHAR(20)",
+          "defaultValue": "",
+          "isAllowNull": false,
+          "comment": "QUEUED/RUNNING/SUCCEEDED/FAILED",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "lzZykMdpCrYi87lJq",
+          "name": "RAW_RESULT",
+          "pName": "raw_result",
+          "domain": "",
+          "type": "JSONB",
+          "defaultValue": "",
+          "isAllowNull": true,
+          "comment": "OCR 원본 결과",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "xw12j74NSRjQiozHI",
+          "name": "ERROR_MESSAGE",
+          "pName": "error_message",
+          "domain": "",
+          "type": "TEXT",
+          "defaultValue": "",
+          "isAllowNull": true,
+          "comment": "실패 내용",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "Y41FwOJgcttSX43GS",
+          "name": "CREATED_AT",
+          "pName": "created_at",
+          "domain": "",
+          "type": "TIMESTAMPTZ",
+          "defaultValue": "CURRENT_TIMESTAMP",
+          "isAllowNull": false,
+          "comment": "요청 일시",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "UMH8yPzF243Mq6LrU",
+          "name": "COMPLETED_AT",
+          "pName": "completed_at",
+          "domain": "",
+          "type": "TIMESTAMPTZ",
+          "defaultValue": "",
+          "isAllowNull": true,
+          "comment": "완료 일시",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        }
+      ],
+      "keys": {
+        "pks": [
+          {
+            "_id": "cjpr7XosXFKlAKDN9",
+            "name": "OCR_JOB_ID",
+            "pName": "ocr_job_id",
+            "domain": "",
+            "type": "UUID",
+            "defaultValue": "gen_random_uuid()",
+            "isAllowNull": false,
+            "comment": "OCR 작업 식별자",
+            "relEntity": null,
+            "relFieldId": null,
+            "relType": null,
+            "relGroupId": null
+          }
+        ],
+        "fks": []
+      },
+      "color": "rgba(239, 108, 0, 0.45)"
+    },
+    {
+      "_id": "9q563Ul0b5DxC7Elw",
+      "_diagramId": "ei2zIX33YRLyVETPk",
+      "position": {
+        "x": 1400,
+        "y": 1260
+      },
+      "name": "OCR_IMPORT_ITEMS",
+      "pName": "ocr_import_items",
+      "fields": [
+        {
+          "_id": "hzVk0JFpd1Az1sIkE",
+          "name": "OCR_JOB_ID",
+          "pName": "ocr_job_id",
+          "domain": "",
+          "type": "UUID",
+          "defaultValue": "",
+          "isAllowNull": false,
+          "comment": "OCR 작업",
+          "relEntity": "FpmDht9LmJ07vVQl9",
+          "relFieldId": "cjpr7XosXFKlAKDN9",
+          "relType": "MANY",
+          "relGroupId": "lPw3AZhE3ze7vQyN2"
+        },
+        {
+          "_id": "CIDJnSv8iTxTlM7er",
+          "name": "COURSE_ID",
+          "pName": "course_id",
+          "domain": "",
+          "type": "BIGINT",
+          "defaultValue": "",
+          "isAllowNull": true,
+          "comment": "매칭 과목",
+          "relEntity": "9WiDSv423oVVly6Q4",
+          "relFieldId": "TUa9a3A8wos29GLHx",
+          "relType": "MANY",
+          "relGroupId": "EfLkpoGt3dQhag6Kh"
+        },
+        {
+          "_id": "vmssQAM92Qemj8IkA",
+          "name": "DETECTED_COURSE_NAME",
+          "pName": "detected_course_name",
+          "domain": "",
+          "type": "VARCHAR(200)",
+          "defaultValue": "",
+          "isAllowNull": false,
+          "comment": "인식 과목명",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "AhMOaJ3zpe7teYL3A",
+          "name": "DETECTED_COURSE_CODE",
+          "pName": "detected_course_code",
+          "domain": "",
+          "type": "VARCHAR(30)",
+          "defaultValue": "",
+          "isAllowNull": true,
+          "comment": "인식 과목코드",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "gqN4HII42jQ2kEblA",
+          "name": "DETECTED_CREDIT",
+          "pName": "detected_credit",
+          "domain": "",
+          "type": "NUMERIC(3,1)",
+          "defaultValue": "",
+          "isAllowNull": true,
+          "comment": "인식 학점",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "1LmQaTE5TZpuiVjxX",
+          "name": "CONFIDENCE",
+          "pName": "confidence",
+          "domain": "",
+          "type": "NUMERIC(5,4)",
+          "defaultValue": "",
+          "isAllowNull": true,
+          "comment": "인식 신뢰도",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "JOWyf9Uu4HGo5kTAw",
+          "name": "IS_CONFIRMED",
+          "pName": "is_confirmed",
+          "domain": "",
+          "type": "BOOLEAN",
+          "defaultValue": "false",
+          "isAllowNull": false,
+          "comment": "사용자 확인 여부",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "AGkPb5u0z0Daxw4Wl",
+          "name": "CREATED_AT",
+          "pName": "created_at",
+          "domain": "",
+          "type": "TIMESTAMPTZ",
+          "defaultValue": "CURRENT_TIMESTAMP",
+          "isAllowNull": false,
+          "comment": "생성 일시",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        }
+      ],
+      "keys": {
+        "pks": [
+          {
+            "_id": "bM9dHhFYzaH1Klx0q",
+            "name": "OCR_ITEM_ID",
+            "pName": "ocr_item_id",
+            "domain": "",
+            "type": "UUID",
+            "defaultValue": "gen_random_uuid()",
+            "isAllowNull": false,
+            "comment": "OCR 인식 항목 식별자",
+            "relEntity": null,
+            "relFieldId": null,
+            "relType": null,
+            "relGroupId": null
+          }
+        ],
+        "fks": []
+      },
+      "color": "rgba(239, 108, 0, 0.45)"
+    },
+    {
+      "_id": "woAor7i1cdyn5r63I",
+      "_diagramId": "ei2zIX33YRLyVETPk",
+      "position": {
+        "x": 1400,
+        "y": 1690
+      },
+      "name": "COURSE_METRICS",
+      "pName": "course_metrics",
+      "fields": [
+        {
+          "_id": "dU6pgBC0W4AR3FSAL",
+          "name": "COURSE_ID",
+          "pName": "course_id",
+          "domain": "",
+          "type": "BIGINT",
+          "defaultValue": "",
+          "isAllowNull": false,
+          "comment": "과목; UNIQUE",
+          "relEntity": "9WiDSv423oVVly6Q4",
+          "relFieldId": "TUa9a3A8wos29GLHx",
+          "relType": "MANY",
+          "relGroupId": "nKvR0Bh4LPsMEV7sH"
+        },
+        {
+          "_id": "eIY33cByZYOUhGJSZ",
+          "name": "TIMETABLE_ADD_COUNT",
+          "pName": "timetable_add_count",
+          "domain": "",
+          "type": "INTEGER",
+          "defaultValue": "0",
+          "isAllowNull": false,
+          "comment": "시간표 추가 횟수",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "OaqeHq3eVudp4VTsx",
+          "name": "FAVORITE_COUNT",
+          "pName": "favorite_count",
+          "domain": "",
+          "type": "INTEGER",
+          "defaultValue": "0",
+          "isAllowNull": false,
+          "comment": "즐겨찾기 수",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "Ye5yBJI13OjoY27aT",
+          "name": "VIEW_COUNT",
+          "pName": "view_count",
+          "domain": "",
+          "type": "INTEGER",
+          "defaultValue": "0",
+          "isAllowNull": false,
+          "comment": "조회 수",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "NjLs1MQUr3rvS45BD",
+          "name": "POPULARITY_SCORE",
+          "pName": "popularity_score",
+          "domain": "",
+          "type": "NUMERIC(12,4)",
+          "defaultValue": "0",
+          "isAllowNull": false,
+          "comment": "인기 점수",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "r425BiagjeAsmBL3b",
+          "name": "UPDATED_AT",
+          "pName": "updated_at",
+          "domain": "",
+          "type": "TIMESTAMPTZ",
+          "defaultValue": "CURRENT_TIMESTAMP",
+          "isAllowNull": false,
+          "comment": "집계 일시",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        }
+      ],
+      "keys": {
+        "pks": [
+          {
+            "_id": "0A6BYZ7mFSY93inOT",
+            "name": "COURSE_METRIC_ID",
+            "pName": "course_metric_id",
+            "domain": "",
+            "type": "BIGINT",
+            "defaultValue": "IDENTITY",
+            "isAllowNull": false,
+            "comment": "과목 집계 식별자",
+            "relEntity": null,
+            "relFieldId": null,
+            "relType": null,
+            "relGroupId": null
+          }
+        ],
+        "fks": []
+      },
+      "color": "rgba(239, 108, 0, 0.45)"
+    },
+    {
+      "_id": "J8ckARxV6g5zF6oRN",
+      "_diagramId": "ei2zIX33YRLyVETPk",
+      "position": {
+        "x": 1840,
+        "y": 80
+      },
+      "name": "CURRICULUM_RULE_SETS",
+      "pName": "curriculum_rule_sets",
+      "fields": [
+        {
+          "_id": "hvLgMwrQ71QKgFCyg",
+          "name": "DEPARTMENT_ID",
+          "pName": "department_id",
+          "domain": "",
+          "type": "BIGINT",
+          "defaultValue": "",
+          "isAllowNull": false,
+          "comment": "적용 학과",
+          "relEntity": "Fq2Rxcnq01nb0Jhk0",
+          "relFieldId": "BNtm59Iy0OCidDA4Q",
+          "relType": "MANY",
+          "relGroupId": "u6tKkGSvrsse1R0b2"
+        },
+        {
+          "_id": "GlVNu05ebwW0vPtqJ",
+          "name": "ADMISSION_YEAR_FROM",
+          "pName": "admission_year_from",
+          "domain": "",
+          "type": "SMALLINT",
+          "defaultValue": "",
+          "isAllowNull": false,
+          "comment": "적용 입학연도 시작",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "UfRnhpvfl9ZYTmAxe",
+          "name": "ADMISSION_YEAR_TO",
+          "pName": "admission_year_to",
+          "domain": "",
+          "type": "SMALLINT",
+          "defaultValue": "",
+          "isAllowNull": false,
+          "comment": "적용 입학연도 종료",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "kMgCNEKezfsQg6U6d",
+          "name": "ENTRY_TYPE",
+          "pName": "entry_type",
+          "domain": "",
+          "type": "VARCHAR(20)",
+          "defaultValue": "",
+          "isAllowNull": true,
+          "comment": "입학 유형",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "IBEa1iEUAUtey3hOM",
+          "name": "STUDENT_TYPE",
+          "pName": "student_type",
+          "domain": "",
+          "type": "VARCHAR(20)",
+          "defaultValue": "",
+          "isAllowNull": true,
+          "comment": "학생 구분",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "fRnRsMkGagrEkLSPH",
+          "name": "RULE_SET_NAME",
+          "pName": "rule_set_name",
+          "domain": "",
+          "type": "VARCHAR(200)",
+          "defaultValue": "",
+          "isAllowNull": false,
+          "comment": "교육과정명",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "phQo8E3zGMDwOjnLL",
+          "name": "VERSION",
+          "pName": "version",
+          "domain": "",
+          "type": "VARCHAR(30)",
+          "defaultValue": "",
+          "isAllowNull": false,
+          "comment": "규칙 버전",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "JW1l9eQjL19Syf058",
+          "name": "IS_ACTIVE",
+          "pName": "is_active",
+          "domain": "",
+          "type": "BOOLEAN",
+          "defaultValue": "true",
+          "isAllowNull": false,
+          "comment": "사용 여부",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "j5iSApadrDnhQV1KQ",
+          "name": "EFFECTIVE_FROM",
+          "pName": "effective_from",
+          "domain": "",
+          "type": "DATE",
+          "defaultValue": "",
+          "isAllowNull": true,
+          "comment": "적용 시작일",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "E4bIfnvegXOvAEciS",
+          "name": "EFFECTIVE_TO",
+          "pName": "effective_to",
+          "domain": "",
+          "type": "DATE",
+          "defaultValue": "",
+          "isAllowNull": true,
+          "comment": "적용 종료일",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        }
+      ],
+      "keys": {
+        "pks": [
+          {
+            "_id": "6ksvAT7pP927WnAqE",
+            "name": "RULE_SET_ID",
+            "pName": "rule_set_id",
+            "domain": "",
+            "type": "BIGINT",
+            "defaultValue": "IDENTITY",
+            "isAllowNull": false,
+            "comment": "교육과정 규칙 식별자",
+            "relEntity": null,
+            "relFieldId": null,
+            "relType": null,
+            "relGroupId": null
+          }
+        ],
+        "fks": []
+      },
+      "color": "rgba(198, 40, 40, 0.45)"
+    },
+    {
+      "_id": "YmtkGwN4T8QnPeU0Z",
+      "_diagramId": "ei2zIX33YRLyVETPk",
+      "position": {
+        "x": 1840,
+        "y": 560
+      },
+      "name": "GRADUATION_REQUIREMENTS",
+      "pName": "graduation_requirements",
+      "fields": [
+        {
+          "_id": "cv2SQBscKrkhxvtNx",
+          "name": "RULE_SET_ID",
+          "pName": "rule_set_id",
+          "domain": "",
+          "type": "BIGINT",
+          "defaultValue": "",
+          "isAllowNull": false,
+          "comment": "교육과정 규칙",
+          "relEntity": "J8ckARxV6g5zF6oRN",
+          "relFieldId": "6ksvAT7pP927WnAqE",
+          "relType": "MANY",
+          "relGroupId": "6a77WBm3BmlcVXSa7"
+        },
+        {
+          "_id": "RQ0TLQV9KHXdInY5Q",
+          "name": "CATEGORY_ID",
+          "pName": "category_id",
+          "domain": "",
+          "type": "BIGINT",
+          "defaultValue": "",
+          "isAllowNull": true,
+          "comment": "과목 분류 조건",
+          "relEntity": "cNuNsFeBAY3V056dC",
+          "relFieldId": "074owdx7mMLd6g888",
+          "relType": "MANY",
+          "relGroupId": "Dtr9OH7dpmMTGExq3"
+        },
+        {
+          "_id": "GrvOXw1SzwUfTWvfz",
+          "name": "CURRICULUM_AREA_ID",
+          "pName": "curriculum_area_id",
+          "domain": "",
+          "type": "BIGINT",
+          "defaultValue": "",
+          "isAllowNull": true,
+          "comment": "교육영역 조건",
+          "relEntity": "FMixt93Pksc7SleFD",
+          "relFieldId": "ghMIeAJwCmmaf1PzD",
+          "relType": "MANY",
+          "relGroupId": "Qysc4wR6uk1KqWNJm"
+        },
+        {
+          "_id": "ULmm4Jl3clnBpmgZj",
+          "name": "REQUIREMENT_TYPE",
+          "pName": "requirement_type",
+          "domain": "",
+          "type": "VARCHAR(30)",
+          "defaultValue": "",
+          "isAllowNull": false,
+          "comment": "TOTAL_CREDIT/CATEGORY/AREA/COURSE",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "i1iKcktMn5d8yaVtX",
+          "name": "REQUIRED_CREDIT",
+          "pName": "required_credit",
+          "domain": "",
+          "type": "NUMERIC(4,1)",
+          "defaultValue": "",
+          "isAllowNull": true,
+          "comment": "필요 학점",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "T47jzBo9QNMUk6d2h",
+          "name": "REQUIRED_COURSE_COUNT",
+          "pName": "required_course_count",
+          "domain": "",
+          "type": "INTEGER",
+          "defaultValue": "",
+          "isAllowNull": true,
+          "comment": "필요 과목 수",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "1LiQ3U66G09lWnMbp",
+          "name": "DESCRIPTION",
+          "pName": "description",
+          "domain": "",
+          "type": "TEXT",
+          "defaultValue": "",
+          "isAllowNull": false,
+          "comment": "요건 설명",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        },
+        {
+          "_id": "JDaj08T8MFmXHDrHu",
+          "name": "DISPLAY_ORDER",
+          "pName": "display_order",
+          "domain": "",
+          "type": "INTEGER",
+          "defaultValue": "0",
+          "isAllowNull": false,
+          "comment": "표시 순서",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        }
+      ],
+      "keys": {
+        "pks": [
+          {
+            "_id": "4VdB4N5nBwAS8HZGJ",
+            "name": "REQUIREMENT_ID",
+            "pName": "requirement_id",
+            "domain": "",
+            "type": "BIGINT",
+            "defaultValue": "IDENTITY",
+            "isAllowNull": false,
+            "comment": "졸업요건 식별자",
+            "relEntity": null,
+            "relFieldId": null,
+            "relType": null,
+            "relGroupId": null
+          }
+        ],
+        "fks": []
+      },
+      "color": "rgba(198, 40, 40, 0.45)"
+    },
+    {
+      "_id": "n1Xurw2uJfy0yjmOW",
+      "_diagramId": "ei2zIX33YRLyVETPk",
+      "position": {
+        "x": 1840,
+        "y": 980
+      },
+      "name": "REQUIREMENT_COURSES",
+      "pName": "requirement_courses",
+      "fields": [
+        {
+          "_id": "YIyo4gNXHKAaVExEf",
+          "name": "REQUIREMENT_ID",
+          "pName": "requirement_id",
+          "domain": "",
+          "type": "BIGINT",
+          "defaultValue": "",
+          "isAllowNull": false,
+          "comment": "졸업요건",
+          "relEntity": "YmtkGwN4T8QnPeU0Z",
+          "relFieldId": "4VdB4N5nBwAS8HZGJ",
+          "relType": "MANY",
+          "relGroupId": "05onKBfaKUZszrOYx"
+        },
+        {
+          "_id": "9GeP0xeuvqb2vMkqx",
+          "name": "COURSE_ID",
+          "pName": "course_id",
+          "domain": "",
+          "type": "BIGINT",
+          "defaultValue": "",
+          "isAllowNull": false,
+          "comment": "대상 과목; 요건과 복합 UNIQUE",
+          "relEntity": "9WiDSv423oVVly6Q4",
+          "relFieldId": "TUa9a3A8wos29GLHx",
+          "relType": "MANY",
+          "relGroupId": "qvzoBv7aKcnpCiwIh"
+        },
+        {
+          "_id": "zt4xeg37SgL6V4KMY",
+          "name": "IS_MANDATORY",
+          "pName": "is_mandatory",
+          "domain": "",
+          "type": "BOOLEAN",
+          "defaultValue": "true",
+          "isAllowNull": false,
+          "comment": "필수 여부",
+          "relEntity": null,
+          "relFieldId": null,
+          "relType": null,
+          "relGroupId": null
+        }
+      ],
+      "keys": {
+        "pks": [
+          {
+            "_id": "3su7VqLwKVKt1PeFZ",
+            "name": "REQUIREMENT_COURSE_ID",
+            "pName": "requirement_course_id",
+            "domain": "",
+            "type": "BIGINT",
+            "defaultValue": "IDENTITY",
+            "isAllowNull": false,
+            "comment": "필수과목 연결 식별자",
+            "relEntity": null,
+            "relFieldId": null,
+            "relType": null,
+            "relGroupId": null
+          }
+        ],
+        "fks": []
+      },
+      "color": "rgba(198, 40, 40, 0.45)"
+    }
+  ],
+  "memoData": [],
+  "domainData": [],
+  "createdAt": "2026-07-14T07:15:21.726392Z",
+  "creatorName": "Codex",
+  "creatorThumb": ""
+}
