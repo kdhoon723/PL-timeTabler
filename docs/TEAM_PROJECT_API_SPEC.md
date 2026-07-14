@@ -4,12 +4,10 @@
 
 | 기능명 | Method | URL | 요청값 | 응답값 | 오류 |
 | --- | --- | --- | --- | --- | --- |
-| 회원가입 | POST | `/api/v1/auth/signup` | `studentNumber`, `name`, `grade`, `departmentId`, `consentVersion` | `user`, `accessToken`, `refreshToken` | `400 INVALID_REQUEST`, `409 ALREADY_REGISTERED` |
-| 소셜 로그인 시작 | GET | `/api/v1/auth/oauth/{provider}` | Path: `provider` | `authorizationUrl` | `400 UNSUPPORTED_PROVIDER` |
-| 소셜 로그인 완료 | POST | `/api/v1/auth/oauth/{provider}/callback` | `code`, `state` | `user`, `accessToken`, `refreshToken`, `isNewUser` | `400 INVALID_OAUTH_CODE`, `401 OAUTH_FAILED` |
+| 학교 이메일 인증번호 요청 | POST | `/api/v1/auth/otp/start` | `studentNumber` | `message`, `cooldownSeconds`, `expiresInSeconds` | `400 INVALID_STUDENT_NUMBER`, `429 TOO_MANY_REQUESTS`, `503 EMAIL_SEND_FAILED` |
+| 학교 이메일 OTP 로그인 | POST | `/api/v1/auth/otp/verify` | `studentNumber`, `code` | `authenticated`, `user`, `isNewUser`, `expiresAt` | `400 INVALID_CODE_FORMAT`, `401 INVALID_OR_EXPIRED_CODE`, `429 TOO_MANY_ATTEMPTS` |
 | 로그인 세션 조회 | GET | `/api/v1/auth/session` | 없음 | `authenticated`, `user`, `expiresAt` | `401 SESSION_EXPIRED` |
-| 토큰 재발급 | POST | `/api/v1/auth/refresh` | `refreshToken` | `accessToken`, `refreshToken`, `expiresAt` | `401 INVALID_REFRESH_TOKEN`, `401 SESSION_EXPIRED` |
-| 로그아웃 | POST | `/api/v1/auth/logout` | `refreshToken` | `message` | `401 UNAUTHORIZED` |
+| 로그아웃 | POST | `/api/v1/auth/logout` | 없음 | `message` | `401 UNAUTHORIZED` |
 
 ## 사용자·개인정보 동의
 
