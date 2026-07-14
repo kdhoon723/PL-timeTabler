@@ -46,7 +46,8 @@ browser → Nginx/React web → FastAPI → PostgreSQL ← OR-Tools worker
 | `migrate` | Alembic 스키마 마이그레이션 |
 | `ingest` | 배포 전 데이터 검증 release gate |
 
-기술 선택과 경계는 [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)에 정리되어 있습니다.
+기술 선택과 경계는 [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md), 저장소별 데이터
+흐름과 HTTP 계약은 [`docs/API_SPEC.md`](docs/API_SPEC.md)에 정리되어 있습니다.
 
 ## 로컬 실행
 
@@ -180,6 +181,7 @@ docker compose logs -f api optimizer web
 
 - [`DESIGN.md`](DESIGN.md) — 모바일 우선 제품·UI/UX 규칙
 - [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — 기술·배포·최적화 경계
+- [`docs/API_SPEC.md`](docs/API_SPEC.md) — 파일·PostgreSQL 저장 경계와 HTTP API 계약
 - [`docs/PRODUCT_PLAN.md`](docs/PRODUCT_PLAN.md) — 기능과 출시 기준
 - [`docs/IMPLEMENTATION_READINESS.md`](docs/IMPLEMENTATION_READINESS.md) — OR-Tools 검증 기준
 - [`docs/UX_ITERATION_3.md`](docs/UX_ITERATION_3.md) — 현재 시간표와 자동완성 후보 분리
