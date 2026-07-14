@@ -3,10 +3,10 @@
 | 기능 | HTTP 메서드 | API Path | 구현여부 | Request | Response | 요청 타입 | 담당자 | 오류 |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | (1) 인증 | ------------- |  | No |  |  |  |  |  |
-| (1-1) 학교 이메일 인증번호 요청 | POST | /api/v1/auth/otp/start | Yes | OtpStartRequest | OtpStartResponse | application/json |  | 400 INVALID_STUDENT_NUMBER, 429 TOO_MANY_REQUESTS, 503 EMAIL_SEND_FAILED |
-| (1-2) 학교 이메일 OTP 로그인 | POST | /api/v1/auth/otp/verify | Yes | OtpVerifyRequest | OtpVerifyResponse | application/json |  | 400 INVALID_CODE_FORMAT, 401 INVALID_OR_EXPIRED_CODE, 429 TOO_MANY_ATTEMPTS |
-| (1-3) 로그인 세션 조회 | GET | /api/v1/auth/session | Yes |  | AuthSessionResponse |  |  | 401 SESSION_EXPIRED |
-| (1-4) 로그아웃 | POST | /api/v1/auth/logout | Yes |  | LogoutResponse |  |  | 401 UNAUTHORIZED |
+| (1-1) 학교 이메일 인증번호 요청 | POST | /api/v1/auth/otp/start | No | OtpStartRequest | OtpStartResponse | application/json |  | 400 INVALID_STUDENT_NUMBER, 429 TOO_MANY_REQUESTS, 503 EMAIL_SEND_FAILED |
+| (1-2) 학교 이메일 OTP 로그인 | POST | /api/v1/auth/otp/verify | No | OtpVerifyRequest | OtpVerifyResponse | application/json |  | 400 INVALID_CODE_FORMAT, 401 INVALID_OR_EXPIRED_CODE, 429 TOO_MANY_ATTEMPTS |
+| (1-3) 로그인 세션 조회 | GET | /api/v1/auth/session | No |  | AuthSessionResponse |  |  | 401 SESSION_EXPIRED |
+| (1-4) 로그아웃 | POST | /api/v1/auth/logout | No |  | LogoutResponse |  |  | 401 UNAUTHORIZED |
 | (2) 사용자·개인정보 동의 | ------------- |  | No |  |  |  |  |  |
 | (2-1) 내 계정정보 조회 | GET | /api/v1/users/me | No |  | UserInfoResponse |  |  | 401 UNAUTHORIZED |
 | (2-2) 내 계정정보 변경 | PATCH | /api/v1/users/me | No | UserUpdateRequest | UserUpdateResponse | application/json |  | 400 INVALID_REQUEST, 401 UNAUTHORIZED, 404 DEPARTMENT_NOT_FOUND |
@@ -16,7 +16,7 @@
 | (3) 학과·학기 | ------------- |  | No |  |  |  |  |  |
 | (3-1) 학과 목록 조회 | GET | /api/v1/departments | No | Query: keyword? | DepartmentListResponse |  |  | 500 INTERNAL_ERROR |
 | (3-2) 학과 상세 조회 | GET | /api/v1/departments/{departmentId} | No | Path: departmentId | DepartmentDetailResponse |  |  | 404 DEPARTMENT_NOT_FOUND |
-| (3-3) 학기 목록 조회 | GET | /api/v1/semesters | Yes |  | SemesterListResponse |  |  | 500 INTERNAL_ERROR |
+| (3-3) 학기 목록 조회 | GET | /api/v1/semesters | No |  | SemesterListResponse |  |  | 500 INTERNAL_ERROR |
 | (3-4) 학기 데이터 버전 조회 | GET | /api/v1/semesters/{semester}/version | No | Path: semester | SemesterVersionResponse |  |  | 404 SEMESTER_NOT_FOUND |
 | (4) 강의 검색·정렬·필터 | ------------- |  | No |  |  |  |  |  |
 | (4-1) 강의 목록 조회 | GET | /api/v1/courses | No | Query: semester, keyword?, professor?, departmentId?, category?, area?, grade?, day?, sort?, order?, page?, size? | CourseListResponse |  |  | 400 INVALID_FILTER, 404 SEMESTER_NOT_FOUND |
@@ -48,9 +48,9 @@
 | (6-11) 공유 시간표 조회 | GET | /api/v1/shared-timetables/{shareCode} | No | Path: shareCode | SharedTimetableResponse |  |  | 404 SHARE_NOT_FOUND, 410 SHARE_EXPIRED |
 | (6-12) 공유 시간표 내 계정에 복사 | POST | /api/v1/shared-timetables/{shareCode}/copy | No | SharedTimetableCopyRequest | SharedTimetableCopyResponse | application/json |  | 401 UNAUTHORIZED, 404 SHARE_NOT_FOUND, 410 SHARE_EXPIRED |
 | (7) 시간표 자동 편성 | ------------- |  | No |  |  |  |  |  |
-| (7-1) 자동 편성 작업 생성 | POST | /api/v1/optimizations | Yes | OptimizationCreateRequest | OptimizationCreateResponse | application/json |  | 400 INVALID_CONDITION, 409 DATASET_VERSION_MISMATCH, 422 INFEASIBLE_INPUT, 429 RATE_LIMITED |
-| (7-2) 자동 편성 상태·결과 조회 | GET | /api/v1/optimizations/{jobId} | Yes | Path: jobId | OptimizationResultResponse |  |  | 404 JOB_NOT_FOUND |
-| (7-3) 자동 편성 작업 취소 | DELETE | /api/v1/optimizations/{jobId} | Yes | Path: jobId | OptimizationCancelResponse |  |  | 404 JOB_NOT_FOUND, 409 JOB_ALREADY_COMPLETED |
+| (7-1) 자동 편성 작업 생성 | POST | /api/v1/optimizations | No | OptimizationCreateRequest | OptimizationCreateResponse | application/json |  | 400 INVALID_CONDITION, 409 DATASET_VERSION_MISMATCH, 422 INFEASIBLE_INPUT, 429 RATE_LIMITED |
+| (7-2) 자동 편성 상태·결과 조회 | GET | /api/v1/optimizations/{jobId} | No | Path: jobId | OptimizationResultResponse |  |  | 404 JOB_NOT_FOUND |
+| (7-3) 자동 편성 작업 취소 | DELETE | /api/v1/optimizations/{jobId} | No | Path: jobId | OptimizationCancelResponse |  |  | 404 JOB_NOT_FOUND, 409 JOB_ALREADY_COMPLETED |
 | (7-4) 시간표 후보 비교 | POST | /api/v1/optimizations/compare | No | CandidateCompareRequest | CandidateCompareResponse | application/json |  | 400 INVALID_CANDIDATE, 404 SECTION_NOT_FOUND |
 | (8) 이수과목 | ------------- |  | No |  |  |  |  |  |
 | (8-1) 내 이수과목 목록 조회 | GET | /api/v1/users/me/completed-courses | No | Query: status?, semester?, category? | CompletedCourseListResponse |  |  | 401 UNAUTHORIZED |
@@ -70,5 +70,5 @@
 | (10-3) 부족 과목 추천 | GET | /api/v1/requirements/recommendations | No | Query: semester, admissionYear, departmentId, studentType, programPath | RequirementRecommendationResponse |  |  | 401 UNAUTHORIZED, 404 REQUIREMENT_RULE_NOT_FOUND, 404 SEMESTER_NOT_FOUND |
 | (10-4) 졸업요건 공식 근거 조회 | GET | /api/v1/requirements/sources/{sourceId} | No | Path: sourceId | RequirementSourceResponse |  |  | 404 SOURCE_NOT_FOUND |
 | (11) 시스템 | ------------- |  | No |  |  |  |  |  |
-| (11-1) 서버 생존 상태 확인 | GET | /api/v1/health/live | Yes |  | HealthLiveResponse |  |  | 503 SERVICE_UNAVAILABLE |
-| (11-2) 서비스 준비 상태 확인 | GET | /api/v1/health/ready | Yes |  | HealthReadyResponse |  |  | 503 SERVICE_NOT_READY |
+| (11-1) 서버 생존 상태 확인 | GET | /api/v1/health/live | No |  | HealthLiveResponse |  |  | 503 SERVICE_UNAVAILABLE |
+| (11-2) 서비스 준비 상태 확인 | GET | /api/v1/health/ready | No |  | HealthReadyResponse |  |  | 503 SERVICE_NOT_READY |
