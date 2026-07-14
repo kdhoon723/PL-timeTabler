@@ -1,0 +1,611 @@
+{
+  "schemaVersion": "1.0.0",
+  "generatedAt": "2026-07-14T15:10:50.242Z",
+  "source": {
+    "system": "대진대학교 DREAMS2 수강편람",
+    "authenticatedCollection": true,
+    "credentialsStored": false,
+    "privateInstructorFieldsStored": false
+  },
+  "requestedRange": {
+    "years": [
+      2020,
+      2021,
+      2022,
+      2023,
+      2024,
+      2025,
+      2026
+    ],
+    "terms": [
+      "1",
+      "2",
+      "11",
+      "22"
+    ]
+  },
+  "totals": {
+    "datasets": 36,
+    "termDatasets": 28,
+    "sectionTermRecords": 20031,
+    "curricula": 7
+  },
+  "datasets": [
+    {
+      "kind": "curriculum",
+      "path": "curricula/curriculum-2020.json.gz",
+      "academicYear": 2020,
+      "departments": 171,
+      "records": 1782,
+      "bytes": 23665,
+      "sha256": "45c216b219a8ed6d312e052364082158ddfe245c610bab2ae8a7edff03eb4bd8"
+    },
+    {
+      "kind": "curriculum",
+      "path": "curricula/curriculum-2021.json.gz",
+      "academicYear": 2021,
+      "departments": 171,
+      "records": 1748,
+      "bytes": 23633,
+      "sha256": "b325cca97b9b4bbbb3071db7e19ee2208cffc8b86c39e9099fe3576697079f43"
+    },
+    {
+      "kind": "curriculum",
+      "path": "curricula/curriculum-2022.json.gz",
+      "academicYear": 2022,
+      "departments": 171,
+      "records": 1755,
+      "bytes": 24136,
+      "sha256": "b344489dd9aa5cc10921269efe4b09805649b0d12f8399fa456d70cd57740d5d"
+    },
+    {
+      "kind": "curriculum",
+      "path": "curricula/curriculum-2023.json.gz",
+      "academicYear": 2023,
+      "departments": 171,
+      "records": 1783,
+      "bytes": 24732,
+      "sha256": "cd6317c37c41bd50ef6507f12ae67984ba1e9763e8ebd7900a1e50c870df038a"
+    },
+    {
+      "kind": "curriculum",
+      "path": "curricula/curriculum-2024.json.gz",
+      "academicYear": 2024,
+      "departments": 171,
+      "records": 1727,
+      "bytes": 24117,
+      "sha256": "c009b74cc8711ae5ef297273e7fdec43a452c6ebd96694c81c6675bde6f45346"
+    },
+    {
+      "kind": "curriculum",
+      "path": "curricula/curriculum-2025.json.gz",
+      "academicYear": 2025,
+      "departments": 171,
+      "records": 1773,
+      "bytes": 24858,
+      "sha256": "343882653091eeecca6980be4d3030cd6cdf7eff8feb8c0d2f00cd0f19483db7"
+    },
+    {
+      "kind": "curriculum",
+      "path": "curricula/curriculum-2026.json.gz",
+      "academicYear": 2026,
+      "departments": 171,
+      "records": 1648,
+      "bytes": 23476,
+      "sha256": "2ec54f5e3a338e575b9baedd4f6c48c7337b2ca506dcbd240638e00bb83d7add"
+    },
+    {
+      "kind": "relations",
+      "path": "relations.json.gz",
+      "replacementRecords": 807,
+      "equivalentRecords": 518,
+      "records": 1325,
+      "bytes": 32445,
+      "sha256": "99bed1b11a59582c5c8c7d06c5f711f78b7ad391441dc4d25c3ceb5669fe5d7a"
+    },
+    {
+      "kind": "term",
+      "path": "terms/2020-1.json.gz",
+      "academicYear": 2020,
+      "termCode": "1",
+      "dataStatus": "FINAL",
+      "records": 1394,
+      "detailCoverage": {
+        "available": 1394,
+        "blankAtSource": 0,
+        "withEnglishName": 1394,
+        "withLocation": 1359,
+        "withOverview": 1394,
+        "withWeeklyPlan": 1394
+      },
+      "bytes": 1508146,
+      "sha256": "2b177904767fb5b04c3833259fefb63f814755ffa563355ea3ff24401eb5bf2c"
+    },
+    {
+      "kind": "term",
+      "path": "terms/2020-11.json.gz",
+      "academicYear": 2020,
+      "termCode": "11",
+      "dataStatus": "FINAL",
+      "records": 15,
+      "detailCoverage": {
+        "available": 13,
+        "blankAtSource": 2,
+        "withEnglishName": 13,
+        "withLocation": 0,
+        "withOverview": 13,
+        "withWeeklyPlan": 13
+      },
+      "bytes": 17785,
+      "sha256": "87264375b1bb67c282f9b93784d5542cf7f1cca95e328dbe1b9f3821e49ef6bd"
+    },
+    {
+      "kind": "term",
+      "path": "terms/2020-2.json.gz",
+      "academicYear": 2020,
+      "termCode": "2",
+      "dataStatus": "FINAL",
+      "records": 1381,
+      "detailCoverage": {
+        "available": 1381,
+        "blankAtSource": 0,
+        "withEnglishName": 1381,
+        "withLocation": 1343,
+        "withOverview": 1380,
+        "withWeeklyPlan": 1381
+      },
+      "bytes": 1438991,
+      "sha256": "a17df1c4a1e47b70729d619fb0b5e4e1a1504fd7b7015c3438e863c5ea1805d4"
+    },
+    {
+      "kind": "term",
+      "path": "terms/2020-22.json.gz",
+      "academicYear": 2020,
+      "termCode": "22",
+      "dataStatus": "FINAL",
+      "records": 10,
+      "detailCoverage": {
+        "available": 10,
+        "blankAtSource": 0,
+        "withEnglishName": 10,
+        "withLocation": 0,
+        "withOverview": 10,
+        "withWeeklyPlan": 10
+      },
+      "bytes": 16358,
+      "sha256": "58c2f232750e5c6150bb2434a04d70be6c5d322bc839295c58bcb354464428e2"
+    },
+    {
+      "kind": "term",
+      "path": "terms/2021-1.json.gz",
+      "academicYear": 2021,
+      "termCode": "1",
+      "dataStatus": "FINAL",
+      "records": 1356,
+      "detailCoverage": {
+        "available": 1356,
+        "blankAtSource": 0,
+        "withEnglishName": 1356,
+        "withLocation": 1317,
+        "withOverview": 1356,
+        "withWeeklyPlan": 1356
+      },
+      "bytes": 1499045,
+      "sha256": "7050e720ca69c93fb9c09528939a55ea8c907134d0ab47a0fc6bf5ec9599d2f4"
+    },
+    {
+      "kind": "term",
+      "path": "terms/2021-11.json.gz",
+      "academicYear": 2021,
+      "termCode": "11",
+      "dataStatus": "FINAL",
+      "records": 12,
+      "detailCoverage": {
+        "available": 10,
+        "blankAtSource": 2,
+        "withEnglishName": 10,
+        "withLocation": 0,
+        "withOverview": 10,
+        "withWeeklyPlan": 10
+      },
+      "bytes": 15623,
+      "sha256": "5435eb16472cf58c7c4707cd703e41beef32066e9ad52eba5bce8c86d2c3234c"
+    },
+    {
+      "kind": "term",
+      "path": "terms/2021-2.json.gz",
+      "academicYear": 2021,
+      "termCode": "2",
+      "dataStatus": "FINAL",
+      "records": 1373,
+      "detailCoverage": {
+        "available": 1373,
+        "blankAtSource": 0,
+        "withEnglishName": 1373,
+        "withLocation": 1333,
+        "withOverview": 1372,
+        "withWeeklyPlan": 1373
+      },
+      "bytes": 1470320,
+      "sha256": "b49f9c1e8112243020de97ecf782684550cc59f1dfc2eec690dacb26339c390c"
+    },
+    {
+      "kind": "term",
+      "path": "terms/2021-22.json.gz",
+      "academicYear": 2021,
+      "termCode": "22",
+      "dataStatus": "FINAL",
+      "records": 11,
+      "detailCoverage": {
+        "available": 11,
+        "blankAtSource": 0,
+        "withEnglishName": 11,
+        "withLocation": 0,
+        "withOverview": 11,
+        "withWeeklyPlan": 11
+      },
+      "bytes": 17098,
+      "sha256": "68dc2d7d264c510b6e929e2c35745d89400d57add401fcd6ee3bb685b6e2348f"
+    },
+    {
+      "kind": "term",
+      "path": "terms/2022-1.json.gz",
+      "academicYear": 2022,
+      "termCode": "1",
+      "dataStatus": "FINAL",
+      "records": 1369,
+      "detailCoverage": {
+        "available": 1369,
+        "blankAtSource": 0,
+        "withEnglishName": 1369,
+        "withLocation": 1326,
+        "withOverview": 1369,
+        "withWeeklyPlan": 1369
+      },
+      "bytes": 1512324,
+      "sha256": "492b33ff54b1cb529b7b151c1d7f74626b0729dcc2b8ba1711341ca58ccd36d6"
+    },
+    {
+      "kind": "term",
+      "path": "terms/2022-11.json.gz",
+      "academicYear": 2022,
+      "termCode": "11",
+      "dataStatus": "FINAL",
+      "records": 12,
+      "detailCoverage": {
+        "available": 12,
+        "blankAtSource": 0,
+        "withEnglishName": 12,
+        "withLocation": 0,
+        "withOverview": 12,
+        "withWeeklyPlan": 12
+      },
+      "bytes": 16091,
+      "sha256": "7a71c4e233202bddee92f9deaef1d2003cfc0f60083ccf4750dc26c80d496351"
+    },
+    {
+      "kind": "term",
+      "path": "terms/2022-2.json.gz",
+      "academicYear": 2022,
+      "termCode": "2",
+      "dataStatus": "FINAL",
+      "records": 1368,
+      "detailCoverage": {
+        "available": 1368,
+        "blankAtSource": 0,
+        "withEnglishName": 1368,
+        "withLocation": 1326,
+        "withOverview": 1368,
+        "withWeeklyPlan": 1368
+      },
+      "bytes": 1470113,
+      "sha256": "1e776b7a872029ae103b4d276294867b75a8d84ed3cf3862d73562c082323d2c"
+    },
+    {
+      "kind": "term",
+      "path": "terms/2022-22.json.gz",
+      "academicYear": 2022,
+      "termCode": "22",
+      "dataStatus": "FINAL",
+      "records": 15,
+      "detailCoverage": {
+        "available": 15,
+        "blankAtSource": 0,
+        "withEnglishName": 15,
+        "withLocation": 0,
+        "withOverview": 15,
+        "withWeeklyPlan": 15
+      },
+      "bytes": 19920,
+      "sha256": "f5f79dff30f6b63e466fc68893d8c71e2d28e9fc226d0fb5abda0a4499af64c8"
+    },
+    {
+      "kind": "term",
+      "path": "terms/2023-1.json.gz",
+      "academicYear": 2023,
+      "termCode": "1",
+      "dataStatus": "FINAL",
+      "records": 1399,
+      "detailCoverage": {
+        "available": 1399,
+        "blankAtSource": 0,
+        "withEnglishName": 1399,
+        "withLocation": 1356,
+        "withOverview": 1399,
+        "withWeeklyPlan": 1399
+      },
+      "bytes": 1536456,
+      "sha256": "bc26899b7d84c2d9c6508e6c33e3c5194c5140884edc6d9fc53e1dcee4492fbe"
+    },
+    {
+      "kind": "term",
+      "path": "terms/2023-11.json.gz",
+      "academicYear": 2023,
+      "termCode": "11",
+      "dataStatus": "FINAL",
+      "records": 12,
+      "detailCoverage": {
+        "available": 12,
+        "blankAtSource": 0,
+        "withEnglishName": 12,
+        "withLocation": 1,
+        "withOverview": 12,
+        "withWeeklyPlan": 12
+      },
+      "bytes": 18002,
+      "sha256": "abc3d63d896c3d65403ab5d0e18f7a3965a13ec32b0f2b0e094a871a645a4585"
+    },
+    {
+      "kind": "term",
+      "path": "terms/2023-2.json.gz",
+      "academicYear": 2023,
+      "termCode": "2",
+      "dataStatus": "FINAL",
+      "records": 1395,
+      "detailCoverage": {
+        "available": 1395,
+        "blankAtSource": 0,
+        "withEnglishName": 1395,
+        "withLocation": 1343,
+        "withOverview": 1395,
+        "withWeeklyPlan": 1392
+      },
+      "bytes": 1444581,
+      "sha256": "61f6ac6183218c48810d764bb878c2e1df6ad2992e35a7f0668264cd96dd7307"
+    },
+    {
+      "kind": "term",
+      "path": "terms/2023-22.json.gz",
+      "academicYear": 2023,
+      "termCode": "22",
+      "dataStatus": "FINAL",
+      "records": 17,
+      "detailCoverage": {
+        "available": 17,
+        "blankAtSource": 0,
+        "withEnglishName": 17,
+        "withLocation": 0,
+        "withOverview": 17,
+        "withWeeklyPlan": 16
+      },
+      "bytes": 24825,
+      "sha256": "3ea4233ebfc75f4421f80c02fd53e4fb2019f165f95ee6f0d9576962834251c0"
+    },
+    {
+      "kind": "term",
+      "path": "terms/2024-1.json.gz",
+      "academicYear": 2024,
+      "termCode": "1",
+      "dataStatus": "FINAL",
+      "records": 1430,
+      "detailCoverage": {
+        "available": 1430,
+        "blankAtSource": 0,
+        "withEnglishName": 1430,
+        "withLocation": 1379,
+        "withOverview": 1430,
+        "withWeeklyPlan": 1429
+      },
+      "bytes": 1560937,
+      "sha256": "57d70f4244641fe1f0c7f4c470c8ec97f044a6b47649ec33d6321c8356d3fadc"
+    },
+    {
+      "kind": "term",
+      "path": "terms/2024-11.json.gz",
+      "academicYear": 2024,
+      "termCode": "11",
+      "dataStatus": "FINAL",
+      "records": 16,
+      "detailCoverage": {
+        "available": 16,
+        "blankAtSource": 0,
+        "withEnglishName": 16,
+        "withLocation": 0,
+        "withOverview": 16,
+        "withWeeklyPlan": 14
+      },
+      "bytes": 21959,
+      "sha256": "290889eb7d28be78947e3c38ddfbdcd21e6c44722d670658d02671457df9d39b"
+    },
+    {
+      "kind": "term",
+      "path": "terms/2024-2.json.gz",
+      "academicYear": 2024,
+      "termCode": "2",
+      "dataStatus": "FINAL",
+      "records": 1426,
+      "detailCoverage": {
+        "available": 1426,
+        "blankAtSource": 0,
+        "withEnglishName": 1426,
+        "withLocation": 1372,
+        "withOverview": 1426,
+        "withWeeklyPlan": 1426
+      },
+      "bytes": 1509238,
+      "sha256": "770844db43d4805521cce4856f19f7039dfa18ed2bd7d9741b18789976840f1c"
+    },
+    {
+      "kind": "term",
+      "path": "terms/2024-22.json.gz",
+      "academicYear": 2024,
+      "termCode": "22",
+      "dataStatus": "FINAL",
+      "records": 11,
+      "detailCoverage": {
+        "available": 11,
+        "blankAtSource": 0,
+        "withEnglishName": 11,
+        "withLocation": 0,
+        "withOverview": 11,
+        "withWeeklyPlan": 11
+      },
+      "bytes": 16649,
+      "sha256": "9e73b2512e133257f6b7fa0e742929888d294a0706b5a07f24af6b45f76c9099"
+    },
+    {
+      "kind": "term",
+      "path": "terms/2025-1.json.gz",
+      "academicYear": 2025,
+      "termCode": "1",
+      "dataStatus": "FINAL",
+      "records": 1497,
+      "detailCoverage": {
+        "available": 1497,
+        "blankAtSource": 0,
+        "withEnglishName": 1497,
+        "withLocation": 1444,
+        "withOverview": 1497,
+        "withWeeklyPlan": 1497
+      },
+      "bytes": 1605142,
+      "sha256": "37cb1cd5d5b13a28b402711516bc77bdb40444ee1f16b41b109e8ff0a2908f59"
+    },
+    {
+      "kind": "term",
+      "path": "terms/2025-11.json.gz",
+      "academicYear": 2025,
+      "termCode": "11",
+      "dataStatus": "FINAL",
+      "records": 16,
+      "detailCoverage": {
+        "available": 16,
+        "blankAtSource": 0,
+        "withEnglishName": 16,
+        "withLocation": 0,
+        "withOverview": 16,
+        "withWeeklyPlan": 15
+      },
+      "bytes": 20659,
+      "sha256": "2e8e47cf226d3db732aa5a9082fa2c2ac14bbfcfc7689a8556fc58e6dbf7d6c1"
+    },
+    {
+      "kind": "term",
+      "path": "terms/2025-2.json.gz",
+      "academicYear": 2025,
+      "termCode": "2",
+      "dataStatus": "FINAL",
+      "records": 1408,
+      "detailCoverage": {
+        "available": 1408,
+        "blankAtSource": 0,
+        "withEnglishName": 1408,
+        "withLocation": 1398,
+        "withOverview": 1408,
+        "withWeeklyPlan": 1406
+      },
+      "bytes": 1551383,
+      "sha256": "3887a6d543880dcc3b482d5cf90789b2a0016d870b7c034e966e94c7728f52d5"
+    },
+    {
+      "kind": "term",
+      "path": "terms/2025-22.json.gz",
+      "academicYear": 2025,
+      "termCode": "22",
+      "dataStatus": "FINAL",
+      "records": 20,
+      "detailCoverage": {
+        "available": 20,
+        "blankAtSource": 0,
+        "withEnglishName": 20,
+        "withLocation": 2,
+        "withOverview": 20,
+        "withWeeklyPlan": 19
+      },
+      "bytes": 27604,
+      "sha256": "f1da22c5db7d34c29172f078a879f4e7d8f0fb20a640492c71715eb47213b5ee"
+    },
+    {
+      "kind": "term",
+      "path": "terms/2026-1.json.gz",
+      "academicYear": 2026,
+      "termCode": "1",
+      "dataStatus": "FINAL",
+      "records": 1489,
+      "detailCoverage": {
+        "available": 1488,
+        "blankAtSource": 1,
+        "withEnglishName": 1488,
+        "withLocation": 1474,
+        "withOverview": 1488,
+        "withWeeklyPlan": 1488
+      },
+      "bytes": 1697248,
+      "sha256": "45414dc0182b6afe1cd39a9510c4b4290672112eb2a3e7ddd47c850f47d6b388"
+    },
+    {
+      "kind": "term",
+      "path": "terms/2026-11.json.gz",
+      "academicYear": 2026,
+      "termCode": "11",
+      "dataStatus": "CURRENT",
+      "records": 17,
+      "detailCoverage": {
+        "available": 17,
+        "blankAtSource": 0,
+        "withEnglishName": 17,
+        "withLocation": 0,
+        "withOverview": 17,
+        "withWeeklyPlan": 16
+      },
+      "bytes": 23282,
+      "sha256": "99e698b283ac821f375426581219ec22f93cc9f050d7afba1808dbc3658c8dcf"
+    },
+    {
+      "kind": "term",
+      "path": "terms/2026-2.json.gz",
+      "academicYear": 2026,
+      "termCode": "2",
+      "dataStatus": "PRELIMINARY",
+      "records": 1562,
+      "detailCoverage": {
+        "available": 1434,
+        "blankAtSource": 128,
+        "withEnglishName": 1434,
+        "withLocation": 1434,
+        "withOverview": 1434,
+        "withWeeklyPlan": 1429
+      },
+      "bytes": 1737191,
+      "sha256": "b9c47c5dc2b56c9792d6c0b9e15f08364d562a9b56229ee5b15a4c43e730ad03"
+    },
+    {
+      "kind": "term",
+      "path": "terms/2026-22.json.gz",
+      "academicYear": 2026,
+      "termCode": "22",
+      "dataStatus": "EMPTY_FUTURE",
+      "records": 0,
+      "detailCoverage": {
+        "available": 0,
+        "blankAtSource": 0,
+        "withEnglishName": 0,
+        "withLocation": 0,
+        "withOverview": 0,
+        "withWeeklyPlan": 0
+      },
+      "bytes": 1023,
+      "sha256": "4c0f38383f33002e00ad643466a24b29819cec9736cf2c0a3acd3a72662f700e"
+    }
+  ]
+}
