@@ -30,3 +30,6 @@ __pycache__/
 .DS_Store
 .idea/
 .vscode/
+
+# Generated local exports
+/exports/*.xlsx
