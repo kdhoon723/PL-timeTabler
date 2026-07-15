@@ -22,6 +22,8 @@
 - 정수 목표·최소·최대 학점, 공강 요일, 이른/늦은 수업, 점심 여유, 하루 수업시간, 공강 길이·현재 선택 유지 선호
 - OR-Tools CP-SAT 기반 결정론적 후보 3개와 등교일·공강·첫/마지막 수업·미반영 조건 설명
 - 입학연도와 46개 교육과정 단위별 공식 졸업요건 출처 안내
+- 2020~2026 정규·계절학기 20,031개 분반과 강의계획서 원본 검색, 과거 시간표·이수내역 연결
+- `내 학업`에서 과거 이수내역, 졸업요건, 저장 시간표, 계정정보 통합 관리
 - 첫 방문에서 학과·입학연도·학년을 단계별로 설정하거나 즉시 건너뛰는 모바일 온보딩
 - 2026 신입학 교육과정에서 정규화한 31개 교육과정 단위·113개 전공필수와 교양필수의 실제 개설 분반 연결
 - 브라우저 자동 저장, URL 공유, PNG·인쇄/PDF 내보내기, 수강신청용 예비 분반 체크리스트
@@ -32,7 +34,8 @@
 
 ```text
 browser → Nginx/React web → FastAPI → PostgreSQL ← OR-Tools worker
-                                  └── versioned catalog files
+                                  ├── versioned active catalog files
+                                  └── lossless DREAMS history archive
 ```
 
 프론트, API/optimizer, DB는 한 이미지에 섞지 않습니다. `compose.yaml`이 다음 서비스를 같은 방식으로 재현합니다.
@@ -44,7 +47,7 @@ browser → Nginx/React web → FastAPI → PostgreSQL ← OR-Tools worker
 | `optimizer` | OR-Tools CP-SAT 작업 처리 |
 | `db` | PostgreSQL 영속 저장소 |
 | `migrate` | Alembic 스키마 마이그레이션 |
-| `ingest` | 배포 전 데이터 검증 release gate |
+| `ingest` | 활성 카탈로그 검증 후 DREAMS 전체 원본을 DB에 무손실·멱등 적재 |
 
 기술 선택과 경계는 [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md), PostgreSQL 구조는
 [`docs/ERD.md`](docs/ERD.md), 저장소별 데이터 흐름과 HTTP 계약은
@@ -115,12 +118,13 @@ DNS CNAME 대상은 Cloudflare가 해당 계정에 발급한 `<tunnel-id>.cfargo
 1. `data/courses`, `data/classrooms`, `data/requirements`에 새 학기 원본과 정규화 결과를 둡니다.
 2. `data/manifest.json`의 레코드 수와 SHA-256 checksum을 갱신합니다.
 3. canonical API snapshot에서 브라우저 fallback을 다시 생성합니다.
-4. 아래 release gate가 통과한 뒤 새 이미지를 빌드합니다.
+4. DREAMS 아카이브는 `data/dreams/manifest.json` checksum과 레코드 수를 검증합니다.
+5. 아래 release gate가 통과한 뒤 새 이미지를 빌드합니다.
 
 ```bash
 uv --directory apps/backend run timetabler-validate-data
 uv --directory apps/backend run timetabler-export-static-catalog
-docker compose --profile ingest run --rm --build ingest
+docker compose run --rm --build ingest
 ```
 
 API와 정적 fallback은 과목·강의실 checksum을 합친 같은 `datasetVersion`과 1,576개 분반의 동일한 세션 의미를 사용합니다. API는 이 버전을 최적화 요청과 함께 검증하므로 브라우저의 오래된 데이터와 새 카탈로그가 섞이지 않습니다.
@@ -161,7 +165,7 @@ GitHub Actions는 GitHub가 제공하는 `ubuntu-latest` runner에서 백엔드,
 docker compose logs -f api optimizer web
 ```
 
-개인 이수내역은 기본적으로 서버에 전송하지 않고 브라우저에 저장합니다. 공유 URL에도 시간표 구성만 포함합니다.
+로그인 사용자가 저장한 프로필·시간표·이수내역은 계정 소유 데이터로 PostgreSQL에 저장되며 회원 탈퇴 시 함께 삭제됩니다. 공유 URL과 공개 강의 아카이브에는 개인 이수내역을 포함하지 않습니다.
 
 ## 보안 제보
 

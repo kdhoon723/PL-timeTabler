@@ -11,6 +11,7 @@ from sqlalchemy import (
     ForeignKey,
     Index,
     Integer,
+    LargeBinary,
     String,
     Text,
     UniqueConstraint,
@@ -133,6 +134,170 @@ class CourseReview(Base):
     )
 
 
+class HistoricalArchiveManifest(Base):
+    __tablename__ = "historical_archive_manifests"
+
+    id: Mapped[str] = mapped_column(String(40), primary_key=True)
+    schema_version: Mapped[str] = mapped_column(String(40), nullable=False)
+    generated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    source_checksum: Mapped[str] = mapped_column(String(64), nullable=False)
+    raw_payload: Mapped[dict[str, Any]] = mapped_column(JSON, nullable=False)
+    source_archive: Mapped[bytes] = mapped_column(LargeBinary, nullable=False)
+    imported_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+
+
+class HistoricalTermDataset(Base):
+    __tablename__ = "historical_term_datasets"
+    __table_args__ = (
+        UniqueConstraint("academic_year", "term_code", name="uq_historical_term_year_code"),
+        Index("ix_historical_term_year_code", "academic_year", "term_code"),
+    )
+
+    id: Mapped[str] = mapped_column(String(20), primary_key=True)
+    academic_year: Mapped[int] = mapped_column(Integer, nullable=False)
+    term_code: Mapped[str] = mapped_column(String(8), nullable=False)
+    term_name: Mapped[str] = mapped_column(String(80), nullable=False)
+    data_status: Mapped[str] = mapped_column(String(24), nullable=False)
+    schema_version: Mapped[str] = mapped_column(String(40), nullable=False)
+    collected_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    source_checksum: Mapped[str] = mapped_column(String(64), nullable=False)
+    record_count: Mapped[int] = mapped_column(Integer, nullable=False)
+    raw_payload: Mapped[dict[str, Any]] = mapped_column(JSON, nullable=False)
+    source_archive: Mapped[bytes] = mapped_column(LargeBinary, nullable=False)
+    imported_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+
+
+class HistoricalCourseOffering(Base):
+    __tablename__ = "historical_course_offerings"
+    __table_args__ = (
+        UniqueConstraint(
+            "academic_year",
+            "term_code",
+            "course_code",
+            "section_code",
+            name="uq_historical_offering_identity",
+        ),
+        Index("ix_historical_offering_term", "academic_year", "term_code"),
+        Index("ix_historical_offering_course", "course_code"),
+        Index("ix_historical_offering_name", "korean_name"),
+        Index("ix_historical_offering_category", "completion_category"),
+    )
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    dataset_id: Mapped[str] = mapped_column(
+        String(20),
+        ForeignKey("historical_term_datasets.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    academic_year: Mapped[int] = mapped_column(Integer, nullable=False)
+    term_code: Mapped[str] = mapped_column(String(8), nullable=False)
+    course_code: Mapped[str] = mapped_column(String(40), nullable=False)
+    section_code: Mapped[str] = mapped_column(String(40), nullable=False)
+    korean_name: Mapped[str] = mapped_column(String(240), nullable=False)
+    english_name: Mapped[str | None] = mapped_column(String(400))
+    professor_name: Mapped[str | None] = mapped_column(String(240))
+    completion_category: Mapped[str | None] = mapped_column(String(160))
+    credits: Mapped[float | None] = mapped_column(Float)
+    lecture_hours: Mapped[float | None] = mapped_column(Float)
+    practice_hours: Mapped[float | None] = mapped_column(Float)
+    raw_lecture_time: Mapped[str | None] = mapped_column(Text)
+    raw_location: Mapped[str | None] = mapped_column(Text)
+    target_grade: Mapped[str | None] = mapped_column(String(120))
+    listing_status: Mapped[str | None] = mapped_column(String(40))
+    detail_status: Mapped[str | None] = mapped_column(String(40))
+    category_contexts: Mapped[list[dict[str, Any]]] = mapped_column(JSON, nullable=False)
+    department_contexts: Mapped[list[dict[str, Any]]] = mapped_column(JSON, nullable=False)
+    search_text: Mapped[str] = mapped_column(Text, nullable=False)
+    department_search_text: Mapped[str] = mapped_column(Text, nullable=False)
+    raw_payload: Mapped[dict[str, Any]] = mapped_column(JSON, nullable=False)
+
+
+class HistoricalCurriculumDataset(Base):
+    __tablename__ = "historical_curriculum_datasets"
+
+    id: Mapped[str] = mapped_column(String(20), primary_key=True)
+    academic_year: Mapped[int] = mapped_column(Integer, nullable=False, unique=True, index=True)
+    schema_version: Mapped[str] = mapped_column(String(40), nullable=False)
+    collected_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    source_checksum: Mapped[str] = mapped_column(String(64), nullable=False)
+    department_count: Mapped[int] = mapped_column(Integer, nullable=False)
+    course_record_count: Mapped[int] = mapped_column(Integer, nullable=False)
+    raw_payload: Mapped[dict[str, Any]] = mapped_column(JSON, nullable=False)
+    source_archive: Mapped[bytes] = mapped_column(LargeBinary, nullable=False)
+    imported_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+
+
+class HistoricalCurriculumDepartment(Base):
+    __tablename__ = "historical_curriculum_departments"
+    __table_args__ = (
+        UniqueConstraint(
+            "academic_year", "department_code", name="uq_historical_curriculum_department"
+        ),
+        Index("ix_historical_curriculum_department_name", "department_name"),
+    )
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    dataset_id: Mapped[str] = mapped_column(
+        String(20),
+        ForeignKey("historical_curriculum_datasets.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    academic_year: Mapped[int] = mapped_column(Integer, nullable=False)
+    college_code: Mapped[str | None] = mapped_column(String(40))
+    college_name: Mapped[str | None] = mapped_column(String(240))
+    department_code: Mapped[str] = mapped_column(String(40), nullable=False)
+    department_name: Mapped[str] = mapped_column(String(240), nullable=False)
+    course_count: Mapped[int] = mapped_column(Integer, nullable=False)
+    raw_payload: Mapped[dict[str, Any]] = mapped_column(JSON, nullable=False)
+
+
+class HistoricalRelationDataset(Base):
+    __tablename__ = "historical_relation_datasets"
+
+    id: Mapped[str] = mapped_column(String(40), primary_key=True)
+    schema_version: Mapped[str] = mapped_column(String(40), nullable=False)
+    collected_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    source_checksum: Mapped[str] = mapped_column(String(64), nullable=False)
+    replacement_count: Mapped[int] = mapped_column(Integer, nullable=False)
+    equivalent_count: Mapped[int] = mapped_column(Integer, nullable=False)
+    raw_payload: Mapped[dict[str, Any]] = mapped_column(JSON, nullable=False)
+    source_archive: Mapped[bytes] = mapped_column(LargeBinary, nullable=False)
+    imported_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+
+
+class HistoricalCourseRelation(Base):
+    __tablename__ = "historical_course_relations"
+    __table_args__ = (
+        Index("ix_historical_relation_type_year", "relation_type", "designated_year"),
+        Index("ix_historical_relation_original_name", "original_course_name"),
+        Index("ix_historical_relation_related_name", "related_course_name"),
+    )
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    dataset_id: Mapped[str] = mapped_column(
+        String(40),
+        ForeignKey("historical_relation_datasets.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    relation_type: Mapped[str] = mapped_column(String(24), nullable=False)
+    designated_year: Mapped[str | None] = mapped_column(String(20))
+    designated_term: Mapped[str | None] = mapped_column(String(20))
+    original_course_name: Mapped[str] = mapped_column(String(240), nullable=False)
+    original_category: Mapped[str | None] = mapped_column(String(160))
+    original_credits: Mapped[float | None] = mapped_column(Float)
+    original_college: Mapped[str | None] = mapped_column(String(240))
+    original_department: Mapped[str | None] = mapped_column(String(240))
+    related_course_name: Mapped[str] = mapped_column(String(240), nullable=False)
+    related_category: Mapped[str | None] = mapped_column(String(160))
+    related_credits: Mapped[float | None] = mapped_column(Float)
+    related_department: Mapped[str | None] = mapped_column(String(240))
+    note: Mapped[str | None] = mapped_column(Text)
+    raw_payload: Mapped[dict[str, Any]] = mapped_column(JSON, nullable=False)
+
+
 class CompletedCourse(Base):
     __tablename__ = "completed_courses"
     __table_args__ = (
@@ -144,13 +309,21 @@ class CompletedCourse(Base):
     user_id: Mapped[str] = mapped_column(
         String(36), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True
     )
+    historical_offering_id: Mapped[str | None] = mapped_column(
+        String(36),
+        ForeignKey("historical_course_offerings.id", ondelete="SET NULL"),
+        index=True,
+    )
     course_code: Mapped[str | None] = mapped_column(String(40))
+    section_code: Mapped[str | None] = mapped_column(String(40))
     course_name: Mapped[str] = mapped_column(String(240), nullable=False)
     credits: Mapped[float] = mapped_column(Float, nullable=False)
     category: Mapped[str] = mapped_column(String(160), nullable=False)
     area: Mapped[str | None] = mapped_column(String(120))
     semester: Mapped[str | None] = mapped_column(String(20))
     status: Mapped[str] = mapped_column(String(24), nullable=False)
+    input_source: Mapped[str] = mapped_column(String(32), nullable=False, default="MANUAL")
+    source_snapshot: Mapped[dict[str, Any] | None] = mapped_column(JSON)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, default=utc_now
     )

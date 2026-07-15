@@ -17,6 +17,7 @@ from timetabler.api.routes import (
     completed_courses,
     courses,
     health,
+    history,
     optimizations,
     requirements,
     reviews,
@@ -115,6 +116,7 @@ def create_app(
         return response
 
     app.include_router(health.router, prefix="/api/v1")
+    app.include_router(history.router, prefix="/api/v1")
     app.include_router(auth.router, prefix="/api/v1")
     app.include_router(catalog.router, prefix="/api/v1")
     app.include_router(courses.course_router, prefix="/api/v1")
@@ -127,6 +129,7 @@ def create_app(
     app.include_router(timetables.router, prefix="/api/v1")
     app.include_router(timetables.shared_router, prefix="/api/v1")
     app.include_router(completed_courses.router, prefix="/api/v1")
+    app.include_router(history.import_router, prefix="/api/v1")
     app.include_router(requirements.router, prefix="/api/v1")
     app.include_router(optimizations.router, prefix="/api/v1")
     return app

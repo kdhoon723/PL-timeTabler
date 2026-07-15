@@ -314,6 +314,13 @@ a { color: var(--accent); }
 .page-header { display: grid; gap: 14px; margin-bottom: 20px; }
 .page-header p { margin-top: 4px; color: var(--secondary); }
 .mypage-section { display: grid; gap: 14px; margin-top: 14px; padding: 16px; border: 1px solid var(--border); border-radius: 14px; background: var(--surface); }
+.mypage-nav { position: sticky; z-index: 5; top: 0; display: flex; gap: 6px; padding: 8px; overflow-x: auto; border: 1px solid var(--border); border-radius: 12px; background: color-mix(in srgb, var(--surface) 94%, transparent); backdrop-filter: blur(12px); }
+.mypage-nav a { flex: 0 0 auto; padding: 8px 10px; border-radius: 8px; color: var(--secondary); font-size: 12px; font-weight: 700; text-decoration: none; }
+.mypage-nav a:hover, .mypage-nav a:focus-visible { color: var(--accent); background: var(--accent-soft); }
+.academic-summary-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.academic-summary-grid article { display: grid; gap: 3px; padding: 14px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface-subtle); }
+.academic-summary-grid strong { color: var(--accent); font-size: 24px; }
+.academic-summary-grid span { color: var(--secondary); font-size: 11px; }
 .mypage-form-grid, .completed-form { display: grid; gap: 10px; }
 .mypage-form-grid label, .completed-form label, .danger-zone label { display: grid; gap: 5px; }
 .mypage-form-grid label > span, .completed-form label > span, .danger-zone label > span { color: var(--secondary); font-size: 12px; font-weight: 600; }
@@ -321,6 +328,26 @@ a { color: var(--accent); }
 .inline-create { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; }
 .inline-check { display: flex; align-items: center; gap: 6px; color: var(--secondary); font-size: 12px; }
 .mypage-meta { color: var(--secondary); font-size: 12px; }
+.historical-search { display: grid; gap: 10px; }
+.historical-search label { display: grid; gap: 5px; }
+.historical-search label > span { color: var(--secondary); font-size: 12px; font-weight: 600; }
+.historical-search input, .historical-search select { width: 100%; min-height: 44px; padding: 0 10px; border: 1px solid var(--border-strong); border-radius: 9px; }
+.historical-result-heading { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.historical-result-heading p { color: var(--secondary); font-size: 12px; }
+.historical-course-list { display: grid; gap: 8px; }
+.historical-course-list article { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 12px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface-subtle); }
+.historical-course-list article.selected { border-color: var(--accent); background: var(--accent-soft); }
+.historical-course-list label { display: flex; align-items: flex-start; gap: 10px; min-width: 0; cursor: pointer; }
+.historical-course-list label > input { flex: 0 0 auto; width: 18px; height: 18px; margin-top: 2px; accent-color: var(--accent); }
+.historical-course-list label > span { min-width: 0; }
+.historical-course-list strong, .historical-course-list small { display: block; }
+.historical-course-list small { margin-top: 3px; color: var(--secondary); font-size: 11px; overflow-wrap: anywhere; }
+.history-pagination { display: flex; align-items: center; justify-content: center; gap: 12px; }
+.history-pagination button { min-height: 36px; padding: 0 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); color: var(--accent); }
+.history-pagination span { color: var(--secondary); font-size: 12px; }
+.completed-semester-groups { display: grid; gap: 16px; }
+.completed-semester-groups > section { display: grid; gap: 8px; }
+.completed-semester-groups h3 { color: var(--secondary); font-size: 13px; }
 .simple-list, .saved-card-list { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
 .simple-list li { display: flex; justify-content: space-between; gap: 12px; padding: 8px 0; border-top: 1px solid var(--border); }
 .simple-list small { color: var(--tertiary); }
@@ -344,6 +371,8 @@ a { color: var(--accent); }
   .page-header { grid-template-columns: auto 1fr; align-items: start; }
   .mypage-form-grid { grid-template-columns: repeat(2, 1fr); }
   .completed-form { grid-template-columns: repeat(3, 1fr); }
+  .academic-summary-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .historical-search { grid-template-columns: minmax(220px, .7fr) minmax(280px, 1fr) auto; align-items: end; }
   .saved-card-list article { grid-template-columns: minmax(0, 1fr) auto; align-items: center; }
   .area-status-grid { grid-template-columns: repeat(2, 1fr); }
 }

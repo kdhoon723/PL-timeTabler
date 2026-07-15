@@ -67,13 +67,16 @@ describe('graduation requirements completed-course editor', () => {
     api.createCompletedCourse.mockImplementation(async (values) => {
       const item: CompletedCourse = {
         id: 'completed-1',
+        historicalOfferingId: null,
         courseCode: values.courseCode ?? null,
+        sectionCode: null,
         courseName: values.courseName,
         credits: values.credits,
         category: values.category,
         area: values.area ?? null,
         semester: values.semester ?? null,
         status: values.status,
+        inputSource: 'MANUAL',
         createdAt: '2026-07-15T00:00:00Z',
         updatedAt: '2026-07-15T00:00:00Z',
       }

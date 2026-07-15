@@ -264,13 +264,16 @@ class CompletedCourseUpdate(APIModel):
 
 class CompletedCourseRead(APIModel):
     id: str
+    historical_offering_id: str | None
     course_code: str | None
+    section_code: str | None
     course_name: str
     credits: float
     category: str
     area: str | None
     semester: str | None
     status: CompletedStatus
+    input_source: Literal["MANUAL", "CURRENT_TIMETABLE", "HISTORICAL_TIMETABLE"]
     created_at: datetime
     updated_at: datetime
 
@@ -295,6 +298,65 @@ class TimetableCourseImport(APIModel):
 class TimetableCourseImportResponse(APIModel):
     imported_courses: tuple[CompletedCourseRead, ...]
     skipped_courses: tuple[str, ...]
+
+
+class HistoricalSemesterRead(APIModel):
+    semester: str
+    academic_year: int
+    term_code: str
+    term_name: str
+    data_status: str
+    course_count: int
+    collected_at: datetime
+
+
+class HistoricalSemesterList(APIModel):
+    semesters: tuple[HistoricalSemesterRead, ...]
+    total_courses: int
+
+
+class HistoricalOfferingSummary(APIModel):
+    id: str
+    semester: str
+    academic_year: int
+    term_code: str
+    course_code: str
+    section_code: str
+    korean_name: str
+    english_name: str | None
+    professor_name: str | None
+    completion_category: str | None
+    credits: float | None
+    lecture_hours: float | None
+    practice_hours: float | None
+    raw_lecture_time: str | None
+    raw_location: str | None
+    target_grade: str | None
+    listing_status: str | None
+    detail_status: str | None
+    category_contexts: list[dict[str, Any]]
+    department_contexts: list[dict[str, Any]]
+
+
+class HistoricalOfferingList(APIModel):
+    courses: tuple[HistoricalOfferingSummary, ...]
+    page: int
+    size: int
+    total: int
+
+
+class HistoricalOfferingDetail(HistoricalOfferingSummary):
+    raw_payload: dict[str, Any]
+
+
+class HistoricalCourseImport(APIModel):
+    offering_ids: tuple[str, ...] = Field(min_length=1, max_length=100)
+    status: CompletedStatus = "COMPLETED"
+
+
+class HistoricalCourseImportResponse(APIModel):
+    imported_courses: tuple[CompletedCourseRead, ...]
+    skipped_offering_ids: tuple[str, ...]
 
 
 class CourseSummaryRead(APIModel):

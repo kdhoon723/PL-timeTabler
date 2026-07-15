@@ -243,6 +243,57 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/history/courses": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Historical Courses */
+        get: operations["list_historical_courses_api_v1_history_courses_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/history/courses/{offering_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Historical Course */
+        get: operations["get_historical_course_api_v1_history_courses__offering_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/history/semesters": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Historical Semesters */
+        get: operations["list_historical_semesters_api_v1_history_semesters_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/optimizations": {
         parameters: {
             query?: never;
@@ -659,6 +710,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/users/me/completed-courses/import-history": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Import Historical Courses */
+        post: operations["import_historical_courses_api_v1_users_me_completed_courses_import_history_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/users/me/completed-courses/import-timetable": {
         parameters: {
             query?: never;
@@ -895,8 +963,17 @@ export interface components {
             createdAt: string;
             /** Credits */
             credits: number;
+            /** Historicalofferingid */
+            historicalOfferingId: string | null;
             /** Id */
             id: string;
+            /**
+             * Inputsource
+             * @enum {string}
+             */
+            inputSource: "MANUAL" | "CURRENT_TIMETABLE" | "HISTORICAL_TIMETABLE";
+            /** Sectioncode */
+            sectionCode: string | null;
             /** Semester */
             semester: string | null;
             /**
@@ -1036,6 +1113,160 @@ export interface components {
         HealthStatus: {
             /** Status */
             status: string;
+        };
+        /** HistoricalCourseImport */
+        HistoricalCourseImport: {
+            /** Offeringids */
+            offeringIds: string[];
+            /**
+             * Status
+             * @default COMPLETED
+             * @enum {string}
+             */
+            status: "IN_PROGRESS" | "COMPLETED";
+        };
+        /** HistoricalCourseImportResponse */
+        HistoricalCourseImportResponse: {
+            /** Importedcourses */
+            importedCourses: components["schemas"]["CompletedCourseRead"][];
+            /** Skippedofferingids */
+            skippedOfferingIds: string[];
+        };
+        /** HistoricalOfferingDetail */
+        HistoricalOfferingDetail: {
+            /** Academicyear */
+            academicYear: number;
+            /** Categorycontexts */
+            categoryContexts: {
+                [key: string]: unknown;
+            }[];
+            /** Completioncategory */
+            completionCategory: string | null;
+            /** Coursecode */
+            courseCode: string;
+            /** Credits */
+            credits: number | null;
+            /** Departmentcontexts */
+            departmentContexts: {
+                [key: string]: unknown;
+            }[];
+            /** Detailstatus */
+            detailStatus: string | null;
+            /** Englishname */
+            englishName: string | null;
+            /** Id */
+            id: string;
+            /** Koreanname */
+            koreanName: string;
+            /** Lecturehours */
+            lectureHours: number | null;
+            /** Listingstatus */
+            listingStatus: string | null;
+            /** Practicehours */
+            practiceHours: number | null;
+            /** Professorname */
+            professorName: string | null;
+            /** Rawlecturetime */
+            rawLectureTime: string | null;
+            /** Rawlocation */
+            rawLocation: string | null;
+            /** Rawpayload */
+            rawPayload: {
+                [key: string]: unknown;
+            };
+            /** Sectioncode */
+            sectionCode: string;
+            /** Semester */
+            semester: string;
+            /** Targetgrade */
+            targetGrade: string | null;
+            /** Termcode */
+            termCode: string;
+        };
+        /** HistoricalOfferingList */
+        HistoricalOfferingList: {
+            /** Courses */
+            courses: components["schemas"]["HistoricalOfferingSummary"][];
+            /** Page */
+            page: number;
+            /** Size */
+            size: number;
+            /** Total */
+            total: number;
+        };
+        /** HistoricalOfferingSummary */
+        HistoricalOfferingSummary: {
+            /** Academicyear */
+            academicYear: number;
+            /** Categorycontexts */
+            categoryContexts: {
+                [key: string]: unknown;
+            }[];
+            /** Completioncategory */
+            completionCategory: string | null;
+            /** Coursecode */
+            courseCode: string;
+            /** Credits */
+            credits: number | null;
+            /** Departmentcontexts */
+            departmentContexts: {
+                [key: string]: unknown;
+            }[];
+            /** Detailstatus */
+            detailStatus: string | null;
+            /** Englishname */
+            englishName: string | null;
+            /** Id */
+            id: string;
+            /** Koreanname */
+            koreanName: string;
+            /** Lecturehours */
+            lectureHours: number | null;
+            /** Listingstatus */
+            listingStatus: string | null;
+            /** Practicehours */
+            practiceHours: number | null;
+            /** Professorname */
+            professorName: string | null;
+            /** Rawlecturetime */
+            rawLectureTime: string | null;
+            /** Rawlocation */
+            rawLocation: string | null;
+            /** Sectioncode */
+            sectionCode: string;
+            /** Semester */
+            semester: string;
+            /** Targetgrade */
+            targetGrade: string | null;
+            /** Termcode */
+            termCode: string;
+        };
+        /** HistoricalSemesterList */
+        HistoricalSemesterList: {
+            /** Semesters */
+            semesters: components["schemas"]["HistoricalSemesterRead"][];
+            /** Totalcourses */
+            totalCourses: number;
+        };
+        /** HistoricalSemesterRead */
+        HistoricalSemesterRead: {
+            /** Academicyear */
+            academicYear: number;
+            /**
+             * Collectedat
+             * Format: date-time
+             */
+            collectedAt: string;
+            /** Coursecount */
+            courseCount: number;
+            /** Datastatus */
+            dataStatus: string;
+            /** Semester */
+            semester: string;
+            /** Termcode */
+            termCode: string;
+            /** Termname */
+            termName: string;
         };
         /** OptimizationCandidate */
         OptimizationCandidate: {
@@ -2243,6 +2474,93 @@ export interface operations {
             };
         };
     };
+    list_historical_courses_api_v1_history_courses_get: {
+        parameters: {
+            query: {
+                semester: string;
+                q?: string | null;
+                department?: string | null;
+                category?: string | null;
+                page?: number;
+                size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HistoricalOfferingList"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_historical_course_api_v1_history_courses__offering_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                offering_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HistoricalOfferingDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_historical_semesters_api_v1_history_semesters_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HistoricalSemesterList"];
+                };
+            };
+        };
+    };
     create_optimization_api_v1_optimizations_post: {
         parameters: {
             query?: never;
@@ -3250,6 +3568,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["CompletedCourseRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    import_historical_courses_api_v1_users_me_completed_courses_import_history_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["HistoricalCourseImport"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HistoricalCourseImportResponse"];
                 };
             };
             /** @description Validation Error */

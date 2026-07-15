@@ -1,7 +1,7 @@
 # PL-timeTabler PostgreSQL ERD
 
 이 문서는 PL-timeTabler의 **실제 PostgreSQL 스키마**를 나타낸다. 기준 migration은
-Alembic `20260710_0003`이며, 시스템용 `alembic_version` 테이블은 ERD에서 제외한다.
+Alembic `20260715_0005`이며, 시스템용 `alembic_version` 테이블은 ERD에서 제외한다.
 
 브라우저에서 확대·축소하며 볼 수 있는 버전은 [`ERD.html`](ERD.html)이다.
 
@@ -144,9 +144,11 @@ erDiagram
 | `sections` | `sessions` | `(semester_id, course_code, section_code)` | 1:N | `CASCADE` |
 | `rooms` | `sessions` | `(semester_id, room_code)` | 1:N, session 측 선택 | `NO ACTION` |
 
-`optimization_jobs`와 인증 테이블은 다른 테이블을 참조하지 않는 독립적인 운영
-테이블이다. `auth_otp_challenges.student_number`와 `auth_sessions.student_number`는 같은
-사용자를 나타내는 논리적 식별자지만, 현재 `users` 테이블이 없으므로 FK 관계는 아니다.
+`optimization_jobs`와 인증 테이블은 FK를 두지 않는 독립적인 운영 테이블이다.
+`auth_otp_challenges.student_number`, `auth_sessions.student_number`,
+`users.student_number`는 같은 사용자를 나타내는 논리적 식별자지만 인증 challenge와
+세션 정리를 계정 삭제와 분리하기 위해 FK 관계로 묶지 않는다. `privacy_consents`,
+`saved_timetables`, `course_reviews`, `completed_courses`는 `users.id`를 `CASCADE`로 참조한다.
 
 ## 3. 영역별 역할
 
@@ -236,14 +238,29 @@ day IN ('월', '화', '수', '목', '금', '토', '일')
 | 기능 | 현재 source of truth | PostgreSQL 사용 |
 | --- | --- | --- |
 | 학기·분반·강의실 조회 | `data/`의 versioned JSON snapshot | 현재 조회하지 않음 |
+| 2020~2026 역사 강의·강의계획서 조회 | `historical_term_datasets`, `historical_course_offerings` | 사용 |
+| 연도별 교육과정·대체/동일과목 원본 | `historical_curriculum_*`, `historical_*relations` | 사용 |
 | 최적화 생성·조회·취소 | `optimization_jobs` | 사용 |
 | optimizer worker 처리 결과 | `optimization_jobs` | 사용 |
 | 선택형 OTP·로그인 | `auth_*` | 인증 활성화 시 사용 |
-| 개인 시간표·프로필 | 브라우저 저장소 | 사용하지 않음 |
+| 로그인 프로필·시간표·리뷰·이수내역 | `users`, `saved_timetables`, `course_reviews`, `completed_courses` | 사용 |
 
-따라서 현재 구조를 “파일 DB만 사용한다” 또는 “모든 데이터를 PostgreSQL에 저장한다”로
-설명하면 둘 다 부정확하다. **공개 정적 카탈로그는 파일, 서버 상태는 PostgreSQL**이라는
-혼합 구조다.
+따라서 현재 구조를 “파일 DB만 사용한다” 또는 “활성 카탈로그까지 모두 PostgreSQL에서
+읽는다”로 설명하면 둘 다 부정확하다. **현재 학기 최적화 카탈로그는 파일, 무손실 역사
+아카이브와 계정 상태는 PostgreSQL**이라는 혼합 구조다.
+
+### 역사 아카이브 관계
+
+```text
+historical_archive_manifests
+historical_term_datasets 1 ── N historical_course_offerings 1 ── N completed_courses
+historical_curriculum_datasets 1 ── N historical_curriculum_departments
+historical_relation_datasets 1 ── N historical_course_relations
+```
+
+- 모든 dataset 행은 매니페스트 SHA-256, 원본 gzip 바이트, 루트 메타데이터를 보존한다.
+- 각 분반·학과 교육과정·관계 행의 `raw_payload`는 수집 JSON 객체 전체다.
+- `completed_courses.historical_offering_id`는 원본 분반을 가리키며 원본 제거 시 `SET NULL`이다. `source_snapshot`은 등록 당시 원본을 계속 보존한다.
 
 `academic_units`, `curriculum_versions`, `requirement_rules`, `draft_timetables`,
 `optimization_candidates` 등 아키텍처 문서의 확장 후보는 현재 migration에 없으므로

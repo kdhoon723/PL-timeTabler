@@ -10,6 +10,9 @@ import type {
   CreditSummary,
   DepartmentSources,
   DraftSnapshot,
+  HistoricalCourseDetail,
+  HistoricalCourseOffering,
+  HistoricalSemester,
   MajorRequiredCourses,
   OptimizationJob,
   PrivacyConsent,
@@ -283,6 +286,28 @@ export function deleteCompletedCourse(id: string): Promise<void> {
 
 export function importTimetableCourses(id: string): Promise<{ importedCourses: CompletedCourse[]; skippedCourses: string[] }> {
   return jsonFetch('/api/v1/users/me/completed-courses/import-timetable', { method: 'POST', body: JSON.stringify({ timetableId: id, status: 'IN_PROGRESS' }) })
+}
+
+export function loadHistoricalSemesters(): Promise<{ semesters: HistoricalSemester[]; totalCourses: number }> {
+  return jsonFetch('/api/v1/history/semesters')
+}
+
+export function loadHistoricalCourses(filters: { semester: string; q?: string; department?: string; category?: string; page?: number; size?: number }): Promise<{ courses: HistoricalCourseOffering[]; page: number; size: number; total: number }> {
+  const query = new URLSearchParams({ semester: filters.semester })
+  if (filters.q) query.set('q', filters.q)
+  if (filters.department) query.set('department', filters.department)
+  if (filters.category) query.set('category', filters.category)
+  if (filters.page) query.set('page', String(filters.page))
+  if (filters.size) query.set('size', String(filters.size))
+  return jsonFetch(`/api/v1/history/courses?${query}`)
+}
+
+export function loadHistoricalCourseDetail(id: string): Promise<HistoricalCourseDetail> {
+  return jsonFetch(`/api/v1/history/courses/${encodeURIComponent(id)}`)
+}
+
+export function importHistoricalCourses(offeringIds: string[]): Promise<{ importedCourses: CompletedCourse[]; skippedOfferingIds: string[] }> {
+  return jsonFetch('/api/v1/users/me/completed-courses/import-history', { method: 'POST', body: JSON.stringify({ offeringIds, status: 'COMPLETED' }) })
 }
 
 export async function createOptimizationJob(draft: DraftSnapshot, sections: readonly Section[]): Promise<OptimizationJob> {

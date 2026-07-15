@@ -11,7 +11,7 @@ import { academicUnitOverrideStatus, applicableRules, completedCourseMatches, ty
 import type { AcademicProfile, CommonRules, CompletedCourse, CompletedCourseStatus, DepartmentSource, MajorRequiredCourses, Section } from '../types'
 import { CheckIcon, WarningIcon } from './Icons'
 
-interface Props { catalog: Section[]; profile: AcademicProfile | null; majorRequired?: MajorRequiredCourses | null; authenticated?: boolean; onBack: () => void; onAddCourse: (section: Section) => void }
+interface Props { catalog: Section[]; profile: AcademicProfile | null; majorRequired?: MajorRequiredCourses | null; authenticated?: boolean; backLabel?: string; onBack: () => void; onAddCourse: (section: Section) => void }
 
 const SOURCE_URLS: Record<string, string> = {
   'regulations-2-1-01': 'https://www.daejin.ac.kr/regltn/daejin/2/631/download.do',
@@ -27,7 +27,7 @@ const COMPLETION_CATEGORIES = ['전공필수', '전공선택', '교양필수', '
 const COMPLETION_TERMS = [{ code: '1', label: '1학기' }, { code: '2', label: '2학기' }, { code: '11', label: '여름계절' }, { code: '22', label: '겨울계절' }]
 const CURRENT_YEAR = new Date().getFullYear()
 
-export function RequirementsPage({ catalog, profile, majorRequired = null, authenticated = false, onBack, onAddCourse }: Props) {
+export function RequirementsPage({ catalog, profile, majorRequired = null, authenticated = false, backLabel = '시간표로', onBack, onAddCourse }: Props) {
   const [rules, setRules] = useState<CommonRules | null>(null)
   const [departments, setDepartments] = useState<DepartmentSource[]>([])
   const [error, setError] = useState(false)
@@ -156,7 +156,7 @@ export function RequirementsPage({ catalog, profile, majorRequired = null, authe
   const departmentSource = departments.find((item) => item.academicUnit === department)
 
   return <main className="requirements-page">
-    <header className="requirements-header"><button type="button" className="text-button" onClick={onBack}>← 시간표로</button><div><h1>예상 졸업요건 점검</h1><p>마이페이지의 이수내역과 직접 입력한 값을 기준으로 계산합니다.</p></div></header>
+    <header className="requirements-header"><button type="button" className="text-button" onClick={onBack}>← {backLabel}</button><div><h1>예상 졸업요건 점검</h1><p>내 학업의 이수내역과 직접 입력한 값을 기준으로 계산합니다.</p></div></header>
     {error && <div className="inline-error" role="alert">졸업요건 데이터를 불러오지 못했습니다.</div>}
     <section className="profile-panel" aria-labelledby="profile-title"><h2 id="profile-title">내 기준 선택</h2><div className="profile-grid">
       <label><span>입학연도</span><select value={year} onChange={(event) => setYear(Number(event.target.value))}>{Array.from({ length: 15 }, (_, index) => 2026 - index).map((value) => <option key={value}>{value}</option>)}</select></label>

@@ -81,6 +81,7 @@ PL-timeTabler/
 ├── data/
 │   ├── courses/                   # 학기별 개설과목 fixture
 │   ├── classrooms/               # 강의실 세션 fixture
+│   ├── dreams/                   # 2020~2026 전체 원본 아카이브
 │   └── requirements/              # 공식 졸업요건 원문·정규화 결과
 ├── migrations/                    # Alembic revision
 ├── contracts/                     # 커밋된 OpenAPI snapshot과 생성 설정
@@ -118,7 +119,7 @@ db :5432 ──────── PostgreSQL ◀──── optimizer worker + 
 - `optimizer`: PostgreSQL에서 작업을 점유하고 OR-Tools를 실행한 뒤 후보와 설명 근거를 저장한다.
 - `db`: 공식 PostgreSQL 이미지와 named volume. 호스트 포트는 기본 공개하지 않는다.
 - `migrate`: Alembic upgrade를 일회 실행한다.
-- `ingest`: 배포할 versioned file snapshot의 schema·레코드 수·checksum을 검증하는 release gate다. API는 검증된 파일을 직접 읽으므로 별도 DB import를 하지 않는다.
+- `ingest`: 활성 카탈로그와 DREAMS manifest checksum을 검증하고, 원본 gzip·루트 메타데이터·각 원본 JSON 객체를 역사 테이블에 멱등 적재한다. `api`는 이 작업이 성공한 뒤 시작한다.
 
 ## API 경계
 
@@ -126,13 +127,15 @@ db :5432 ──────── PostgreSQL ◀──── optimizer worker + 
 
 - `GET /health/live`, `GET /health/ready`: 프로세스·카탈로그·DB 준비 상태
 - `GET /catalog/{semester}`: 브라우저 검색용 정규화 카탈로그와 `datasetVersion`
+- `GET /history/semesters`, `GET /history/courses`: 역사 학기·강의 검색과 원본 상세 조회
+- `POST /users/me/completed-courses/import-history`: 원본 분반을 사용자 이수내역으로 연결
 - `POST /optimizations`: 후보과목·고정과목·학점·선호조건으로 작업 생성
 - `GET /optimizations/{id}`: 작업 상태, 후보, 설명 조회
 - `DELETE /optimizations/{id}`: 대기·실행 작업 취소 요청
 - `POST /auth/otp/start`, `POST /auth/otp/verify`: 선택형 학교 이메일 OTP 시작·검증
 - `GET /auth/session`, `POST /auth/logout`: 서버 세션 조회·폐기와 로그인 기능 활성화 상태
 
-졸업요건 출처는 현재 검증된 정적 snapshot으로 배포하고, 시간표 공유는 개인정보를 서버에 남기지 않는 URL payload로 처리한다. 서버 저장형 이수내역·공유가 필요해질 때만 동의·삭제·만료 정책과 함께 `/curricula`, `/shares` API를 추가한다.
+졸업요건 출처는 검증된 정적 snapshot으로 배포한다. 로그인 사용자의 프로필·저장 시간표·이수내역·리뷰는 계정 소유 DB 레코드이며 탈퇴 시 cascade 삭제한다. 공개 역사 강의정보와 공유 응답에는 개인 이수내역을 섞지 않는다.
 
 FastAPI가 생성한 OpenAPI 3.1 문서를 CI에서 snapshot으로 검증하고 TypeScript SDK를 생성한다. breaking change는 API 버전 또는 명시적 migration 없이 병합하지 않는다.
 
@@ -159,13 +162,22 @@ FastAPI가 생성한 OpenAPI 3.1 문서를 CI에서 snapshot으로 검증하고 
 
 모든 판정은 `curriculum_version_id`와 `source_document_id`를 추적한다. 공개 원문으로 확정하지 못한 학과 규칙은 `UNVERIFIED`로 저장하고 사용자에게 확정 충족으로 표시하지 않는다.
 
+### DREAMS 역사 아카이브
+
+- `historical_archive_manifests`: 매니페스트 원문과 checksum
+- `historical_term_datasets`, `historical_course_offerings`: 학기 원본 gzip과 분반별 전체 JSON
+- `historical_curriculum_datasets`, `historical_curriculum_departments`: 연도별 교육과정 원본과 학과별 전체 JSON
+- `historical_relation_datasets`, `historical_course_relations`: 대체·동일과목 원본과 관계별 전체 JSON
+
+검색 컬럼은 원본 JSON을 대체하는 정규화 결과가 아니라 인덱싱을 위한 투영이다. 알 수 없는 새 필드도 `raw_payload`와 `source_archive`에 남는다.
+
 ### 사용자 입력과 최적화
 
 - `draft_timetables`: 익명 공유가 필요할 때만 최소 선택 상태 저장
 - `optimization_jobs`: 입력 snapshot, 상태, 시도 횟수, deadline, 취소 시각, 오류 코드
 - `optimization_candidates`: 선택 분반, 목적함수 구성값, 변경 설명
 
-개인 이수내역은 기본적으로 브라우저에 저장한다. 서버 저장 또는 성적표 가져오기를 추가할 때는 명시적 동의·삭제·암호화 정책을 먼저 정의한다.
+로그인 사용자의 이수내역은 `completed_courses`에 저장한다. 역사 강의에서 등록한 행은 `historical_offering_id`와 당시 `source_snapshot`을 함께 보존하며, 사용자가 탈퇴하면 이수내역은 삭제된다.
 
 ### 선택형 인증
 

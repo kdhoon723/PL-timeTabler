@@ -23,6 +23,7 @@ import {
   updateSavedTimetableSections,
 } from '../api/client'
 import { saveAcademicProfile } from '../domain/profile'
+import { HistoricalTimetableManager } from './HistoricalTimetableManager'
 import type {
   CompletedCourse,
   CompletedCourseStatus,
@@ -39,13 +40,14 @@ interface Props {
   departments: DepartmentSource[]
   onBack: () => void
   onLoadTimetable: (draft: DraftSnapshot) => void
+  onRequirements: () => void
   onUserChange: (user: UserInfo | null) => void
   onMessage: (message: string) => void
 }
 
 const EMPTY_SUMMARY = { totalCredits: 0, majorCredits: 0, liberalCredits: 0, areaCredits: {} as Record<string, number> }
 
-export function MyPage({ currentDraft, departments, onBack, onLoadTimetable, onUserChange, onMessage }: Props) {
+export function MyPage({ currentDraft, departments, onBack, onLoadTimetable, onRequirements, onUserChange, onMessage }: Props) {
   const [user, setUser] = useState<UserInfo | null>(null)
   const [timetables, setTimetables] = useState<SavedTimetable[]>([])
   const [completed, setCompleted] = useState<CompletedCourse[]>([])
@@ -81,9 +83,17 @@ export function MyPage({ currentDraft, departments, onBack, onLoadTimetable, onU
     setReviews(myReviews); setConsents(consentHistory)
   }, [onUserChange])
 
-  useEffect(() => { refresh().catch((caught) => setError(caught instanceof Error ? caught.message : '마이페이지를 불러오지 못했습니다.')) }, [refresh])
+  useEffect(() => { refresh().catch((caught) => setError(caught instanceof Error ? caught.message : '내 학업 정보를 불러오지 못했습니다.')) }, [refresh])
   const visibleTimetables = favoriteOnly ? timetables.filter((item) => item.favorite) : timetables
   const semesterGroups = useMemo(() => Array.from(new Set(timetables.map((item) => item.semester))).sort().reverse(), [timetables])
+  const completedGroups = useMemo(() => {
+    const groups = new Map<string, CompletedCourse[]>()
+    for (const item of completed) {
+      const key = item.semester ?? '학기 미지정'
+      groups.set(key, [...(groups.get(key) ?? []), item])
+    }
+    return [...groups.entries()].sort(([left], [right]) => right.localeCompare(left, 'ko'))
+  }, [completed])
 
   const run = async (action: () => Promise<void>, fallback: string) => {
     setPending(true); setError(null)
@@ -123,8 +133,12 @@ export function MyPage({ currentDraft, departments, onBack, onLoadTimetable, onU
   const removeAccount = () => run(async () => { await deleteCurrentUser(deleteConfirmation); onUserChange(null); localStorage.removeItem('pl-timetabler:profile:v2'); onMessage('회원 탈퇴가 완료되었습니다.'); onBack() }, '회원 탈퇴를 처리하지 못했습니다.')
 
   return <main className="my-page">
-    <header className="page-header"><button type="button" className="text-button" onClick={onBack}>← 시간표로</button><div><h1>마이페이지</h1><p>{user?.studentNumber ?? '계정'}의 저장된 정보를 관리합니다.</p></div></header>
+    <header className="page-header"><button type="button" className="text-button" onClick={onBack}>← 시간표로</button><div><h1>내 학업</h1><p>{user?.studentNumber ?? '계정'}의 과거 이수내역부터 앞으로의 시간표까지 한곳에서 관리합니다.</p></div></header>
     {error && <div className="global-error" role="alert"><span>{error}</span><button type="button" onClick={() => refresh()}>다시 시도</button></div>}
+
+    <nav className="mypage-nav" aria-label="내 학업 메뉴"><a href="#academic-overview">학업 현황</a><a href="#past-timetable">과거 시간표</a><a href="#completed-heading">이수과목</a><a href="#saved-plans">저장 시간표</a><a href="#account-heading">계정정보</a></nav>
+
+    <section id="academic-overview" className="mypage-section academic-overview" aria-labelledby="academic-overview-heading"><div className="section-heading"><div><h2 id="academic-overview-heading">학업 현황</h2><p>이수 완료 과목을 기준으로 계산한 현재 기록입니다.</p></div><button type="button" className="secondary-button" onClick={onRequirements}>졸업요건 상세 점검</button></div><div className="academic-summary-grid"><article><strong>{summary.totalCredits}</strong><span>총 이수학점</span></article><article><strong>{summary.majorCredits}</strong><span>전공학점</span></article><article><strong>{summary.liberalCredits}</strong><span>교양학점</span></article><article><strong>{completed.filter((item) => item.status === 'COMPLETED').length}</strong><span>이수 완료 과목</span></article></div></section>
 
     <section className="mypage-section" aria-labelledby="account-heading"><div className="section-heading"><div><h2 id="account-heading">계정정보</h2><p>학번은 학교 이메일 계정과 연결되어 변경할 수 없습니다.</p></div></div><div className="mypage-form-grid">
       <label><span>학번</span><input value={user?.studentNumber ?? ''} disabled /></label>
@@ -139,7 +153,7 @@ export function MyPage({ currentDraft, departments, onBack, onLoadTimetable, onU
       <ul className="simple-list">{consents.map((item) => <li key={item.id}><span>{item.consentVersion}</span><small>{new Date(item.agreedAt).toLocaleString('ko-KR')}</small></li>)}</ul>
     </section>
 
-    <section className="mypage-section" aria-labelledby="timetable-heading"><div className="section-heading"><div><h2 id="timetable-heading">저장한 시간표</h2><p>여러 시간표를 저장하고 비교하거나 이전 학기 기록을 확인합니다.</p></div><label className="inline-check"><input type="checkbox" checked={favoriteOnly} onChange={(event) => setFavoriteOnly(event.target.checked)} />즐겨찾기만</label></div>
+    <section id="saved-plans" className="mypage-section" aria-labelledby="timetable-heading"><div className="section-heading"><div><h2 id="timetable-heading">저장한 시간표</h2><p>앞으로 수강할 시간표 계획을 저장하고 비교합니다.</p></div><label className="inline-check"><input type="checkbox" checked={favoriteOnly} onChange={(event) => setFavoriteOnly(event.target.checked)} />즐겨찾기만</label></div>
       <div className="inline-create"><input aria-label="저장할 시간표 이름" value={timetableName} onChange={(event) => setTimetableName(event.target.value)} /><button type="button" className="primary-button" disabled={pending} onClick={saveCurrent}>현재 시간표 저장</button></div>
       {semesterGroups.length > 0 && <p className="mypage-meta">저장된 학기: {semesterGroups.join(', ')}</p>}
       <div className="saved-card-list">{visibleTimetables.map((item) => <article key={item.id}><div><input aria-label={`${item.name} 이름`} value={names[item.id] ?? item.name} onChange={(event) => setNames((current) => ({ ...current, [item.id]: event.target.value }))} /><small>{item.semester} · {new Date(item.updatedAt).toLocaleDateString('ko-KR')}</small></div><div className="card-actions">
@@ -154,10 +168,12 @@ export function MyPage({ currentDraft, departments, onBack, onLoadTimetable, onU
       </div></article>)}</div>
     </section>
 
+    <HistoricalTimetableManager completedCourses={completed} disabled={pending} onImported={refresh} onMessage={onMessage} />
+
     <section className="mypage-section" aria-labelledby="completed-heading"><div className="section-heading"><div><h2 id="completed-heading">이수과목</h2><p>완료 과목 기준 총 {summary.totalCredits}학점 · 전공 {summary.majorCredits} · 교양 {summary.liberalCredits}</p></div></div>
       <div className="completed-form"><label><span>과목명</span><input value={courseName} onChange={(event) => setCourseName(event.target.value)} /></label><label><span>학점</span><input type="number" min="0.5" max="30" step="0.5" value={credits} onChange={(event) => setCredits(Number(event.target.value))} /></label><label><span>이수구분</span><input value={category} onChange={(event) => setCategory(event.target.value)} /></label><label><span>교양 영역</span><input value={area} onChange={(event) => setArea(event.target.value)} placeholder="해당하는 경우" /></label><label><span>학기</span><input value={semester} onChange={(event) => setSemester(event.target.value)} placeholder="2026-1" /></label><label><span>상태</span><select value={courseStatus} onChange={(event) => setCourseStatus(event.target.value as CompletedCourseStatus)}><option value="IN_PROGRESS">수강 중</option><option value="COMPLETED">이수 완료</option></select></label></div>
       <div className="form-actions">{editingCourseId && <button type="button" className="text-button" onClick={resetCourseForm}>수정 취소</button>}<button type="button" className="primary-button" disabled={pending || !courseName.trim() || !category.trim()} onClick={saveCourse}>{editingCourseId ? '이수과목 수정' : '이수과목 추가'}</button></div>
-      <div className="saved-card-list">{completed.map((item) => <article key={item.id}><div><strong>{item.courseName}</strong><small>{item.credits}학점 · {item.category}{item.area ? ` · ${item.area}` : ''} · {item.status === 'COMPLETED' ? '이수 완료' : '수강 중'}</small></div><div className="card-actions"><button type="button" onClick={() => startEditCourse(item)}>수정</button>{item.status === 'IN_PROGRESS' && <button type="button" onClick={() => run(async () => { await updateCompletedCourse(item.id, { status: 'COMPLETED' }); await refresh() }, '상태를 변경하지 못했습니다.')}>이수 완료</button>}<button type="button" className="danger-text" onClick={() => run(async () => { await deleteCompletedCourse(item.id); await refresh() }, '이수과목을 삭제하지 못했습니다.')}>삭제</button></div></article>)}</div>
+      <div className="completed-semester-groups">{completedGroups.map(([groupSemester, items]) => <section key={groupSemester} aria-label={`${groupSemester} 이수과목`}><h3>{groupSemester}</h3><div className="saved-card-list">{items.map((item) => <article key={item.id}><div><strong>{item.courseName}</strong><small>{item.courseCode ? `${item.courseCode}${item.sectionCode ? `-${item.sectionCode}` : ''} · ` : ''}{item.credits}학점 · {item.category}{item.area ? ` · ${item.area}` : ''} · {item.status === 'COMPLETED' ? '이수 완료' : '수강 중'}{item.inputSource === 'HISTORICAL_TIMETABLE' ? ' · 강의 원본 연결됨' : ''}</small></div><div className="card-actions"><button type="button" onClick={() => startEditCourse(item)}>수정</button>{item.status === 'IN_PROGRESS' && <button type="button" onClick={() => run(async () => { await updateCompletedCourse(item.id, { status: 'COMPLETED' }); await refresh() }, '상태를 변경하지 못했습니다.')}>이수 완료</button>}<button type="button" className="danger-text" onClick={() => run(async () => { await deleteCompletedCourse(item.id); await refresh() }, '이수과목을 삭제하지 못했습니다.')}>삭제</button></div></article>)}</div></section>)}</div>
     </section>
 
     <section className="mypage-section" aria-labelledby="reviews-heading"><div className="section-heading"><div><h2 id="reviews-heading">내 리뷰</h2><p>작성한 리뷰 {reviews.length}개</p></div></div><div className="saved-card-list">{reviews.map((item) => <article key={item.id}><div><strong>{item.courseName} · ★ {item.rating}</strong><p>{item.content}</p><small>{item.professor ?? '교수 미정'} · {item.semester}</small></div><button type="button" className="danger-text" onClick={() => run(async () => { await deleteCourseReview(item.id); await refresh() }, '리뷰를 삭제하지 못했습니다.')}>삭제</button></article>)}</div></section>

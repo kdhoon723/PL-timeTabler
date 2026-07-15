@@ -27,13 +27,16 @@ router = APIRouter(prefix="/users/me/completed-courses", tags=["completed-course
 def _read(item: CompletedCourse) -> CompletedCourseRead:
     return CompletedCourseRead(
         id=item.id,
+        historical_offering_id=item.historical_offering_id,
         course_code=item.course_code,
+        section_code=item.section_code,
         course_name=item.course_name,
         credits=item.credits,
         category=item.category,
         area=item.area,
         semester=item.semester,
         status=item.status,
+        input_source=item.input_source,
         created_at=item.created_at,
         updated_at=item.updated_at,
     )
@@ -133,13 +136,17 @@ async def create_completed_course(
     item = CompletedCourse(
         id=str(uuid4()),
         user_id=user.id,
+        historical_offering_id=None,
         course_code=body.course_code,
+        section_code=None,
         course_name=body.course_name.strip(),
         credits=body.credits,
         category=body.category.strip(),
         area=body.area.strip() if body.area else _area_from_category(body.category),
         semester=body.semester,
         status=body.status,
+        input_source="MANUAL",
+        source_snapshot=None,
         created_at=now,
         updated_at=now,
     )
@@ -182,13 +189,17 @@ async def import_timetable_courses(
         item = CompletedCourse(
             id=str(uuid4()),
             user_id=user.id,
+            historical_offering_id=None,
             course_code=section.course_code,
+            section_code=section.section_code,
             course_name=section.name,
             credits=section.credits,
             category=section.category,
             area=_area_from_category(section.category),
             semester=timetable.semester,
             status=body.status,
+            input_source="CURRENT_TIMETABLE",
+            source_snapshot=section.model_dump(mode="json", by_alias=True),
             created_at=now,
             updated_at=now,
         )

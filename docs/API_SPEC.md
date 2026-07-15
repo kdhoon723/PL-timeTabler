@@ -23,15 +23,18 @@ POST /optimizations ─────┴─> PostgreSQL optimization_jobs
                                       └─ optimizer worker
 
 /auth/* ─────────────────────> PostgreSQL auth_* tables
+/history/* ──────────────────> PostgreSQL historical_* tables
+/users/me/* ─────────────────> PostgreSQL account-owned tables
 ```
 
 | 데이터 | 저장 위치 | 이유 |
 | --- | --- | --- |
 | 개설과목·분반·강의실 | 버전 관리 JSON snapshot | 배포 단위가 고정되고 읽기 중심인 공개 데이터 |
+| 2020~2026 역사 강의·강의계획서 | PostgreSQL `historical_*` + 원본 gzip | 원본 전체 보존과 검색·사용자 연결을 동시에 지원 |
 | 최적화 요청·상태·결과 | PostgreSQL `optimization_jobs` | API와 worker 사이의 내구성 있는 작업 큐 |
 | OTP·로그인 세션·인증 제한 이벤트 | PostgreSQL `auth_*` | 만료·폐기·동시성 제어가 필요한 상태 |
-| 개인 시간표·프로필 | 브라우저 저장소 | 로그인 없이 편집하고 개인정보 서버 저장을 최소화 |
-| 시간표 공유 | URL payload | 현재 서버 공유 테이블을 만들지 않음 |
+| 로그인 프로필·시간표·이수내역·리뷰 | PostgreSQL 계정 소유 테이블 | 여러 기기 동기화·졸업요건 자동 반영·탈퇴 cascade 삭제 |
+| 시간표 공유 | PostgreSQL share + 비개인 snapshot | 공유 응답에 개인 이수내역을 포함하지 않음 |
 
 DB에는 미래의 DB 기반 카탈로그를 위한 `semesters`, `courses`, `sections`, `sessions`,
 `rooms`, `data_imports` 테이블도 존재한다. 현재 API는 이 테이블을 조회하지 않으며
@@ -88,6 +91,10 @@ FastAPI 입력 검증 오류는 다음 형식으로 반환한다.
 | `GET` | `/api/v1/health/ready` | `200`, `503` | 카탈로그 파일과 DB 준비 상태 확인 | 파일 + PostgreSQL |
 | `GET` | `/api/v1/semesters` | `200` | 제공 학기 목록 | 파일 |
 | `GET` | `/api/v1/catalog/{semester}` | `200` | 분반 검색·페이지 조회 | 파일 |
+| `GET` | `/api/v1/history/semesters` | `200` | 2020~2026 정규·계절학기 목록 | PostgreSQL |
+| `GET` | `/api/v1/history/courses` | `200` | 역사 분반 검색 | PostgreSQL |
+| `GET` | `/api/v1/history/courses/{offering_id}` | `200` | 수집 원본 전체 필드 상세 | PostgreSQL |
+| `POST` | `/api/v1/users/me/completed-courses/import-history` | `200` | 역사 분반을 이수내역으로 연결 | PostgreSQL |
 | `POST` | `/api/v1/optimizations` | `202` | 최적화 작업 생성 | PostgreSQL |
 | `GET` | `/api/v1/optimizations/{job_id}` | `200` | 작업 상태·결과 조회 | PostgreSQL |
 | `DELETE` | `/api/v1/optimizations/{job_id}` | `200` | 대기·실행 작업 취소 요청 | PostgreSQL |
@@ -219,7 +226,42 @@ GET /api/v1/catalog/2026-1?q=컴퓨팅&limit=1
 | `404` | 지원하지 않는 학기 |
 | `422` | query parameter 형식 또는 범위 오류 |
 
-## 6. Optimization API
+## 6. History API
+
+역사 API는 `data/dreams` 원본을 무손실 적재한 PostgreSQL을 읽는다. 목록 응답은 검색용
+투영 필드를 반환하고, 상세 응답의 `rawPayload`는 해당 분반의 수집 JSON 객체 전체를
+반환한다.
+
+### `GET /api/v1/history/semesters`
+
+2020~2026학년도 `1`, `2`, `11`(여름계절), `22`(겨울계절) 학기와 데이터 상태,
+분반 수를 최신순으로 반환한다.
+
+### `GET /api/v1/history/courses`
+
+필수 `semester=YYYY-(1|2|11|22)`와 선택 `q`, `department`, `category`, `page`, `size`
+조건으로 검색한다. 목록에는 학수번호·분반·국/영문명·교수·학점·시수·시간·장소·대상
+학년·이수구분/학과 맥락·원본 상태가 포함되며, 대용량 강의계획서는 상세에서 조회한다.
+
+### `GET /api/v1/history/courses/{offering_id}`
+
+목록 필드와 `rawPayload`를 반환한다. `rawPayload.syllabus`에는 개요, 학습목표, 역량,
+수업방법, 평가, 교재, 과제, 주차별 계획, 연계 프로그램 등 수집 당시 존재한 모든
+필드가 포함된다.
+
+### `POST /api/v1/users/me/completed-courses/import-history`
+
+```json
+{
+  "offeringIds": ["605ed178-0af7-5314-85d9-f8060d35ec4c"],
+  "status": "COMPLETED"
+}
+```
+
+로그인이 필요하다. 등록 행은 원본 분반 FK, 학기·학수번호·분반, 이수구분·영역 투영,
+원본 JSON snapshot을 함께 저장한다. 이미 등록한 과목은 `skippedOfferingIds`로 반환한다.
+
+## 7. Optimization API
 
 최적화는 비동기 작업이다. 생성 요청은 결과를 기다리지 않고 `202`와 작업 객체를
 반환한다. 클라이언트는 `Location` 응답 헤더 또는 응답의 `id`로 상태를 조회한다.
@@ -434,7 +476,7 @@ Location: /api/v1/optimizations/550e8400-e29b-41d4-a716-446655440000
 - 응답 구조는 `GET`과 같은 `OptimizationJobRead`다.
 - 존재하지 않는 작업은 `404`를 반환한다.
 
-## 7. Optional Auth API
+## 8. Optional Auth API
 
 인증은 시간표 작성의 선행 조건이 아니다. `TIMETABLER_AUTH_ENABLED=false`이면
 `GET /auth/session`이 `available=false`를 반환하고 OTP 검증은 성공하지 않는다.
@@ -504,7 +546,7 @@ Location: /api/v1/optimizations/550e8400-e29b-41d4-a716-446655440000
 현재 세션을 폐기하고 쿠키를 삭제한다. 쿠키가 없어도 멱등적으로 성공하며 응답은
 `204 No Content`다.
 
-## 8. OpenAPI와 계약 검증
+## 9. OpenAPI와 계약 검증
 
 실행 중인 FastAPI가 제공하는 문서:
 

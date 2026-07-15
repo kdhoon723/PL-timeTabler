@@ -45,7 +45,7 @@ export function AppHeader({ credits, profile, authSession, canUndo, canRedo, app
       <button className="icon-button" type="button" onClick={onShare} aria-label="시간표 공유"><ShareIcon /></button>
       {applicationCount > 0 && <button className="header-link" type="button" onClick={onApplicationList}>신청 목록</button>}
       <button className="header-link" type="button" onClick={() => onNavigate('/requirements')}>졸업요건</button>
-      {authSession.available && <button className={`account-button ${authSession.authenticated ? 'authenticated' : ''}`} type="button" onClick={onAccount}>{authSession.authenticated ? '인증됨' : '로그인'}</button>}
+      {authSession.available && <button className={`account-button ${authSession.authenticated ? 'authenticated' : ''}`} type="button" onClick={onAccount}>{authSession.authenticated ? '내 학업' : '로그인'}</button>}
     </nav>
     <div className="mobile-command-menu">
       <button ref={menuButtonRef} className="more-button" type="button" aria-haspopup="menu" aria-expanded={menuOpen} aria-controls="mobile-command-list" onClick={() => setMenuOpen((value) => !value)}>더보기</button>
@@ -56,7 +56,7 @@ export function AppHeader({ credits, profile, authSession, canUndo, canRedo, app
         {applicationCount > 0 && <button type="button" role="menuitem" onClick={run(onApplicationList)}>신청 목록</button>}
         <button type="button" role="menuitem" onClick={run(() => onNavigate('/requirements'))}>졸업요건</button>
         <button type="button" role="menuitem" onClick={run(onProfile)}>{profile ? '학적 정보 변경' : '학과 설정'}</button>
-        {authSession.available && <button type="button" role="menuitem" onClick={run(onAccount)}>{authSession.authenticated ? '계정 확인' : '로그인'}</button>}
+        {authSession.available && <button type="button" role="menuitem" onClick={run(onAccount)}>{authSession.authenticated ? '내 학업' : '로그인'}</button>}
       </div>}
     </div>
   </header>

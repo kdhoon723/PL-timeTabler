@@ -274,13 +274,16 @@ export type CompletedCourseStatus = 'IN_PROGRESS' | 'COMPLETED'
 
 export interface CompletedCourse {
   id: string
+  historicalOfferingId: string | null
   courseCode: string | null
+  sectionCode: string | null
   courseName: string
   credits: number
   category: string
   area: string | null
   semester: string | null
   status: CompletedCourseStatus
+  inputSource: 'MANUAL' | 'CURRENT_TIMETABLE' | 'HISTORICAL_TIMETABLE'
   createdAt: string
   updatedAt: string
 }
@@ -290,4 +293,41 @@ export interface CreditSummary {
   majorCredits: number
   liberalCredits: number
   areaCredits: Record<string, number>
+}
+
+export interface HistoricalSemester {
+  semester: string
+  academicYear: number
+  termCode: string
+  termName: string
+  dataStatus: string
+  courseCount: number
+  collectedAt: string
+}
+
+export interface HistoricalCourseOffering {
+  id: string
+  semester: string
+  academicYear: number
+  termCode: string
+  courseCode: string
+  sectionCode: string
+  koreanName: string
+  englishName: string | null
+  professorName: string | null
+  completionCategory: string | null
+  credits: number | null
+  lectureHours: number | null
+  practiceHours: number | null
+  rawLectureTime: string | null
+  rawLocation: string | null
+  targetGrade: string | null
+  listingStatus: string | null
+  detailStatus: string | null
+  categoryContexts: Array<Record<string, unknown>>
+  departmentContexts: Array<Record<string, unknown>>
+}
+
+export interface HistoricalCourseDetail extends HistoricalCourseOffering {
+  rawPayload: Record<string, unknown>
 }

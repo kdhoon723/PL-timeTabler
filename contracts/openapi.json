@@ -445,9 +445,40 @@
             "title": "Credits",
             "type": "number"
           },
+          "historicalOfferingId": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Historicalofferingid"
+          },
           "id": {
             "title": "Id",
             "type": "string"
+          },
+          "inputSource": {
+            "enum": [
+              "MANUAL",
+              "CURRENT_TIMETABLE",
+              "HISTORICAL_TIMETABLE"
+            ],
+            "title": "Inputsource",
+            "type": "string"
+          },
+          "sectionCode": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sectioncode"
           },
           "semester": {
             "anyOf": [
@@ -476,13 +507,16 @@
         },
         "required": [
           "id",
+          "historicalOfferingId",
           "courseCode",
+          "sectionCode",
           "courseName",
           "credits",
           "category",
           "area",
           "semester",
           "status",
+          "inputSource",
           "createdAt",
           "updatedAt"
         ],
@@ -911,6 +945,552 @@
           "status"
         ],
         "title": "HealthStatus",
+        "type": "object"
+      },
+      "HistoricalCourseImport": {
+        "additionalProperties": false,
+        "properties": {
+          "offeringIds": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 100,
+            "minItems": 1,
+            "title": "Offeringids",
+            "type": "array"
+          },
+          "status": {
+            "default": "COMPLETED",
+            "enum": [
+              "IN_PROGRESS",
+              "COMPLETED"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "offeringIds"
+        ],
+        "title": "HistoricalCourseImport",
+        "type": "object"
+      },
+      "HistoricalCourseImportResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "importedCourses": {
+            "items": {
+              "$ref": "#/components/schemas/CompletedCourseRead"
+            },
+            "title": "Importedcourses",
+            "type": "array"
+          },
+          "skippedOfferingIds": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Skippedofferingids",
+            "type": "array"
+          }
+        },
+        "required": [
+          "importedCourses",
+          "skippedOfferingIds"
+        ],
+        "title": "HistoricalCourseImportResponse",
+        "type": "object"
+      },
+      "HistoricalOfferingDetail": {
+        "additionalProperties": false,
+        "properties": {
+          "academicYear": {
+            "title": "Academicyear",
+            "type": "integer"
+          },
+          "categoryContexts": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Categorycontexts",
+            "type": "array"
+          },
+          "completionCategory": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Completioncategory"
+          },
+          "courseCode": {
+            "title": "Coursecode",
+            "type": "string"
+          },
+          "credits": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Credits"
+          },
+          "departmentContexts": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Departmentcontexts",
+            "type": "array"
+          },
+          "detailStatus": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Detailstatus"
+          },
+          "englishName": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Englishname"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "koreanName": {
+            "title": "Koreanname",
+            "type": "string"
+          },
+          "lectureHours": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lecturehours"
+          },
+          "listingStatus": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Listingstatus"
+          },
+          "practiceHours": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Practicehours"
+          },
+          "professorName": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Professorname"
+          },
+          "rawLectureTime": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rawlecturetime"
+          },
+          "rawLocation": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rawlocation"
+          },
+          "rawPayload": {
+            "additionalProperties": true,
+            "title": "Rawpayload",
+            "type": "object"
+          },
+          "sectionCode": {
+            "title": "Sectioncode",
+            "type": "string"
+          },
+          "semester": {
+            "title": "Semester",
+            "type": "string"
+          },
+          "targetGrade": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Targetgrade"
+          },
+          "termCode": {
+            "title": "Termcode",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "semester",
+          "academicYear",
+          "termCode",
+          "courseCode",
+          "sectionCode",
+          "koreanName",
+          "englishName",
+          "professorName",
+          "completionCategory",
+          "credits",
+          "lectureHours",
+          "practiceHours",
+          "rawLectureTime",
+          "rawLocation",
+          "targetGrade",
+          "listingStatus",
+          "detailStatus",
+          "categoryContexts",
+          "departmentContexts",
+          "rawPayload"
+        ],
+        "title": "HistoricalOfferingDetail",
+        "type": "object"
+      },
+      "HistoricalOfferingList": {
+        "additionalProperties": false,
+        "properties": {
+          "courses": {
+            "items": {
+              "$ref": "#/components/schemas/HistoricalOfferingSummary"
+            },
+            "title": "Courses",
+            "type": "array"
+          },
+          "page": {
+            "title": "Page",
+            "type": "integer"
+          },
+          "size": {
+            "title": "Size",
+            "type": "integer"
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "courses",
+          "page",
+          "size",
+          "total"
+        ],
+        "title": "HistoricalOfferingList",
+        "type": "object"
+      },
+      "HistoricalOfferingSummary": {
+        "additionalProperties": false,
+        "properties": {
+          "academicYear": {
+            "title": "Academicyear",
+            "type": "integer"
+          },
+          "categoryContexts": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Categorycontexts",
+            "type": "array"
+          },
+          "completionCategory": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Completioncategory"
+          },
+          "courseCode": {
+            "title": "Coursecode",
+            "type": "string"
+          },
+          "credits": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Credits"
+          },
+          "departmentContexts": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Departmentcontexts",
+            "type": "array"
+          },
+          "detailStatus": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Detailstatus"
+          },
+          "englishName": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Englishname"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "koreanName": {
+            "title": "Koreanname",
+            "type": "string"
+          },
+          "lectureHours": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lecturehours"
+          },
+          "listingStatus": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Listingstatus"
+          },
+          "practiceHours": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Practicehours"
+          },
+          "professorName": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Professorname"
+          },
+          "rawLectureTime": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rawlecturetime"
+          },
+          "rawLocation": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rawlocation"
+          },
+          "sectionCode": {
+            "title": "Sectioncode",
+            "type": "string"
+          },
+          "semester": {
+            "title": "Semester",
+            "type": "string"
+          },
+          "targetGrade": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Targetgrade"
+          },
+          "termCode": {
+            "title": "Termcode",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "semester",
+          "academicYear",
+          "termCode",
+          "courseCode",
+          "sectionCode",
+          "koreanName",
+          "englishName",
+          "professorName",
+          "completionCategory",
+          "credits",
+          "lectureHours",
+          "practiceHours",
+          "rawLectureTime",
+          "rawLocation",
+          "targetGrade",
+          "listingStatus",
+          "detailStatus",
+          "categoryContexts",
+          "departmentContexts"
+        ],
+        "title": "HistoricalOfferingSummary",
+        "type": "object"
+      },
+      "HistoricalSemesterList": {
+        "additionalProperties": false,
+        "properties": {
+          "semesters": {
+            "items": {
+              "$ref": "#/components/schemas/HistoricalSemesterRead"
+            },
+            "title": "Semesters",
+            "type": "array"
+          },
+          "totalCourses": {
+            "title": "Totalcourses",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "semesters",
+          "totalCourses"
+        ],
+        "title": "HistoricalSemesterList",
+        "type": "object"
+      },
+      "HistoricalSemesterRead": {
+        "additionalProperties": false,
+        "properties": {
+          "academicYear": {
+            "title": "Academicyear",
+            "type": "integer"
+          },
+          "collectedAt": {
+            "format": "date-time",
+            "title": "Collectedat",
+            "type": "string"
+          },
+          "courseCount": {
+            "title": "Coursecount",
+            "type": "integer"
+          },
+          "dataStatus": {
+            "title": "Datastatus",
+            "type": "string"
+          },
+          "semester": {
+            "title": "Semester",
+            "type": "string"
+          },
+          "termCode": {
+            "title": "Termcode",
+            "type": "string"
+          },
+          "termName": {
+            "title": "Termname",
+            "type": "string"
+          }
+        },
+        "required": [
+          "semester",
+          "academicYear",
+          "termCode",
+          "termName",
+          "dataStatus",
+          "courseCount",
+          "collectedAt"
+        ],
+        "title": "HistoricalSemesterRead",
         "type": "object"
       },
       "OptimizationCandidate": {
@@ -4036,6 +4616,186 @@
         ]
       }
     },
+    "/api/v1/history/courses": {
+      "get": {
+        "operationId": "list_historical_courses_api_v1_history_courses_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "semester",
+            "required": true,
+            "schema": {
+              "pattern": "^\\d{4}-(?:1|2|11|22)$",
+              "title": "Semester",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "q",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 120,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Q"
+            }
+          },
+          {
+            "in": "query",
+            "name": "department",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 200,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Department"
+            }
+          },
+          {
+            "in": "query",
+            "name": "category",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 160,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Category"
+            }
+          },
+          {
+            "in": "query",
+            "name": "page",
+            "required": false,
+            "schema": {
+              "default": 1,
+              "minimum": 1,
+              "title": "Page",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "size",
+            "required": false,
+            "schema": {
+              "default": 30,
+              "maximum": 100,
+              "minimum": 1,
+              "title": "Size",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HistoricalOfferingList"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Historical Courses",
+        "tags": [
+          "history"
+        ]
+      }
+    },
+    "/api/v1/history/courses/{offering_id}": {
+      "get": {
+        "operationId": "get_historical_course_api_v1_history_courses__offering_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "offering_id",
+            "required": true,
+            "schema": {
+              "title": "Offering Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HistoricalOfferingDetail"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Historical Course",
+        "tags": [
+          "history"
+        ]
+      }
+    },
+    "/api/v1/history/semesters": {
+      "get": {
+        "operationId": "list_historical_semesters_api_v1_history_semesters_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HistoricalSemesterList"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "List Historical Semesters",
+        "tags": [
+          "history"
+        ]
+      }
+    },
     "/api/v1/optimizations": {
       "post": {
         "operationId": "create_optimization_api_v1_optimizations_post",
@@ -5579,6 +6339,47 @@
           }
         },
         "summary": "Create Completed Course",
+        "tags": [
+          "completed-courses"
+        ]
+      }
+    },
+    "/api/v1/users/me/completed-courses/import-history": {
+      "post": {
+        "operationId": "import_historical_courses_api_v1_users_me_completed_courses_import_history_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HistoricalCourseImport"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HistoricalCourseImportResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Import Historical Courses",
         "tags": [
           "completed-courses"
         ]
