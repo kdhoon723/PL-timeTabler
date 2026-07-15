@@ -273,7 +273,7 @@ export function createCompletedCourse(values: { courseCode?: string | null; cour
   return jsonFetch('/api/v1/users/me/completed-courses', { method: 'POST', body: JSON.stringify(values) })
 }
 
-export function updateCompletedCourse(id: string, values: Partial<Pick<CompletedCourse, 'courseName' | 'credits' | 'category' | 'area' | 'semester' | 'status'>>): Promise<CompletedCourse> {
+export function updateCompletedCourse(id: string, values: Partial<Pick<CompletedCourse, 'courseCode' | 'courseName' | 'credits' | 'category' | 'area' | 'semester' | 'status'>>): Promise<CompletedCourse> {
   return jsonFetch(`/api/v1/users/me/completed-courses/${encodeURIComponent(id)}`, { method: 'PATCH', body: JSON.stringify(values) })
 }
 
