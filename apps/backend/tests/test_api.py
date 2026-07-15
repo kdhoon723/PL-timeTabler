@@ -165,9 +165,7 @@ def test_compare_timetable_candidates(client: TestClient) -> None:
 
     assert compared.status_code == 200, compared.text
     candidates = compared.json()["candidates"]
-    assert candidates[0]["swapped"] == [
-        {"fromSectionId": "922601-01", "toSectionId": "922601-02"}
-    ]
+    assert candidates[0]["swapped"] == [{"fromSectionId": "922601-01", "toSectionId": "922601-02"}]
     assert candidates[0]["added"] == []
     assert candidates[0]["removed"] == []
     assert candidates[1]["metrics"]["totalCredits"] > 0

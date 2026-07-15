@@ -82,8 +82,7 @@ def _duplicate(items: list[CompletedCourse], body: CompletedCourseCreate) -> boo
     return any(
         (body.course_code and item.course_code == body.course_code)
         or (
-            normalize_search_text(item.course_name) == normalized
-            and item.semester == body.semester
+            normalize_search_text(item.course_name) == normalized and item.semester == body.semester
         )
         for item in items
     )

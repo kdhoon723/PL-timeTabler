@@ -192,8 +192,7 @@ class CpSatOptimizer:
                     session.day in request.preferences.excluded_days
                     or (
                         request.preferences.hard_earliest_start_minute is not None
-                        and session.start_minute
-                        < request.preferences.hard_earliest_start_minute
+                        and session.start_minute < request.preferences.hard_earliest_start_minute
                     )
                     or (
                         request.preferences.hard_latest_end_minute is not None

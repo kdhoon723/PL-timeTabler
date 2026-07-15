@@ -302,9 +302,7 @@ class AuthService:
                 delete(AuthSession).where(AuthSession.student_number == student_number)
             )
             await session.execute(
-                delete(AuthOtpChallenge).where(
-                    AuthOtpChallenge.student_number == student_number
-                )
+                delete(AuthOtpChallenge).where(AuthOtpChallenge.student_number == student_number)
             )
             await session.execute(
                 delete(AuthRateEvent).where(

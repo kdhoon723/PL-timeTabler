@@ -67,9 +67,7 @@ def _conflicts(sections: tuple[Section, ...]) -> tuple[tuple[str, str], ...]:
     result: list[tuple[str, str]] = []
     for left, right in combinations(sections, 2):
         if any(
-            a.day == b.day
-            and a.start_minute < b.end_minute
-            and b.start_minute < a.end_minute
+            a.day == b.day and a.start_minute < b.end_minute and b.start_minute < a.end_minute
             for a in left.sessions
             for b in right.sessions
         ):
@@ -253,9 +251,7 @@ async def update_timetable(
         if "data_version" in values:
             timetable.dataset_version = values["data_version"]
         if "preferences" in values and body.preferences is not None:
-            timetable.preferences_snapshot = body.preferences.model_dump(
-                mode="json", by_alias=True
-            )
+            timetable.preferences_snapshot = body.preferences.model_dump(mode="json", by_alias=True)
         timetable.updated_at = datetime.now(UTC)
     return _read(timetable)
 
@@ -273,9 +269,7 @@ async def update_timetable_sections(
     async with database.session_factory() as session, session.begin():
         stored = await session.get(SavedTimetable, timetable_id, with_for_update=True)
         assert stored is not None
-        stored.items_snapshot = [
-            item.model_dump(mode="json", by_alias=True) for item in body.items
-        ]
+        stored.items_snapshot = [item.model_dump(mode="json", by_alias=True) for item in body.items]
         if body.data_version is not None:
             stored.dataset_version = body.data_version
         stored.updated_at = datetime.now(UTC)

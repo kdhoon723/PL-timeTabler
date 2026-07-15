@@ -93,8 +93,7 @@ async def compare_candidates(
         swapped = tuple(
             CandidateSwapRead(from_section_id=before.id, to_section_id=after.id)
             for course_code, before in current_by_course.items()
-            if (after := selected_by_course.get(course_code)) is not None
-            and after.id != before.id
+            if (after := selected_by_course.get(course_code)) is not None and after.id != before.id
         )
         swapped_from = {item.from_section_id for item in swapped}
         swapped_to = {item.to_section_id for item in swapped}

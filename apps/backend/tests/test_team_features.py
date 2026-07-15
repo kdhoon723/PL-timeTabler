@@ -32,14 +32,18 @@ def _settings(tmp_path: Path) -> Settings:
 
 
 def _login(client: TestClient, mailer: FakeMailer, student_number: str = "20260001") -> None:
-    assert client.post(
-        "/api/v1/auth/otp/start", json={"studentNumber": student_number}
-    ).status_code == 202
+    assert (
+        client.post("/api/v1/auth/otp/start", json={"studentNumber": student_number}).status_code
+        == 202
+    )
     code = mailer.deliveries[-1][1]
-    assert client.post(
-        "/api/v1/auth/otp/verify",
-        json={"studentNumber": student_number, "code": code},
-    ).status_code == 200
+    assert (
+        client.post(
+            "/api/v1/auth/otp/verify",
+            json={"studentNumber": student_number, "code": code},
+        ).status_code
+        == 200
+    )
 
 
 def test_account_profile_consent_and_deletion(tmp_path: Path) -> None:
@@ -77,9 +81,7 @@ def test_account_profile_consent_and_deletion(tmp_path: Path) -> None:
         assert client.get("/api/v1/users/me/consents").json()[0]["consentVersion"] == "2026-07"
         assert client.get("/api/v1/users/me").json()["profileCompleted"] is True
 
-        deleted = client.request(
-            "DELETE", "/api/v1/users/me", json={"confirmation": "회원탈퇴"}
-        )
+        deleted = client.request("DELETE", "/api/v1/users/me", json={"confirmation": "회원탈퇴"})
         assert deleted.status_code == 200
         assert client.get("/api/v1/users/me").status_code == 401
 

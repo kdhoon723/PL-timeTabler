@@ -72,9 +72,7 @@ def _applies(rule: dict[str, Any], profile: RequirementProfile) -> bool:
     unit = scope.get("academicUnit")
     if unit == "GENERAL_EXCEPTIONS_EXCLUDED" and profile.department_id in _GENERAL_EXCEPTION_UNITS:
         return False
-    return not (
-        unit and unit != "GENERAL_EXCEPTIONS_EXCLUDED" and unit != profile.department_id
-    )
+    return not (unit and unit != "GENERAL_EXCEPTIONS_EXCLUDED" and unit != profile.department_id)
 
 
 def _filtered(payload: dict[str, Any], profile: RequirementProfile) -> tuple[dict[str, Any], ...]:
@@ -145,9 +143,7 @@ def _evaluate_rules(
     liberal = sum(item.credits for item in courses if item.category.startswith("교양"))
     names = {normalize_search_text(item.course_name) for item in courses}
     areas = {
-        area: round(
-            sum(item.credits for item in courses if (item.area or "") == area), 2
-        )
+        area: round(sum(item.credits for item in courses if (item.area or "") == area), 2)
         for area in _AREAS
     }
     credit_status: list[RequirementStatus] = []
