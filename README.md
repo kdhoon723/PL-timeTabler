@@ -21,11 +21,11 @@
 - 시간 충돌이 있을 때만 경고하고 대체 가능한 다른 분반 제안
 - 정수 목표·최소·최대 학점, 공강 요일, 이른/늦은 수업, 점심 여유, 하루 수업시간, 공강 길이·현재 선택 유지 선호
 - OR-Tools CP-SAT 기반 결정론적 후보 3개와 등교일·공강·첫/마지막 수업·미반영 조건 설명
-- 입학연도와 46개 교육과정 단위별 공식 졸업요건 출처 안내
+- 2016~2026 입학연도별 712개 교육과정 단위의 전공기초·전공필수 2,944과목 정규화 및 공식 출처 추적
 - 2020~2026 정규·계절학기 20,031개 분반과 강의계획서 원본 검색, 과거 시간표·이수내역 연결
 - `내 학업`에서 과거 이수내역, 졸업요건, 저장 시간표, 계정정보 통합 관리
 - 첫 방문에서 학과·입학연도·학년을 단계별로 설정하거나 즉시 건너뛰는 모바일 온보딩
-- 2026 신입학 교육과정에서 정규화한 31개 교육과정 단위·113개 전공필수와 교양필수의 실제 개설 분반 연결
+- 입학연도·학과별 전공필수 이수 점검과 2026-1 실제 개설 분반 연결
 - 브라우저 자동 저장, URL 공유, PNG·인쇄/PDF 내보내기, 수강신청용 예비 분반 체크리스트
 - 모바일 바텀시트, 키보드 접근성, 명시적 라이트·다크 테마, PWA 설치와 오프라인 직접 경로 fallback
 - 요청별 rate limit, 활성 작업 상한, lease 복구·취소·만료 정리로 공개 optimizer 보호
@@ -47,7 +47,7 @@ browser → Nginx/React web → FastAPI → PostgreSQL ← OR-Tools worker
 | `optimizer` | OR-Tools CP-SAT 작업 처리 |
 | `db` | PostgreSQL 영속 저장소 |
 | `migrate` | Alembic 스키마 마이그레이션 |
-| `ingest` | 활성 카탈로그 검증 후 DREAMS 전체 원본을 DB에 무손실·멱등 적재 |
+| `ingest` | DREAMS 전체 원본과 2016~2026 교육과정·졸업요건 정규화 자료를 checksum 검증 후 DB에 무손실·멱등 적재 |
 
 기술 선택과 경계는 [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md), PostgreSQL 구조는
 [`docs/ERD.md`](docs/ERD.md), 저장소별 데이터 흐름과 HTTP 계약은
@@ -119,17 +119,19 @@ DNS CNAME 대상은 Cloudflare가 해당 계정에 발급한 `<tunnel-id>.cfargo
 2. `data/manifest.json`의 레코드 수와 SHA-256 checksum을 갱신합니다.
 3. canonical API snapshot에서 브라우저 fallback을 다시 생성합니다.
 4. DREAMS 아카이브는 `data/dreams/manifest.json` checksum과 레코드 수를 검증합니다.
-5. 아래 release gate가 통과한 뒤 새 이미지를 빌드합니다.
+5. 교육과정편람은 입학연도별 통합 정규화 파일을 다시 생성하고 기존 2026 검수 snapshot과 교차 검증합니다.
+6. 아래 release gate가 통과한 뒤 새 이미지를 빌드합니다.
 
 ```bash
 uv --directory apps/backend run timetabler-validate-data
 uv --directory apps/backend run timetabler-export-static-catalog
+uv --directory apps/backend run timetabler-normalize-requirements
 docker compose run --rm --build ingest
 ```
 
 API와 정적 fallback은 과목·강의실 checksum을 합친 같은 `datasetVersion`과 1,576개 분반의 동일한 세션 의미를 사용합니다. API는 이 버전을 최적화 요청과 함께 검증하므로 브라우저의 오래된 데이터와 새 카탈로그가 섞이지 않습니다.
 
-전공필수 snapshot은 `python3 scripts/extract-major-required.py`로 2026 편람의 세로 병합 셀을 좌표 기반으로 복원한 뒤 정규화 파일과 브라우저 배포 사본을 함께 검수합니다. 입학연도가 다른 학생이나 편입생에게 이 snapshot을 임의 적용하지 않으며, 독립 전공표가 없는 단위도 수동 확인 상태로 보존합니다.
+통합 교육과정 자료는 2016 HWP의 표 셀과 2017~2026 PDF의 세로 병합 좌표를 복원합니다. 입학연도·원문 학과명과 별칭·전공기초/전공필수·학년/학기·출처 위치를 보존하고 PostgreSQL에 적재합니다. 편입학 예외와 자유서술형 졸업심사 조건은 자동 충족으로 단정하지 않고 수동 확인 상태로 유지합니다.
 
 ## 개발과 검증
 

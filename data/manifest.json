@@ -38,6 +38,14 @@
       "records": 46,
       "sha256": "41ff95dea0302bcccf63fa8c556f71caf7959fce45df4395b9e8ebcaf828904d",
       "transform": "Normalized official curriculum and graduation source coverage for the web requirements guide."
+    },
+    {
+      "path": "data/requirements/normalized/curriculum-requirements-2016-2026.json",
+      "source": "data/requirements/raw/2016 through data/requirements/raw/2026",
+      "programs": 712,
+      "requiredCourses": 2944,
+      "sha256": "7182af948e599750c9317ef89d700dba90a25899f36a34ad1b85ba9f5589ce65",
+      "transform": "Reconstructed curriculum handbook tables into admission-year, academic-unit, alias, classification, course, term, and source-locator records."
     }
   ],
   "join": {
@@ -49,7 +57,7 @@
     "courseCoveragePercent": 84.8
   },
   "academicRequirements": {
-    "asOf": "2026-07-10",
+    "asOf": "2026-07-17",
     "curriculumHandbooks": {
       "continuousYears": "2016-2026",
       "files": 11,
@@ -70,6 +78,13 @@
     },
     "graduationAssessmentSourceUnits": 66,
     "standardizedRequirementRows": 264,
+    "normalizedCurriculum": {
+      "admissionYears": "2016-2026",
+      "programs": 712,
+      "requiredCourses": 2944,
+      "majorFoundationCourses": 284,
+      "majorRequiredCourses": 2660
+    },
     "sourceInventory": "data/requirements/normalized/sources.json",
     "research": [
       "docs/research/DAEJIN_GRADUATION_RULES.md",

@@ -26,6 +26,10 @@ from timetabler.db.models import (
     HistoricalTermDataset,
 )
 from timetabler.db.session import Database
+from timetabler.requirements.importer import (
+    RequirementImportReport,
+    import_requirement_data,
+)
 from timetabler.types import normalize_search_text
 
 ARCHIVE_MANIFEST_ID = "dreams-history"
@@ -44,6 +48,12 @@ class ImportReport:
     relation_datasets_imported: int
     relation_datasets_unchanged: int
     relations_imported: int
+
+
+@dataclass(frozen=True, slots=True)
+class IngestReport:
+    dreams: ImportReport
+    requirements: RequirementImportReport
 
 
 def _parse_datetime(value: object) -> datetime:
@@ -491,7 +501,19 @@ async def import_dreams_archive(database: Database, dreams_root: Path) -> Import
     return await DreamsArchiveImporter(database.session_factory, dreams_root).import_all()
 
 
-async def _run() -> ImportReport:
+async def _run() -> IngestReport:
+    settings = get_settings()
+    _ = CatalogRepository(settings.data_root, validate_checksums=True).snapshot
+    database = Database(settings.database_url)
+    try:
+        dreams = await import_dreams_archive(database, settings.data_root / "dreams")
+        requirements = await import_requirement_data(database, settings.data_root)
+        return IngestReport(dreams=dreams, requirements=requirements)
+    finally:
+        await database.close()
+
+
+async def _run_dreams() -> ImportReport:
     settings = get_settings()
     _ = CatalogRepository(settings.data_root, validate_checksums=True).snapshot
     database = Database(settings.database_url)
@@ -503,6 +525,11 @@ async def _run() -> ImportReport:
 
 def run() -> None:
     report = asyncio.run(_run())
+    print(json.dumps({"status": "ok", **asdict(report)}, ensure_ascii=False))
+
+
+def run_dreams() -> None:
+    report = asyncio.run(_run_dreams())
     print(json.dumps({"status": "ok", **asdict(report)}, ensure_ascii=False))
 
 

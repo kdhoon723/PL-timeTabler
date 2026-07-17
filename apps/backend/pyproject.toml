@@ -35,9 +35,10 @@ timetabler-validate-data = "timetabler.catalog.validate:run"
 timetabler-openapi = "timetabler.api.openapi:run"
 timetabler-optimizer = "timetabler.optimizer.worker:run"
 timetabler-export-static-catalog = "timetabler.catalog.static_export:run"
-# Validate the active catalog, then losslessly import every DREAMS archive field.
+# Validate checked-in data, then import DREAMS history and normalized requirements.
 timetabler-ingest = "timetabler.history.importer:run"
-timetabler-import-dreams-history = "timetabler.history.importer:run"
+timetabler-import-dreams-history = "timetabler.history.importer:run_dreams"
+timetabler-normalize-requirements = "timetabler.requirements.normalizer:run"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/timetabler"]

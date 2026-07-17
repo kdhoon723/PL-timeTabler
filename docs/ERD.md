@@ -1,7 +1,7 @@
 # PL-timeTabler PostgreSQL ERD
 
 이 문서는 PL-timeTabler의 **실제 PostgreSQL 스키마**를 나타낸다. 기준 migration은
-Alembic `20260715_0005`이며, 시스템용 `alembic_version` 테이블은 ERD에서 제외한다.
+Alembic `20260717_0006`이며, 시스템용 `alembic_version` 테이블은 ERD에서 제외한다.
 
 브라우저에서 확대·축소하며 볼 수 있는 버전은 [`ERD.html`](ERD.html)이다.
 
@@ -143,6 +143,10 @@ erDiagram
 | `courses` | `sections` | `(semester_id, course_code)` | 1:N | `CASCADE` |
 | `sections` | `sessions` | `(semester_id, course_code, section_code)` | 1:N | `CASCADE` |
 | `rooms` | `sessions` | `(semester_id, room_code)` | 1:N, session 측 선택 | `NO ACTION` |
+| `requirement_datasets` | `curriculum_program_requirements` | `dataset_id` | 1:N | `CASCADE` |
+| `curriculum_program_requirements` | `curriculum_program_aliases` | `program_id` | 1:N | `CASCADE` |
+| `curriculum_program_requirements` | `curriculum_required_courses` | `program_id` | 1:N | `CASCADE` |
+| `requirement_datasets` | `graduation_requirement_rules` | `dataset_id` | 1:N | `CASCADE` |
 
 `optimization_jobs`와 인증 테이블은 FK를 두지 않는 독립적인 운영 테이블이다.
 `auth_otp_challenges.student_number`, `auth_sessions.student_number`,
@@ -192,6 +196,70 @@ semesters
 
 평문 OTP, 평문 세션 토큰과 원본 IP는 DB에 저장하지 않는다.
 
+### 교육과정·졸업요건 정규화
+
+```mermaid
+erDiagram
+    REQUIREMENT_DATASETS ||--o{ CURRICULUM_PROGRAM_REQUIREMENTS : contains
+    CURRICULUM_PROGRAM_REQUIREMENTS ||--o{ CURRICULUM_PROGRAM_ALIASES : names
+    CURRICULUM_PROGRAM_REQUIREMENTS ||--o{ CURRICULUM_REQUIRED_COURSES : requires
+    REQUIREMENT_DATASETS ||--o{ GRADUATION_REQUIREMENT_RULES : contains
+
+    REQUIREMENT_DATASETS {
+        string id PK
+        string kind
+        integer admission_year "nullable"
+        integer effective_year "nullable"
+        string source_checksum
+        string normalized_checksum
+        jsonb raw_payload
+    }
+    CURRICULUM_PROGRAM_REQUIREMENTS {
+        string id PK
+        string dataset_id FK
+        integer admission_year
+        string academic_unit
+        string academic_unit_key
+        string status
+        jsonb source_locators
+    }
+    CURRICULUM_PROGRAM_ALIASES {
+        string id PK
+        string program_id FK
+        integer admission_year
+        string alias
+        string alias_key
+        boolean is_primary
+    }
+    CURRICULUM_REQUIRED_COURSES {
+        string id PK
+        string program_id FK
+        string classification
+        string course_code
+        string course_name
+        float credits "nullable"
+        integer grade "nullable"
+        jsonb semesters
+        jsonb source_locator
+    }
+    GRADUATION_REQUIREMENT_RULES {
+        string id PK
+        string dataset_id FK
+        string rule_kind
+        string academic_unit_key "nullable"
+        integer admission_year_start "nullable"
+        integer admission_year_end "nullable"
+        boolean requires_manual_review
+        jsonb raw_payload
+    }
+```
+
+- `requirement_datasets`: 원본·정규화 checksum과 기준연도를 가진 멱등 import root
+- `curriculum_program_requirements`: 2016~2026 입학연도별 원문 교육과정 단위
+- `curriculum_program_aliases`: 학과·학부·전공 명칭과 검수 별칭을 연도별 검색 키로 보존
+- `curriculum_required_courses`: 전공기초(`전기`)·전공필수(`전필`) 과목과 학년·학기·출처 위치
+- `graduation_requirement_rules`: 공통 규칙과 학과별 졸업심사 원문 행. 자유서술 조건은 수동 검토 표시
+
 ## 4. 주요 제약조건과 인덱스
 
 ### Unique 제약조건
@@ -202,6 +270,9 @@ semesters
 | `data_imports` | `(semester_id, checksum, parser_version)` |
 | `optimization_jobs` | `lease_token` |
 | `auth_sessions` | `token_digest` |
+| `curriculum_program_requirements` | `(dataset_id, academic_unit_key)` |
+| `curriculum_program_aliases` | `(admission_year, alias_key, program_id)` |
+| `curriculum_required_courses` | `(program_id, classification, course_code)` |
 
 ### Check 제약조건
 
@@ -228,6 +299,11 @@ day IN ('월', '화', '수', '목', '금', '토', '일')
 | `ix_auth_sessions_revoked` | `revoked_at` | 폐기 세션 정리 |
 | `ix_auth_rate_events_account` | `(kind, account_digest, created_at)` | 계정별 rate limit |
 | `ix_auth_rate_events_ip` | `(kind, ip_digest, created_at)` | IP별 rate limit |
+| `ix_requirement_datasets_kind_year` | `(kind, admission_year, effective_year)` | 자료 종류·기준연도 조회 |
+| `ix_curriculum_program_requirements_year_unit` | `(admission_year, academic_unit_key)` | 입학연도·원문 학과 조회 |
+| `ix_curriculum_program_aliases_year_key` | `(admission_year, alias_key)` | 프로필 학과명 매핑 |
+| `ix_curriculum_required_courses_program` | `(program_id, classification)` | 학과별 전기·전필 조회 |
+| `ix_graduation_requirement_rules_lookup` | `(academic_unit_key, admission_year_start, admission_year_end, effective_year)` | 적용 졸업요건 후보 조회 |
 
 복합 PK와 unique 제약조건이 생성하는 PostgreSQL 인덱스는 표에서 생략했다.
 
@@ -240,6 +316,8 @@ day IN ('월', '화', '수', '목', '금', '토', '일')
 | 학기·분반·강의실 조회 | `data/`의 versioned JSON snapshot | 현재 조회하지 않음 |
 | 2020~2026 역사 강의·강의계획서 조회 | `historical_term_datasets`, `historical_course_offerings` | 사용 |
 | 연도별 교육과정·대체/동일과목 원본 | `historical_curriculum_*`, `historical_*relations` | 사용 |
+| 2016~2026 입학연도별 전공기초·전공필수 판정 | `curriculum_program_*`, `curriculum_required_courses` | 사용 |
+| 공통·학과별 졸업심사 정규화 행 | `requirement_datasets`, `graduation_requirement_rules` | 적재·추적용, 자유서술 자동 확정 안 함 |
 | 최적화 생성·조회·취소 | `optimization_jobs` | 사용 |
 | optimizer worker 처리 결과 | `optimization_jobs` | 사용 |
 | 선택형 OTP·로그인 | `auth_*` | 인증 활성화 시 사용 |
@@ -262,7 +340,7 @@ historical_relation_datasets 1 ── N historical_course_relations
 - 각 분반·학과 교육과정·관계 행의 `raw_payload`는 수집 JSON 객체 전체다.
 - `completed_courses.historical_offering_id`는 원본 분반을 가리키며 원본 제거 시 `SET NULL`이다. `source_snapshot`은 등록 당시 원본을 계속 보존한다.
 
-`academic_units`, `curriculum_versions`, `requirement_rules`, `draft_timetables`,
+`academic_units`, `curriculum_versions`, `draft_timetables`,
 `optimization_candidates` 등 아키텍처 문서의 확장 후보는 현재 migration에 없으므로
 이 ERD에 포함하지 않는다.
 

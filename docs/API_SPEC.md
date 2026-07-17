@@ -25,6 +25,7 @@ POST /optimizations ─────┴─> PostgreSQL optimization_jobs
 /auth/* ─────────────────────> PostgreSQL auth_* tables
 /history/* ──────────────────> PostgreSQL historical_* tables
 /users/me/* ─────────────────> PostgreSQL account-owned tables
+/requirements/evaluate ──────> PostgreSQL curriculum_program_* + curriculum_required_courses
 ```
 
 | 데이터 | 저장 위치 | 이유 |
@@ -34,6 +35,8 @@ POST /optimizations ─────┴─> PostgreSQL optimization_jobs
 | 최적화 요청·상태·결과 | PostgreSQL `optimization_jobs` | API와 worker 사이의 내구성 있는 작업 큐 |
 | OTP·로그인 세션·인증 제한 이벤트 | PostgreSQL `auth_*` | 만료·폐기·동시성 제어가 필요한 상태 |
 | 로그인 프로필·시간표·이수내역·리뷰 | PostgreSQL 계정 소유 테이블 | 여러 기기 동기화·졸업요건 자동 반영·탈퇴 cascade 삭제 |
+| 2016~2026 입학연도별 전공기초·전공필수 | PostgreSQL `curriculum_program_*`, `curriculum_required_courses` | 학과명 별칭 검색과 입학연도별 이수 판정 |
+| 공통·학과별 졸업심사 원문 행 | 파일 snapshot + PostgreSQL `graduation_requirement_rules` | checksum 추적·검색용으로 적재하고 자유서술 조건은 수동 검토 |
 | 시간표 공유 | PostgreSQL share + 비개인 snapshot | 공유 응답에 개인 이수내역을 포함하지 않음 |
 
 DB에는 미래의 DB 기반 카탈로그를 위한 `semesters`, `courses`, `sections`, `sessions`,
@@ -95,6 +98,9 @@ FastAPI 입력 검증 오류는 다음 형식으로 반환한다.
 | `GET` | `/api/v1/history/courses` | `200` | 역사 분반 검색 | PostgreSQL |
 | `GET` | `/api/v1/history/courses/{offering_id}` | `200` | 수집 원본 전체 필드 상세 | PostgreSQL |
 | `POST` | `/api/v1/users/me/completed-courses/import-history` | `200` | 역사 분반을 이수내역으로 연결 | PostgreSQL |
+| `GET` | `/api/v1/requirements/rules` | `200` | 프로필에 적용할 공통 졸업요건 규칙 | 파일 |
+| `POST` | `/api/v1/requirements/evaluate` | `200` | 이수내역과 입학연도별 전공필수 점검 | 파일 + PostgreSQL |
+| `GET` | `/api/v1/requirements/recommendations` | `200` | 미이수 필수과목의 현재 학기 후보 | 파일 + PostgreSQL |
 | `POST` | `/api/v1/optimizations` | `202` | 최적화 작업 생성 | PostgreSQL |
 | `GET` | `/api/v1/optimizations/{job_id}` | `200` | 작업 상태·결과 조회 | PostgreSQL |
 | `DELETE` | `/api/v1/optimizations/{job_id}` | `200` | 대기·실행 작업 취소 요청 | PostgreSQL |

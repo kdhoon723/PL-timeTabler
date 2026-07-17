@@ -298,6 +298,142 @@ class HistoricalCourseRelation(Base):
     raw_payload: Mapped[dict[str, Any]] = mapped_column(JSON, nullable=False)
 
 
+class RequirementDataset(Base):
+    __tablename__ = "requirement_datasets"
+    __table_args__ = (
+        Index("ix_requirement_datasets_kind_year", "kind", "admission_year", "effective_year"),
+    )
+
+    id: Mapped[str] = mapped_column(String(80), primary_key=True)
+    kind: Mapped[str] = mapped_column(String(40), nullable=False)
+    schema_version: Mapped[str] = mapped_column(String(40), nullable=False)
+    admission_year: Mapped[int | None] = mapped_column(Integer)
+    effective_year: Mapped[int | None] = mapped_column(Integer)
+    as_of: Mapped[str | None] = mapped_column(String(20))
+    source_path: Mapped[str] = mapped_column(Text, nullable=False)
+    source_checksum: Mapped[str] = mapped_column(String(64), nullable=False)
+    normalized_checksum: Mapped[str] = mapped_column(String(64), nullable=False)
+    record_count: Mapped[int] = mapped_column(Integer, nullable=False)
+    raw_payload: Mapped[dict[str, Any]] = mapped_column(JSON, nullable=False)
+    imported_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+
+
+class CurriculumProgramRequirement(Base):
+    __tablename__ = "curriculum_program_requirements"
+    __table_args__ = (
+        UniqueConstraint(
+            "dataset_id", "academic_unit_key", name="uq_curriculum_program_requirement"
+        ),
+        Index(
+            "ix_curriculum_program_requirements_year_unit",
+            "admission_year",
+            "academic_unit_key",
+        ),
+    )
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    dataset_id: Mapped[str] = mapped_column(
+        String(80),
+        ForeignKey("requirement_datasets.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    admission_year: Mapped[int] = mapped_column(Integer, nullable=False)
+    academic_unit: Mapped[str] = mapped_column(String(240), nullable=False)
+    academic_unit_key: Mapped[str] = mapped_column(String(240), nullable=False)
+    status: Mapped[str] = mapped_column(String(24), nullable=False)
+    source_locators: Mapped[list[dict[str, Any]]] = mapped_column(JSON, nullable=False)
+    source_course_count: Mapped[int] = mapped_column(Integer, nullable=False)
+    required_course_count: Mapped[int] = mapped_column(Integer, nullable=False)
+    raw_payload: Mapped[dict[str, Any]] = mapped_column(JSON, nullable=False)
+
+
+class CurriculumProgramAlias(Base):
+    __tablename__ = "curriculum_program_aliases"
+    __table_args__ = (
+        UniqueConstraint(
+            "admission_year", "alias_key", "program_id", name="uq_curriculum_program_alias"
+        ),
+        Index("ix_curriculum_program_aliases_year_key", "admission_year", "alias_key"),
+    )
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    program_id: Mapped[str] = mapped_column(
+        String(36),
+        ForeignKey("curriculum_program_requirements.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    admission_year: Mapped[int] = mapped_column(Integer, nullable=False)
+    alias: Mapped[str] = mapped_column(String(240), nullable=False)
+    alias_key: Mapped[str] = mapped_column(String(240), nullable=False)
+    is_primary: Mapped[bool] = mapped_column(Boolean, nullable=False)
+
+
+class CurriculumRequiredCourse(Base):
+    __tablename__ = "curriculum_required_courses"
+    __table_args__ = (
+        UniqueConstraint(
+            "program_id",
+            "classification",
+            "course_code",
+            name="uq_curriculum_required_course",
+        ),
+        Index("ix_curriculum_required_courses_program", "program_id", "classification"),
+        Index("ix_curriculum_required_courses_code", "course_code"),
+    )
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    program_id: Mapped[str] = mapped_column(
+        String(36),
+        ForeignKey("curriculum_program_requirements.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    classification: Mapped[str] = mapped_column(String(20), nullable=False)
+    course_code: Mapped[str] = mapped_column(String(40), nullable=False)
+    course_name: Mapped[str] = mapped_column(String(240), nullable=False)
+    credits: Mapped[float | None] = mapped_column(Float)
+    grade: Mapped[int | None] = mapped_column(Integer)
+    semesters: Mapped[list[int]] = mapped_column(JSON, nullable=False)
+    source_locator: Mapped[dict[str, Any]] = mapped_column(JSON, nullable=False)
+    raw_payload: Mapped[dict[str, Any]] = mapped_column(JSON, nullable=False)
+
+
+class GraduationRequirementRule(Base):
+    __tablename__ = "graduation_requirement_rules"
+    __table_args__ = (
+        Index(
+            "ix_graduation_requirement_rules_lookup",
+            "academic_unit_key",
+            "admission_year_start",
+            "admission_year_end",
+            "effective_year",
+        ),
+        Index("ix_graduation_requirement_rules_dataset", "dataset_id", "rule_kind"),
+    )
+
+    id: Mapped[str] = mapped_column(String(80), primary_key=True)
+    dataset_id: Mapped[str] = mapped_column(
+        String(80),
+        ForeignKey("requirement_datasets.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    rule_kind: Mapped[str] = mapped_column(String(80), nullable=False)
+    category_code: Mapped[str | None] = mapped_column(String(40))
+    academic_unit: Mapped[str | None] = mapped_column(String(240))
+    academic_unit_key: Mapped[str | None] = mapped_column(String(240))
+    admission_year_start: Mapped[int | None] = mapped_column(Integer)
+    admission_year_end: Mapped[int | None] = mapped_column(Integer)
+    effective_year: Mapped[int | None] = mapped_column(Integer)
+    student_type: Mapped[str | None] = mapped_column(String(40))
+    program_path: Mapped[str | None] = mapped_column(String(40))
+    description: Mapped[str | None] = mapped_column(Text)
+    requires_manual_review: Mapped[bool] = mapped_column(Boolean, nullable=False)
+    raw_payload: Mapped[dict[str, Any]] = mapped_column(JSON, nullable=False)
+
+
 class CompletedCourse(Base):
     __tablename__ = "completed_courses"
     __table_args__ = (

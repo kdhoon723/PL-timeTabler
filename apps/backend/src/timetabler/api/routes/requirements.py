@@ -22,7 +22,13 @@ from timetabler.api.resource_schemas import (
     RequirementSource,
     RequirementStatus,
 )
-from timetabler.db.models import CompletedCourse
+from timetabler.db.models import (
+    CompletedCourse,
+    CurriculumProgramAlias,
+    CurriculumProgramRequirement,
+    CurriculumRequiredCourse,
+)
+from timetabler.requirements.normalizer import academic_unit_key
 from timetabler.types import normalize_search_text
 
 router = APIRouter(prefix="/requirements", tags=["requirements"])
@@ -79,7 +85,7 @@ def _filtered(payload: dict[str, Any], profile: RequirementProfile) -> tuple[dic
     return tuple(rule for rule in payload.get("rules", []) if _applies(rule, profile))
 
 
-def _major_requirements(
+def _static_major_requirements(
     settings: SettingsDependency,
     profile: RequirementProfile,
 ) -> tuple[tuple[str, ...], tuple[str, ...]]:
@@ -102,6 +108,54 @@ def _major_requirements(
     if program.get("status") != "AVAILABLE":
         return (), (str(program.get("manualReviewReason") or "전공필수 수동 확인 필요"),)
     return tuple(str(item["name"]) for item in program.get("courses", [])), ()
+
+
+async def _major_requirements(
+    database: DatabaseDependency,
+    settings: SettingsDependency,
+    profile: RequirementProfile,
+) -> tuple[tuple[str, ...], tuple[str, ...]]:
+    async with database.session_factory() as session:
+        programs = list(
+            (
+                await session.scalars(
+                    select(CurriculumProgramRequirement)
+                    .join(
+                        CurriculumProgramAlias,
+                        CurriculumProgramAlias.program_id == CurriculumProgramRequirement.id,
+                    )
+                    .where(
+                        CurriculumProgramAlias.admission_year == profile.admission_year,
+                        CurriculumProgramAlias.alias_key
+                        == academic_unit_key(profile.department_id),
+                    )
+                    .limit(2)
+                )
+            ).all()
+        )
+        if len(programs) == 1:
+            program = programs[0]
+            courses = list(
+                (
+                    await session.scalars(
+                        select(CurriculumRequiredCourse)
+                        .where(
+                            CurriculumRequiredCourse.program_id == program.id,
+                            CurriculumRequiredCourse.classification == "전필",
+                        )
+                        .order_by(
+                            CurriculumRequiredCourse.grade.asc(),
+                            CurriculumRequiredCourse.course_code.asc(),
+                        )
+                    )
+                ).all()
+            )
+            return tuple(course.course_name for course in courses), ()
+        if len(programs) > 1:
+            return (), ("동일 학과명으로 여러 교육과정이 확인되어 별도 검토가 필요합니다.",)
+    if profile.admission_year == 2026:
+        return _static_major_requirements(settings, profile)
+    return (), (f"{profile.admission_year}학번 학과 교육과정 매핑을 확인할 수 없습니다.",)
 
 
 async def _completed(database: DatabaseDependency, user_id: str) -> list[CompletedCourse]:
@@ -248,7 +302,7 @@ async def evaluate_requirements(
     settings: SettingsDependency,
 ) -> RequirementEvaluation:
     payload = _rules(settings)
-    major_required, major_manual = _major_requirements(settings, body)
+    major_required, major_manual = await _major_requirements(database, settings, body)
     return _evaluate_rules(
         _filtered(payload, body),
         await _completed(database, user.id),
@@ -274,7 +328,7 @@ async def requirement_recommendations(
     payload = _rules(settings)
     profile = _profile(admission_year, department_id, student_type, program_path)
     courses = await _completed(database, user.id)
-    major_required, major_manual = _major_requirements(settings, profile)
+    major_required, major_manual = await _major_requirements(database, settings, profile)
     evaluation = _evaluate_rules(
         _filtered(payload, profile),
         courses,
