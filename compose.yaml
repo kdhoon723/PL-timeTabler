@@ -84,6 +84,54 @@ services:
       timeout: 3s
       retries: 10
     restart: unless-stopped
+  db-console:
+    image: sosedoff/pgweb:0.17.0@sha256:a5256d416e2e8b92d69a4459058e3eca33a9f075d8325491644411d0bc3bd70b
+    command:
+      - --host=db
+      - --port=5432
+      - --user=timetabler_viewer
+      - --pass=${DB_VIEWER_PASSWORD:?Set DB_VIEWER_PASSWORD in .env}
+      - --db=timetabler
+      - --ssl=disable
+      - --readonly
+      - --lock-session
+      - --skip-open
+      - --open-retry=10
+      - --query-timeout=30
+    ports: ["127.0.0.1:${DB_WEB_PORT:-18081}:8081"]
+    depends_on:
+      db: { condition: service_healthy }
+      db-console-init: { condition: service_completed_successfully }
+    read_only: true
+    tmpfs: ["/tmp"]
+    cap_drop: ["ALL"]
+    security_opt: ["no-new-privileges:true"]
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "--silent", "http://127.0.0.1:8081/api/info"]
+      interval: 15s
+      timeout: 3s
+      retries: 5
+      start_period: 5s
+  db-console-init:
+    image: postgres:18-alpine
+    command: ["/usr/local/bin/provision-db-viewer"]
+    environment:
+      PGHOST: db
+      PGPORT: 5432
+      PGDATABASE: timetabler
+      PGUSER: timetabler
+      PGPASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+      DB_VIEWER_PASSWORD: ${DB_VIEWER_PASSWORD:?Set DB_VIEWER_PASSWORD in .env}
+    volumes: ["./scripts/provision-db-viewer.sh:/usr/local/bin/provision-db-viewer:ro"]
+    depends_on:
+      db: { condition: service_healthy }
+      ingest: { condition: service_completed_successfully }
+    read_only: true
+    tmpfs: ["/tmp"]
+    cap_drop: ["ALL"]
+    security_opt: ["no-new-privileges:true"]
+    restart: "no"
 networks:
   kdhoon-public:
     external: true

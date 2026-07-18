@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>PL-timeTabler ERD</title>
+    <title>PL-timeTabler 핵심 ERD</title>
     <style>
       * {
         box-sizing: border-box;
@@ -20,6 +20,13 @@
       h1 {
         margin: 0 0 16px;
         font-size: 24px;
+      }
+
+      .scope-note {
+        max-width: 960px;
+        margin: -6px 0 16px;
+        color: #4b5563;
+        line-height: 1.55;
       }
 
       .erd-scroll {
@@ -175,7 +182,13 @@
   </head>
   <body>
     <main>
-      <h1>PL-timeTabler ERD</h1>
+      <h1>PL-timeTabler 핵심 ERD</h1>
+      <p class="scope-note">
+        이 정적 그림은 핵심 카탈로그·작업·인증 구조를 보여준다. 졸업요건을 포함한 전체
+        관계와 제약조건은 <a href="ERD.md">ERD.md</a>, 실행 중인 실제 테이블과 행은
+        Compose의 읽기 전용 DB 콘솔(<a href="http://127.0.0.1:18081">127.0.0.1:18081</a>)에서
+        확인한다.
+      </p>
       <div class="erd-scroll">
         <div class="erd">
           <svg class="relations" viewBox="0 0 1380 1280" aria-hidden="true">

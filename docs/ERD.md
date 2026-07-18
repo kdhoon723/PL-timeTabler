@@ -1,9 +1,12 @@
 # PL-timeTabler PostgreSQL ERD
 
 이 문서는 PL-timeTabler의 **실제 PostgreSQL 스키마**를 나타낸다. 기준 migration은
-Alembic `20260717_0006`이며, 시스템용 `alembic_version` 테이블은 ERD에서 제외한다.
+Alembic `20260718_0007`이며, 시스템용 `alembic_version` 테이블은 ERD에서 제외한다.
 
-브라우저에서 확대·축소하며 볼 수 있는 버전은 [`ERD.html`](ERD.html)이다.
+핵심 카탈로그·인증 구조를 브라우저에서 확대·축소하며 볼 수 있는 버전은
+[`ERD.html`](ERD.html)이다. 전체 관계형 구조의 기준은 이 문서다.
+실행 중인 실제 테이블·인덱스·행은 Compose 기동 후 localhost 전용 읽기 전용 Pgweb
+콘솔(<http://127.0.0.1:18081>)에서 확인한다.
 
 저장소 루트에서 다음처럼 열 수 있다.
 
@@ -147,6 +150,23 @@ erDiagram
 | `curriculum_program_requirements` | `curriculum_program_aliases` | `program_id` | 1:N | `CASCADE` |
 | `curriculum_program_requirements` | `curriculum_required_courses` | `program_id` | 1:N | `CASCADE` |
 | `requirement_datasets` | `graduation_requirement_rules` | `dataset_id` | 1:N | `CASCADE` |
+| `requirement_datasets` | `graduation_liberal_requirement_sets` | `dataset_id` | 1:N | `CASCADE` |
+| `requirement_datasets` | `graduation_credit_profiles` | `dataset_id` | 1:N | `CASCADE` |
+| `graduation_liberal_requirement_sets` | `graduation_credit_profiles` | `liberal_requirement_set_id` | 1:N | `RESTRICT` |
+| `graduation_liberal_requirement_sets` | `graduation_liberal_required_courses` | `requirement_set_id` | 1:N | `CASCADE` |
+| `graduation_liberal_requirement_sets` | `graduation_liberal_area_requirements` | `requirement_set_id` | 1:N | `CASCADE` |
+| `graduation_liberal_required_courses` | `graduation_liberal_course_aliases` | `course_id` | 1:N | `CASCADE` |
+| `graduation_liberal_required_courses` | `graduation_liberal_course_terms` | `course_id` | 1:N | `CASCADE` |
+| `graduation_credit_profiles` | `graduation_credit_profile_source_refs` | `profile_id` | 1:N | `CASCADE` |
+| `graduation_credit_profiles` | `graduation_credit_profile_academic_unit_aliases` | `profile_id` | 1:N | `CASCADE` |
+| `graduation_credit_profiles` | `graduation_credit_profile_warnings` | `profile_id` | 1:N | `CASCADE` |
+| `requirement_datasets` | `graduation_assessment_profiles` | `dataset_id` | 1:N | `CASCADE` |
+| `graduation_assessment_profiles` | `graduation_assessment_source_refs` | `profile_id` | 1:N | `CASCADE` |
+| `graduation_assessment_profiles` | `graduation_assessment_categories` | `profile_id` | 1:N | `CASCADE` |
+| `graduation_assessment_profiles` | `graduation_assessment_credentials` | `profile_id` | 1:N | `CASCADE` |
+| `requirement_datasets` | `graduation_legacy_requirements` | `dataset_id` | 1:N | `CASCADE` |
+| `graduation_legacy_requirements` | `graduation_legacy_source_refs` | `legacy_requirement_id` | 1:N | `CASCADE` |
+| `graduation_legacy_requirements` | `graduation_legacy_cohorts` | `legacy_requirement_id` | 1:N | `CASCADE` |
 
 `optimization_jobs`와 인증 테이블은 FK를 두지 않는 독립적인 운영 테이블이다.
 `auth_otp_challenges.student_number`, `auth_sessions.student_number`,
@@ -203,13 +223,31 @@ erDiagram
     REQUIREMENT_DATASETS ||--o{ CURRICULUM_PROGRAM_REQUIREMENTS : contains
     CURRICULUM_PROGRAM_REQUIREMENTS ||--o{ CURRICULUM_PROGRAM_ALIASES : names
     CURRICULUM_PROGRAM_REQUIREMENTS ||--o{ CURRICULUM_REQUIRED_COURSES : requires
-    REQUIREMENT_DATASETS ||--o{ GRADUATION_REQUIREMENT_RULES : contains
+    REQUIREMENT_DATASETS ||--o{ GRADUATION_REQUIREMENT_RULES : preserves
+    REQUIREMENT_DATASETS ||--o{ GRADUATION_LIBERAL_REQUIREMENT_SETS : owns
+    REQUIREMENT_DATASETS ||--o{ GRADUATION_CREDIT_PROFILES : owns
+    GRADUATION_LIBERAL_REQUIREMENT_SETS ||--o{ GRADUATION_CREDIT_PROFILES : shared_by
+    GRADUATION_LIBERAL_REQUIREMENT_SETS ||--o{ GRADUATION_LIBERAL_REQUIRED_COURSES : requires
+    GRADUATION_LIBERAL_REQUIREMENT_SETS ||--o{ GRADUATION_LIBERAL_AREA_REQUIREMENTS : requires
+    GRADUATION_LIBERAL_REQUIRED_COURSES ||--o{ GRADUATION_LIBERAL_COURSE_ALIASES : names
+    GRADUATION_LIBERAL_REQUIRED_COURSES ||--o{ GRADUATION_LIBERAL_COURSE_TERMS : offered
+    GRADUATION_CREDIT_PROFILES ||--o{ GRADUATION_CREDIT_PROFILE_SOURCE_REFS : cites
+    GRADUATION_CREDIT_PROFILES ||--o{ GRADUATION_CREDIT_PROFILE_ACADEMIC_UNIT_ALIASES : names
+    GRADUATION_CREDIT_PROFILES ||--o{ GRADUATION_CREDIT_PROFILE_WARNINGS : flags
+    REQUIREMENT_DATASETS ||--o{ GRADUATION_ASSESSMENT_PROFILES : owns
+    GRADUATION_ASSESSMENT_PROFILES ||--o{ GRADUATION_ASSESSMENT_SOURCE_REFS : cites
+    GRADUATION_ASSESSMENT_PROFILES ||--o{ GRADUATION_ASSESSMENT_CATEGORIES : contains
+    GRADUATION_ASSESSMENT_PROFILES ||--o{ GRADUATION_ASSESSMENT_CREDENTIALS : contains
+    REQUIREMENT_DATASETS ||--o{ GRADUATION_LEGACY_REQUIREMENTS : owns
+    GRADUATION_LEGACY_REQUIREMENTS ||--o{ GRADUATION_LEGACY_SOURCE_REFS : cites
+    GRADUATION_LEGACY_REQUIREMENTS ||--o{ GRADUATION_LEGACY_COHORTS : mentions
 
     REQUIREMENT_DATASETS {
         string id PK
         string kind
         integer admission_year "nullable"
         integer effective_year "nullable"
+        date as_of "nullable"
         string source_checksum
         string normalized_checksum
         jsonb raw_payload
@@ -252,13 +290,136 @@ erDiagram
         boolean requires_manual_review
         jsonb raw_payload
     }
+    GRADUATION_LIBERAL_REQUIREMENT_SETS {
+        string id PK
+        string dataset_id FK
+        string signature UK
+        integer admission_year
+        string student_type
+        integer total_credits_min
+        integer total_credits_max "nullable"
+    }
+    GRADUATION_LIBERAL_REQUIRED_COURSES {
+        string id PK
+        string requirement_set_id FK
+        integer position
+        string course_code "nullable"
+        string course_name
+        integer credits
+    }
+    GRADUATION_LIBERAL_COURSE_ALIASES {
+        string id PK
+        string course_id FK
+        integer position
+        string alias
+        string alias_key
+    }
+    GRADUATION_LIBERAL_COURSE_TERMS {
+        string course_id PK, FK
+        integer semester PK
+    }
+    GRADUATION_LIBERAL_AREA_REQUIREMENTS {
+        string id PK
+        string requirement_set_id FK
+        integer position
+        string area
+        integer min_courses
+        integer min_credits "nullable"
+    }
+    GRADUATION_CREDIT_PROFILES {
+        string id PK
+        string dataset_id FK
+        string liberal_requirement_set_id FK
+        string academic_unit_key
+        integer admission_year
+        string student_type
+        string program_path
+        integer total_credits_min
+        integer primary_major_min
+    }
+    GRADUATION_CREDIT_PROFILE_SOURCE_REFS {
+        string profile_id PK, FK
+        integer position PK
+        text source_ref
+    }
+    GRADUATION_CREDIT_PROFILE_ACADEMIC_UNIT_ALIASES {
+        string profile_id PK, FK
+        integer position PK
+        string alias
+        string alias_key
+    }
+    GRADUATION_CREDIT_PROFILE_WARNINGS {
+        string id PK
+        string profile_id FK
+        integer position
+        string code
+        integer calculated
+        integer printed
+    }
+    GRADUATION_ASSESSMENT_PROFILES {
+        string id PK
+        string dataset_id FK
+        integer effective_year
+        string academic_unit_key
+        string transition_mode
+        boolean requires_manual_review
+    }
+    GRADUATION_ASSESSMENT_SOURCE_REFS {
+        string profile_id PK, FK
+        integer position PK
+        text source_ref
+    }
+    GRADUATION_ASSESSMENT_CATEGORIES {
+        string id PK
+        string profile_id FK
+        string category_code
+        text requirement_detail "nullable"
+    }
+    GRADUATION_ASSESSMENT_CREDENTIALS {
+        string id PK
+        string profile_id FK
+        integer position
+        text foreign_language "nullable"
+    }
+    GRADUATION_LEGACY_REQUIREMENTS {
+        string id PK
+        string dataset_id FK
+        integer effective_year
+        string academic_unit_key
+        text pass_requirement "nullable"
+        boolean requires_manual_review
+    }
+    GRADUATION_LEGACY_SOURCE_REFS {
+        string legacy_requirement_id PK, FK
+        integer position PK
+        text source_ref
+    }
+    GRADUATION_LEGACY_COHORTS {
+        string id PK
+        string legacy_requirement_id FK
+        integer position
+        integer start_year "nullable"
+        integer end_year "nullable"
+        string expression
+    }
 ```
 
 - `requirement_datasets`: 원본·정규화 checksum과 기준연도를 가진 멱등 import root
 - `curriculum_program_requirements`: 2016~2026 입학연도별 원문 교육과정 단위
 - `curriculum_program_aliases`: 학과·학부·전공 명칭과 검수 별칭을 연도별 검색 키로 보존
 - `curriculum_required_courses`: 전공기초(`전기`)·전공필수(`전필`) 과목과 학년·학기·출처 위치
-- `graduation_requirement_rules`: 공통 규칙, 2020~2026 학과·입학연도·전공경로별 정량 프로필, 학과별 졸업심사 조건. 자유서술·출처 불일치 조건은 수동 검토 표시
+- `graduation_requirement_rules`: 공통 규칙과 원문별 421개 보존·추적 행. 계산용 890개
+  정규 프로필은 이 테이블의 JSON을 읽지 않는다.
+- `graduation_liberal_requirement_sets`와 하위 과목·별칭·학기·영역 테이블: 789개
+  프로필에 반복되던 15개 교양요건 조합을 공유한다.
+- `graduation_credit_profiles`: 학과·입학연도·학생유형·전공경로별 789개 정량 학점 요건과
+  원문 범위를 그대로 보존하는 793개 프로필별 학과명 행
+- `graduation_assessment_profiles`와 하위 category·credential: 66개 학과 프로필과
+  264개 심사 범주·42개 자격 상세
+- `graduation_legacy_requirements`와 `graduation_legacy_cohorts`: 35개 기존 학과별
+  자유서술 요건과 6개 적용 학번 범위
+- 각 `*_source_refs` 테이블: 순서가 있는 다중 출처. 계산 테이블에는 중복
+  `raw_payload`를 두지 않고 원문 bundle은 dataset checksum과 파일 snapshot으로 보존한다.
 
 ## 4. 주요 제약조건과 인덱스
 
@@ -273,6 +434,11 @@ erDiagram
 | `curriculum_program_requirements` | `(dataset_id, academic_unit_key)` |
 | `curriculum_program_aliases` | `(admission_year, alias_key, program_id)` |
 | `curriculum_required_courses` | `(program_id, classification, course_code)` |
+| `graduation_liberal_requirement_sets` | `(dataset_id, signature)` |
+| `graduation_credit_profiles` | `(dataset_id, academic_unit_key, admission_year, student_type, program_path)` |
+| `graduation_assessment_profiles` | `(dataset_id, academic_unit_key, effective_year)` |
+| 각 `*_source_refs` | 부모 ID와 `position`, 부모 ID와 `source_ref` |
+| `graduation_credit_profile_academic_unit_aliases` | 부모 ID와 `position`, 부모 ID와 `alias_key` |
 
 ### Check 제약조건
 
@@ -283,6 +449,10 @@ erDiagram
 start_minute < end_minute <= 1440
 day IN ('월', '화', '수', '목', '금', '토', '일')
 ```
+
+졸업요건 테이블은 입학·시행연도 범위, 음수 학점 금지, 교양 상한/하한 순서,
+전공경로 enum, 심사 category·transition mode enum, 학기 `IN (1, 2)`, 학번 범위 순서를
+check constraint로 강제한다.
 
 ### 조회·정리 인덱스
 
@@ -304,6 +474,9 @@ day IN ('월', '화', '수', '목', '금', '토', '일')
 | `ix_curriculum_program_aliases_year_key` | `(admission_year, alias_key)` | 프로필 학과명 매핑 |
 | `ix_curriculum_required_courses_program` | `(program_id, classification)` | 학과별 전기·전필 조회 |
 | `ix_graduation_requirement_rules_lookup` | `(academic_unit_key, admission_year_start, admission_year_end, effective_year)` | 적용 졸업요건 후보 조회 |
+| `ix_graduation_credit_profile_lookup` | `(academic_unit_key, admission_year, student_type, program_path)` | 정량 졸업요건 정확 범위 조회 |
+| `ix_graduation_assessment_profile_lookup` | `(academic_unit_key, effective_year)` | 학과별 표준화 심사 조회 |
+| `ix_graduation_legacy_requirement_lookup` | `(academic_unit_key, effective_year)` | 학과별 기존 심사 조회 |
 
 복합 PK와 unique 제약조건이 생성하는 PostgreSQL 인덱스는 표에서 생략했다.
 
@@ -317,8 +490,9 @@ day IN ('월', '화', '수', '목', '금', '토', '일')
 | 2020~2026 역사 강의·강의계획서 조회 | `historical_term_datasets`, `historical_course_offerings` | 사용 |
 | 연도별 교육과정·대체/동일과목 원본 | `historical_curriculum_*`, `historical_*relations` | 사용 |
 | 2016~2026 입학연도별 전공기초·전공필수 판정 | `curriculum_program_*`, `curriculum_required_courses` | 사용 |
-| 2020~2026 학과·학번·전공경로별 정량 졸업요건 | `requirement_datasets`, `graduation_requirement_rules` | 사용: 789개 학점 프로필과 연도별 교양필수 자동 점검 |
-| 공통·학과별 졸업심사 정규화 행 | `requirement_datasets`, `graduation_requirement_rules` | 사용: 66개 학과 프로필 조회, 자유서술·개인 증빙은 자동 확정 안 함 |
+| 2020~2026 학과·학번·전공경로별 정량 졸업요건 | `graduation_credit_profiles`, `graduation_liberal_*` | 사용: 789개 학점 프로필과 공유 교양요건 자동 점검 |
+| 학과별 졸업심사 정규화 행 | `graduation_assessment_*`, `graduation_legacy_*` | 사용: 66개 표준화·35개 기존 요건 조회, 자유서술·개인 증빙은 자동 확정 안 함 |
+| 공통 규칙·원문별 보존 행 | `graduation_requirement_rules` | 사용: 출처 추적용 421행; 890개 계산 프로필 조회에는 사용하지 않음 |
 | 최적화 생성·조회·취소 | `optimization_jobs` | 사용 |
 | optimizer worker 처리 결과 | `optimization_jobs` | 사용 |
 | 선택형 OTP·로그인 | `auth_*` | 인증 활성화 시 사용 |

@@ -3,7 +3,7 @@ from __future__ import annotations
 import asyncio
 import json
 
-from sqlalchemy import func, select
+from sqlalchemy import delete, func, select
 
 from timetabler.api.resource_schemas import RequirementProfile
 from timetabler.api.routes.requirements import (
@@ -17,6 +17,22 @@ from timetabler.db.models import (
     CurriculumProgramAlias,
     CurriculumProgramRequirement,
     CurriculumRequiredCourse,
+    GraduationAssessmentCategory,
+    GraduationAssessmentCredential,
+    GraduationAssessmentProfile,
+    GraduationAssessmentSourceReference,
+    GraduationCreditProfile,
+    GraduationCreditProfileAcademicUnitAlias,
+    GraduationCreditProfileSourceReference,
+    GraduationCreditProfileWarning,
+    GraduationLegacyCohort,
+    GraduationLegacyRequirement,
+    GraduationLegacySourceReference,
+    GraduationLiberalAreaRequirement,
+    GraduationLiberalCourseAlias,
+    GraduationLiberalCourseTerm,
+    GraduationLiberalRequiredCourse,
+    GraduationLiberalRequirementSet,
     GraduationRequirementRule,
     RequirementDataset,
 )
@@ -43,7 +59,30 @@ def test_requirement_import_is_complete_and_idempotent(settings: Settings) -> No
             encoding="utf-8"
         )
     )
-    expected_rules = 421 + int(graduation_bundle["summary"]["rules"])
+    expected_source_rules = 421
+    expected_imported_rules = expected_source_rules + int(graduation_bundle["summary"]["rules"])
+    expected_degree_profile = next(
+        rule
+        for rule in graduation_bundle["rules"]
+        if rule["kind"] == "DEGREE_CREDIT_PROFILE"
+        and rule["scope"]["academicUnit"] == "컴퓨터공학전공"
+        and rule["admissionYears"]["start"] == 2026
+        and rule["scope"]["programPath"] == "ADVANCED_MAJOR"
+    )
+    expected_night_program_profile = next(
+        rule
+        for rule in graduation_bundle["rules"]
+        if rule["kind"] == "DEGREE_CREDIT_PROFILE"
+        and rule["scope"]["academicUnit"] == "공공인재법학과"
+        and rule["admissionYears"]["start"] == 2020
+        and rule["scope"]["programPath"] == "ADVANCED_MAJOR"
+    )
+    expected_legacy_profile = next(
+        rule
+        for rule in graduation_bundle["rules"]
+        if rule["kind"] == "LEGACY_DEPARTMENT_ASSESSMENT"
+        and rule["scope"]["academicUnit"] == "아동학과"
+    )
 
     async def prepare() -> None:
         database = Database(settings.database_url)
@@ -55,7 +94,7 @@ def test_requirement_import_is_complete_and_idempotent(settings: Settings) -> No
             assert first.programs_imported == expected_programs
             assert first.aliases_imported == expected_aliases
             assert first.required_courses_imported == expected_courses
-            assert first.rules_imported == expected_rules
+            assert first.rules_imported == expected_imported_rules
             assert second.datasets_unchanged == 17
             assert second.datasets_imported == 0
 
@@ -81,20 +120,56 @@ def test_requirement_import_is_complete_and_idempotent(settings: Settings) -> No
                     await session.scalar(
                         select(func.count()).select_from(GraduationRequirementRule)
                     )
-                    == expected_rules
+                    == expected_source_rules
                 )
 
                 credit_profile = await session.scalar(
-                    select(GraduationRequirementRule).where(
-                        GraduationRequirementRule.rule_kind == "DEGREE_CREDIT_PROFILE",
-                        GraduationRequirementRule.academic_unit_key == "컴퓨터공학전공",
-                        GraduationRequirementRule.admission_year_start == 2026,
-                        GraduationRequirementRule.program_path == "ADVANCED_MAJOR",
+                    select(GraduationCreditProfile).where(
+                        GraduationCreditProfile.academic_unit_key == "컴퓨터공학전공",
+                        GraduationCreditProfile.admission_year == 2026,
+                        GraduationCreditProfile.program_path == "ADVANCED_MAJOR",
                     )
                 )
                 assert credit_profile is not None
                 assert credit_profile.requires_manual_review is False
-                assert credit_profile.raw_payload["values"]["primaryMajorMin"] == 72
+                assert credit_profile.total_credits_min == 126
+                assert credit_profile.primary_major_min == 72
+
+                expected_typed_counts = {
+                    GraduationLiberalRequirementSet: 15,
+                    GraduationLiberalRequiredCourse: 58,
+                    GraduationLiberalCourseAlias: 72,
+                    GraduationLiberalCourseTerm: 103,
+                    GraduationLiberalAreaRequirement: 43,
+                    GraduationCreditProfile: 789,
+                    GraduationCreditProfileAcademicUnitAlias: 793,
+                    GraduationCreditProfileSourceReference: 789,
+                    GraduationCreditProfileWarning: 7,
+                    GraduationAssessmentProfile: 66,
+                    GraduationAssessmentSourceReference: 198,
+                    GraduationAssessmentCategory: 264,
+                    GraduationAssessmentCredential: 42,
+                    GraduationLegacyRequirement: 35,
+                    GraduationLegacySourceReference: 35,
+                    GraduationLegacyCohort: 6,
+                }
+                for model, expected_count in expected_typed_counts.items():
+                    assert (
+                        await session.scalar(select(func.count()).select_from(model))
+                        == expected_count
+                    )
+
+                assert (
+                    await session.scalar(
+                        select(func.count())
+                        .select_from(GraduationRequirementRule)
+                        .where(
+                            GraduationRequirementRule.dataset_id
+                            == "graduation-requirements-2020-2026"
+                        )
+                    )
+                    == 0
+                )
 
                 program_id = await session.scalar(
                     select(CurriculumProgramAlias.program_id).where(
@@ -122,6 +197,30 @@ def test_requirement_import_is_complete_and_idempotent(settings: Settings) -> No
                 )
                 assert common_alias is not None
 
+            async with database.session_factory() as session:
+                await session.execute(
+                    delete(GraduationAssessmentSourceReference).where(
+                        GraduationAssessmentSourceReference.profile_id
+                        == select(GraduationAssessmentSourceReference.profile_id)
+                        .limit(1)
+                        .scalar_subquery()
+                    )
+                )
+                await session.commit()
+
+            repaired = await import_requirement_data(database, data_root)
+            stable = await import_requirement_data(database, data_root)
+            assert repaired.datasets_imported == 1
+            assert repaired.rules_imported == 890
+            assert stable.datasets_unchanged == 17
+            async with database.session_factory() as session:
+                assert (
+                    await session.scalar(
+                        select(func.count()).select_from(GraduationAssessmentSourceReference)
+                    )
+                    == 198
+                )
+
             required_names, manual_reasons = await _major_requirements(
                 database,
                 settings,
@@ -145,8 +244,37 @@ def test_requirement_import_is_complete_and_idempotent(settings: Settings) -> No
             degree_profile = next(
                 rule for rule in database_rules if rule["kind"] == "DEGREE_CREDIT_PROFILE"
             )
-            assert degree_profile["values"]["totalCreditsMin"] == 126
-            assert degree_profile["values"]["primaryMajorMin"] == 72
+            assert degree_profile == expected_degree_profile
+
+            night_program_rules = await _database_rules(
+                database,
+                RequirementProfile(
+                    admission_year=2020,
+                    department_id="공공인재법학과",
+                    student_type="DOMESTIC",
+                    program_path="ADVANCED_MAJOR",
+                ),
+            )
+            night_program_profile = next(
+                rule for rule in night_program_rules if rule["kind"] == "DEGREE_CREDIT_PROFILE"
+            )
+            assert night_program_profile == expected_night_program_profile
+
+            child_studies_rules = await _database_rules(
+                database,
+                RequirementProfile(
+                    admission_year=2026,
+                    department_id="아동학과",
+                    student_type="DOMESTIC",
+                    program_path="ADVANCED_MAJOR",
+                ),
+            )
+            legacy_profile = next(
+                rule
+                for rule in child_studies_rules
+                if rule["kind"] == "LEGACY_DEPARTMENT_ASSESSMENT"
+            )
+            assert legacy_profile == expected_legacy_profile
 
             evaluation = _evaluate_rules(
                 _combined_rules((), database_rules),

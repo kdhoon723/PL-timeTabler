@@ -68,6 +68,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       POSTGRES_PASSWORD: ci-only-not-for-production
+      DB_VIEWER_PASSWORD: ci-only-read-password
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v6

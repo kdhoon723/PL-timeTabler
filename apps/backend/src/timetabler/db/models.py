@@ -1,11 +1,13 @@
 from __future__ import annotations
 
-from datetime import UTC, datetime
+from datetime import UTC, date, datetime
 from typing import Any
 
 from sqlalchemy import (
     JSON,
     Boolean,
+    CheckConstraint,
+    Date,
     DateTime,
     Float,
     ForeignKey,
@@ -301,6 +303,15 @@ class HistoricalCourseRelation(Base):
 class RequirementDataset(Base):
     __tablename__ = "requirement_datasets"
     __table_args__ = (
+        CheckConstraint("record_count >= 0", name="ck_requirement_datasets_record_count"),
+        CheckConstraint(
+            "admission_year IS NULL OR admission_year BETWEEN 1900 AND 2100",
+            name="ck_requirement_datasets_admission_year",
+        ),
+        CheckConstraint(
+            "effective_year IS NULL OR effective_year BETWEEN 1900 AND 2100",
+            name="ck_requirement_datasets_effective_year",
+        ),
         Index("ix_requirement_datasets_kind_year", "kind", "admission_year", "effective_year"),
     )
 
@@ -309,7 +320,7 @@ class RequirementDataset(Base):
     schema_version: Mapped[str] = mapped_column(String(40), nullable=False)
     admission_year: Mapped[int | None] = mapped_column(Integer)
     effective_year: Mapped[int | None] = mapped_column(Integer)
-    as_of: Mapped[str | None] = mapped_column(String(20))
+    as_of: Mapped[date | None] = mapped_column(Date)
     source_path: Mapped[str] = mapped_column(Text, nullable=False)
     source_checksum: Mapped[str] = mapped_column(String(64), nullable=False)
     normalized_checksum: Mapped[str] = mapped_column(String(64), nullable=False)
@@ -321,6 +332,14 @@ class RequirementDataset(Base):
 class CurriculumProgramRequirement(Base):
     __tablename__ = "curriculum_program_requirements"
     __table_args__ = (
+        CheckConstraint(
+            "admission_year BETWEEN 1900 AND 2100",
+            name="ck_curriculum_program_admission_year",
+        ),
+        CheckConstraint(
+            "source_course_count >= 0 AND required_course_count >= 0",
+            name="ck_curriculum_program_course_counts",
+        ),
         UniqueConstraint(
             "dataset_id", "academic_unit_key", name="uq_curriculum_program_requirement"
         ),
@@ -336,7 +355,6 @@ class CurriculumProgramRequirement(Base):
         String(80),
         ForeignKey("requirement_datasets.id", ondelete="CASCADE"),
         nullable=False,
-        index=True,
     )
     admission_year: Mapped[int] = mapped_column(Integer, nullable=False)
     academic_unit: Mapped[str] = mapped_column(String(240), nullable=False)
@@ -373,6 +391,15 @@ class CurriculumProgramAlias(Base):
 class CurriculumRequiredCourse(Base):
     __tablename__ = "curriculum_required_courses"
     __table_args__ = (
+        CheckConstraint(
+            "classification IN ('전기', '전필')",
+            name="ck_curriculum_required_course_classification",
+        ),
+        CheckConstraint("credits IS NULL OR credits >= 0", name="ck_required_course_credits"),
+        CheckConstraint(
+            "grade IS NULL OR grade BETWEEN 1 AND 6",
+            name="ck_required_course_grade",
+        ),
         UniqueConstraint(
             "program_id",
             "classification",
@@ -388,7 +415,6 @@ class CurriculumRequiredCourse(Base):
         String(36),
         ForeignKey("curriculum_program_requirements.id", ondelete="CASCADE"),
         nullable=False,
-        index=True,
     )
     classification: Mapped[str] = mapped_column(String(20), nullable=False)
     course_code: Mapped[str] = mapped_column(String(40), nullable=False)
@@ -403,6 +429,11 @@ class CurriculumRequiredCourse(Base):
 class GraduationRequirementRule(Base):
     __tablename__ = "graduation_requirement_rules"
     __table_args__ = (
+        CheckConstraint(
+            "admission_year_start IS NULL OR admission_year_end IS NULL "
+            "OR admission_year_start <= admission_year_end",
+            name="ck_graduation_rule_admission_year_range",
+        ),
         Index(
             "ix_graduation_requirement_rules_lookup",
             "academic_unit_key",
@@ -418,7 +449,6 @@ class GraduationRequirementRule(Base):
         String(80),
         ForeignKey("requirement_datasets.id", ondelete="CASCADE"),
         nullable=False,
-        index=True,
     )
     rule_kind: Mapped[str] = mapped_column(String(80), nullable=False)
     category_code: Mapped[str | None] = mapped_column(String(40))
@@ -432,6 +462,523 @@ class GraduationRequirementRule(Base):
     description: Mapped[str | None] = mapped_column(Text)
     requires_manual_review: Mapped[bool] = mapped_column(Boolean, nullable=False)
     raw_payload: Mapped[dict[str, Any]] = mapped_column(JSON, nullable=False)
+
+
+class GraduationLiberalRequirementSet(Base):
+    __tablename__ = "graduation_liberal_requirement_sets"
+    __table_args__ = (
+        UniqueConstraint(
+            "dataset_id",
+            "signature",
+            name="uq_graduation_liberal_requirement_set_signature",
+        ),
+        CheckConstraint(
+            "admission_year BETWEEN 1900 AND 2100",
+            name="ck_graduation_liberal_set_admission_year",
+        ),
+        CheckConstraint(
+            "required_credits_min >= 0 AND elective_credits_min >= 0 "
+            "AND total_credits_min >= 0 "
+            "AND (total_credits_max IS NULL OR total_credits_max >= total_credits_min)",
+            name="ck_graduation_liberal_set_credits",
+        ),
+        Index(
+            "ix_graduation_liberal_sets_year_type",
+            "admission_year",
+            "student_type",
+        ),
+    )
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    dataset_id: Mapped[str] = mapped_column(
+        String(80),
+        ForeignKey("requirement_datasets.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    signature: Mapped[str] = mapped_column(String(64), nullable=False)
+    admission_year: Mapped[int] = mapped_column(Integer, nullable=False)
+    student_type: Mapped[str] = mapped_column(String(40), nullable=False)
+    required_credits_min: Mapped[int] = mapped_column(Integer, nullable=False)
+    elective_credits_min: Mapped[int] = mapped_column(Integer, nullable=False)
+    total_credits_min: Mapped[int] = mapped_column(Integer, nullable=False)
+    total_credits_max: Mapped[int | None] = mapped_column(Integer)
+
+
+class GraduationLiberalRequiredCourse(Base):
+    __tablename__ = "graduation_liberal_required_courses"
+    __table_args__ = (
+        UniqueConstraint(
+            "requirement_set_id",
+            "position",
+            name="uq_graduation_liberal_course_position",
+        ),
+        UniqueConstraint(
+            "requirement_set_id",
+            "course_code",
+            name="uq_graduation_liberal_course_code",
+        ),
+        CheckConstraint("position >= 0", name="ck_graduation_liberal_course_position"),
+        CheckConstraint("credits > 0", name="ck_graduation_liberal_course_credits"),
+        CheckConstraint(
+            "grade IS NULL OR grade BETWEEN 1 AND 6",
+            name="ck_graduation_liberal_course_grade",
+        ),
+    )
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    requirement_set_id: Mapped[str] = mapped_column(
+        String(36),
+        ForeignKey("graduation_liberal_requirement_sets.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    position: Mapped[int] = mapped_column(Integer, nullable=False)
+    course_code: Mapped[str | None] = mapped_column(String(40))
+    course_name: Mapped[str] = mapped_column(String(240), nullable=False)
+    credits: Mapped[int] = mapped_column(Integer, nullable=False)
+    grade: Mapped[int | None] = mapped_column(Integer)
+    source_page: Mapped[int] = mapped_column(Integer, nullable=False)
+
+
+class GraduationLiberalCourseAlias(Base):
+    __tablename__ = "graduation_liberal_course_aliases"
+    __table_args__ = (
+        UniqueConstraint(
+            "course_id",
+            "alias_key",
+            name="uq_graduation_liberal_course_alias",
+        ),
+        UniqueConstraint(
+            "course_id",
+            "position",
+            name="uq_graduation_liberal_course_alias_position",
+        ),
+        CheckConstraint("position >= 0", name="ck_graduation_liberal_course_alias_position"),
+    )
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    course_id: Mapped[str] = mapped_column(
+        String(36),
+        ForeignKey("graduation_liberal_required_courses.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    position: Mapped[int] = mapped_column(Integer, nullable=False)
+    alias: Mapped[str] = mapped_column(String(240), nullable=False)
+    alias_key: Mapped[str] = mapped_column(String(240), nullable=False)
+
+
+class GraduationLiberalCourseTerm(Base):
+    __tablename__ = "graduation_liberal_course_terms"
+    __table_args__ = (
+        CheckConstraint("semester IN (1, 2)", name="ck_graduation_liberal_course_term"),
+    )
+
+    course_id: Mapped[str] = mapped_column(
+        String(36),
+        ForeignKey("graduation_liberal_required_courses.id", ondelete="CASCADE"),
+        primary_key=True,
+    )
+    semester: Mapped[int] = mapped_column(Integer, primary_key=True)
+
+
+class GraduationLiberalAreaRequirement(Base):
+    __tablename__ = "graduation_liberal_area_requirements"
+    __table_args__ = (
+        UniqueConstraint(
+            "requirement_set_id",
+            "area",
+            name="uq_graduation_liberal_area",
+        ),
+        UniqueConstraint(
+            "requirement_set_id",
+            "position",
+            name="uq_graduation_liberal_area_position",
+        ),
+        CheckConstraint("position >= 0", name="ck_graduation_liberal_area_position"),
+        CheckConstraint("min_courses >= 0", name="ck_graduation_liberal_area_courses"),
+        CheckConstraint(
+            "min_credits IS NULL OR min_credits >= 0",
+            name="ck_graduation_liberal_area_credits",
+        ),
+    )
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    requirement_set_id: Mapped[str] = mapped_column(
+        String(36),
+        ForeignKey("graduation_liberal_requirement_sets.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    position: Mapped[int] = mapped_column(Integer, nullable=False)
+    area: Mapped[str] = mapped_column(String(160), nullable=False)
+    min_courses: Mapped[int] = mapped_column(Integer, nullable=False)
+    min_credits: Mapped[int | None] = mapped_column(Integer)
+
+
+class GraduationCreditProfile(Base):
+    __tablename__ = "graduation_credit_profiles"
+    __table_args__ = (
+        UniqueConstraint(
+            "dataset_id",
+            "source_rule_id",
+            name="uq_graduation_credit_profile_source_rule",
+        ),
+        UniqueConstraint(
+            "dataset_id",
+            "academic_unit_key",
+            "admission_year",
+            "student_type",
+            "program_path",
+            name="uq_graduation_credit_profile_scope",
+        ),
+        CheckConstraint(
+            "admission_year BETWEEN 1900 AND 2100",
+            name="ck_graduation_credit_profile_admission_year",
+        ),
+        CheckConstraint(
+            "program_path IN ('ADVANCED_MAJOR', 'DOUBLE_MAJOR', 'MINOR', 'MICRO_MAJOR')",
+            name="ck_graduation_credit_profile_path",
+        ),
+        CheckConstraint(
+            "total_credits_min >= 0 AND major_foundation_min >= 0 "
+            "AND major_required_min >= 0 AND major_elective_min >= 0 "
+            "AND (additional_major_min IS NULL OR additional_major_min >= 0) "
+            "AND primary_major_min >= 0 "
+            "AND (secondary_program_min IS NULL OR secondary_program_min >= 0)",
+            name="ck_graduation_credit_profile_credits",
+        ),
+        Index(
+            "ix_graduation_credit_profile_lookup",
+            "academic_unit_key",
+            "admission_year",
+            "student_type",
+            "program_path",
+        ),
+    )
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    dataset_id: Mapped[str] = mapped_column(
+        String(80),
+        ForeignKey("requirement_datasets.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    source_rule_id: Mapped[str] = mapped_column(String(160), nullable=False)
+    liberal_requirement_set_id: Mapped[str] = mapped_column(
+        String(36),
+        ForeignKey("graduation_liberal_requirement_sets.id", ondelete="RESTRICT"),
+        nullable=False,
+        index=True,
+    )
+    academic_unit: Mapped[str] = mapped_column(String(240), nullable=False)
+    academic_unit_key: Mapped[str] = mapped_column(String(240), nullable=False)
+    admission_year: Mapped[int] = mapped_column(Integer, nullable=False)
+    student_type: Mapped[str] = mapped_column(String(40), nullable=False)
+    program_path: Mapped[str] = mapped_column(String(40), nullable=False)
+    total_credits_min: Mapped[int] = mapped_column(Integer, nullable=False)
+    major_foundation_min: Mapped[int] = mapped_column(Integer, nullable=False)
+    major_required_min: Mapped[int] = mapped_column(Integer, nullable=False)
+    major_elective_min: Mapped[int] = mapped_column(Integer, nullable=False)
+    additional_major_min: Mapped[int | None] = mapped_column(Integer)
+    primary_major_min: Mapped[int] = mapped_column(Integer, nullable=False)
+    secondary_program_min: Mapped[int | None] = mapped_column(Integer)
+    requires_manual_review: Mapped[bool] = mapped_column(Boolean, nullable=False)
+
+
+class GraduationCreditProfileSourceReference(Base):
+    __tablename__ = "graduation_credit_profile_source_refs"
+    __table_args__ = (
+        UniqueConstraint(
+            "profile_id",
+            "source_ref",
+            name="uq_graduation_credit_profile_source_ref",
+        ),
+        CheckConstraint("position >= 0", name="ck_graduation_credit_profile_source_ref_position"),
+    )
+
+    profile_id: Mapped[str] = mapped_column(
+        String(36),
+        ForeignKey("graduation_credit_profiles.id", ondelete="CASCADE"),
+        primary_key=True,
+    )
+    position: Mapped[int] = mapped_column(Integer, primary_key=True)
+    source_ref: Mapped[str] = mapped_column(Text, nullable=False)
+
+
+class GraduationCreditProfileAcademicUnitAlias(Base):
+    __tablename__ = "graduation_credit_profile_academic_unit_aliases"
+    __table_args__ = (
+        UniqueConstraint(
+            "profile_id",
+            "alias_key",
+            name="uq_graduation_credit_profile_academic_unit_alias",
+        ),
+        CheckConstraint(
+            "position >= 0",
+            name="ck_graduation_credit_profile_academic_unit_alias_position",
+        ),
+    )
+
+    profile_id: Mapped[str] = mapped_column(
+        String(36),
+        ForeignKey("graduation_credit_profiles.id", ondelete="CASCADE"),
+        primary_key=True,
+    )
+    position: Mapped[int] = mapped_column(Integer, primary_key=True)
+    alias: Mapped[str] = mapped_column(String(240), nullable=False)
+    alias_key: Mapped[str] = mapped_column(String(240), nullable=False)
+
+
+class GraduationCreditProfileWarning(Base):
+    __tablename__ = "graduation_credit_profile_warnings"
+    __table_args__ = (
+        UniqueConstraint(
+            "profile_id",
+            "code",
+            name="uq_graduation_credit_profile_warning",
+        ),
+        UniqueConstraint(
+            "profile_id",
+            "position",
+            name="uq_graduation_credit_profile_warning_position",
+        ),
+        CheckConstraint("position >= 0", name="ck_graduation_credit_profile_warning_position"),
+        CheckConstraint(
+            "calculated >= 0 AND printed >= 0",
+            name="ck_graduation_credit_profile_warning_values",
+        ),
+    )
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    profile_id: Mapped[str] = mapped_column(
+        String(36),
+        ForeignKey("graduation_credit_profiles.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    position: Mapped[int] = mapped_column(Integer, nullable=False)
+    code: Mapped[str] = mapped_column(String(80), nullable=False)
+    calculated: Mapped[int] = mapped_column(Integer, nullable=False)
+    printed: Mapped[int] = mapped_column(Integer, nullable=False)
+
+
+class GraduationAssessmentProfile(Base):
+    __tablename__ = "graduation_assessment_profiles"
+    __table_args__ = (
+        UniqueConstraint(
+            "dataset_id",
+            "source_rule_id",
+            name="uq_graduation_assessment_profile_source_rule",
+        ),
+        UniqueConstraint(
+            "dataset_id",
+            "academic_unit_key",
+            "effective_year",
+            name="uq_graduation_assessment_profile_scope",
+        ),
+        CheckConstraint(
+            "effective_year BETWEEN 1900 AND 2100",
+            name="ck_graduation_assessment_effective_year",
+        ),
+        CheckConstraint(
+            "transition_mode IN ('STANDARDIZED_ONLY', 'LEGACY_OR_STANDARDIZED', 'LEGACY_ONLY')",
+            name="ck_graduation_assessment_transition_mode",
+        ),
+        Index(
+            "ix_graduation_assessment_profile_lookup",
+            "academic_unit_key",
+            "effective_year",
+        ),
+    )
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    dataset_id: Mapped[str] = mapped_column(
+        String(80),
+        ForeignKey("requirement_datasets.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    source_rule_id: Mapped[str] = mapped_column(String(160), nullable=False)
+    effective_year: Mapped[int] = mapped_column(Integer, nullable=False)
+    academic_unit: Mapped[str] = mapped_column(String(240), nullable=False)
+    academic_unit_key: Mapped[str] = mapped_column(String(240), nullable=False)
+    transition_mode: Mapped[str] = mapped_column(String(40), nullable=False)
+    transition_source_text: Mapped[str] = mapped_column(Text, nullable=False)
+    source_note: Mapped[str | None] = mapped_column(Text)
+    requires_manual_review: Mapped[bool] = mapped_column(Boolean, nullable=False)
+
+
+class GraduationAssessmentSourceReference(Base):
+    __tablename__ = "graduation_assessment_source_refs"
+    __table_args__ = (
+        UniqueConstraint(
+            "profile_id",
+            "source_ref",
+            name="uq_graduation_assessment_source_ref",
+        ),
+        CheckConstraint("position >= 0", name="ck_graduation_assessment_source_ref_position"),
+    )
+
+    profile_id: Mapped[str] = mapped_column(
+        String(36),
+        ForeignKey("graduation_assessment_profiles.id", ondelete="CASCADE"),
+        primary_key=True,
+    )
+    position: Mapped[int] = mapped_column(Integer, primary_key=True)
+    source_ref: Mapped[str] = mapped_column(Text, nullable=False)
+
+
+class GraduationAssessmentCategory(Base):
+    __tablename__ = "graduation_assessment_categories"
+    __table_args__ = (
+        UniqueConstraint(
+            "profile_id",
+            "category_code",
+            name="uq_graduation_assessment_category",
+        ),
+        CheckConstraint(
+            "category_code IN ('A', 'C', 'E', 'S')",
+            name="ck_graduation_assessment_category_code",
+        ),
+    )
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    profile_id: Mapped[str] = mapped_column(
+        String(36),
+        ForeignKey("graduation_assessment_profiles.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    category_code: Mapped[str] = mapped_column(String(1), nullable=False)
+    category_name: Mapped[str] = mapped_column(String(240), nullable=False)
+    primary_none: Mapped[str | None] = mapped_column(Text)
+    primary_one: Mapped[str | None] = mapped_column(Text)
+    primary_two: Mapped[str | None] = mapped_column(Text)
+    double_major_none: Mapped[str | None] = mapped_column(Text)
+    double_major_one: Mapped[str | None] = mapped_column(Text)
+    requirement_detail: Mapped[str | None] = mapped_column(Text)
+    reference_note: Mapped[str | None] = mapped_column(Text)
+    source_note: Mapped[str | None] = mapped_column(Text)
+
+
+class GraduationAssessmentCredential(Base):
+    __tablename__ = "graduation_assessment_credentials"
+    __table_args__ = (
+        UniqueConstraint(
+            "profile_id",
+            "position",
+            name="uq_graduation_assessment_credential_position",
+        ),
+        CheckConstraint("position >= 0", name="ck_graduation_assessment_credential_position"),
+    )
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    profile_id: Mapped[str] = mapped_column(
+        String(36),
+        ForeignKey("graduation_assessment_profiles.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    position: Mapped[int] = mapped_column(Integer, nullable=False)
+    international_or_national_certification: Mapped[str | None] = mapped_column(Text)
+    private_or_other_certification: Mapped[str | None] = mapped_column(Text)
+    foreign_language: Mapped[str | None] = mapped_column(Text)
+    awards: Mapped[str | None] = mapped_column(Text)
+    employment_or_experience: Mapped[str | None] = mapped_column(Text)
+    double_major_requirement: Mapped[str | None] = mapped_column(Text)
+    reference_note: Mapped[str | None] = mapped_column(Text)
+    source_note: Mapped[str | None] = mapped_column(Text)
+
+
+class GraduationLegacyRequirement(Base):
+    __tablename__ = "graduation_legacy_requirements"
+    __table_args__ = (
+        UniqueConstraint(
+            "dataset_id",
+            "source_rule_id",
+            name="uq_graduation_legacy_requirement_source_rule",
+        ),
+        CheckConstraint(
+            "effective_year BETWEEN 1900 AND 2100",
+            name="ck_graduation_legacy_effective_year",
+        ),
+        Index(
+            "ix_graduation_legacy_requirement_lookup",
+            "academic_unit_key",
+            "effective_year",
+        ),
+    )
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    dataset_id: Mapped[str] = mapped_column(
+        String(80),
+        ForeignKey("requirement_datasets.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    source_rule_id: Mapped[str] = mapped_column(String(160), nullable=False)
+    effective_year: Mapped[int] = mapped_column(Integer, nullable=False)
+    academic_unit: Mapped[str] = mapped_column(String(240), nullable=False)
+    academic_unit_key: Mapped[str] = mapped_column(String(240), nullable=False)
+    eligibility_requirement: Mapped[str | None] = mapped_column(Text)
+    form_thesis: Mapped[bool] = mapped_column(Boolean, nullable=False)
+    form_report: Mapped[bool] = mapped_column(Boolean, nullable=False)
+    form_practical_or_artwork: Mapped[bool] = mapped_column(Boolean, nullable=False)
+    form_exam: Mapped[bool] = mapped_column(Boolean, nullable=False)
+    substitute_international_certification: Mapped[str | None] = mapped_column(Text)
+    substitute_national_technical_certification: Mapped[str | None] = mapped_column(Text)
+    substitute_national_professional_certification: Mapped[str | None] = mapped_column(Text)
+    substitute_national_accredited_private_certification: Mapped[str | None] = mapped_column(Text)
+    substitute_private_certification: Mapped[str | None] = mapped_column(Text)
+    substitute_other: Mapped[str | None] = mapped_column(Text)
+    pass_requirement: Mapped[str | None] = mapped_column(Text)
+    double_major_pass_requirement: Mapped[str | None] = mapped_column(Text)
+    note: Mapped[str | None] = mapped_column(Text)
+    requires_manual_review: Mapped[bool] = mapped_column(Boolean, nullable=False)
+
+
+class GraduationLegacySourceReference(Base):
+    __tablename__ = "graduation_legacy_source_refs"
+    __table_args__ = (
+        UniqueConstraint(
+            "legacy_requirement_id",
+            "source_ref",
+            name="uq_graduation_legacy_source_ref",
+        ),
+        CheckConstraint("position >= 0", name="ck_graduation_legacy_source_ref_position"),
+    )
+
+    legacy_requirement_id: Mapped[str] = mapped_column(
+        String(36),
+        ForeignKey("graduation_legacy_requirements.id", ondelete="CASCADE"),
+        primary_key=True,
+    )
+    position: Mapped[int] = mapped_column(Integer, primary_key=True)
+    source_ref: Mapped[str] = mapped_column(Text, nullable=False)
+
+
+class GraduationLegacyCohort(Base):
+    __tablename__ = "graduation_legacy_cohorts"
+    __table_args__ = (
+        UniqueConstraint(
+            "legacy_requirement_id",
+            "expression",
+            name="uq_graduation_legacy_cohort_expression",
+        ),
+        UniqueConstraint(
+            "legacy_requirement_id",
+            "position",
+            name="uq_graduation_legacy_cohort_position",
+        ),
+        CheckConstraint("position >= 0", name="ck_graduation_legacy_cohort_position"),
+        CheckConstraint(
+            "start_year IS NULL OR end_year IS NULL OR start_year <= end_year",
+            name="ck_graduation_legacy_cohort_range",
+        ),
+    )
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    legacy_requirement_id: Mapped[str] = mapped_column(
+        String(36),
+        ForeignKey("graduation_legacy_requirements.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    position: Mapped[int] = mapped_column(Integer, nullable=False)
+    start_year: Mapped[int | None] = mapped_column(Integer)
+    end_year: Mapped[int | None] = mapped_column(Integer)
+    expression: Mapped[str] = mapped_column(String(160), nullable=False)
 
 
 class CompletedCourse(Base):

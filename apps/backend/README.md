@@ -19,3 +19,6 @@ uv run timetabler-api
 The optimizer runs as a separate process against the durable job queue. It imports
 the request/result contracts from `timetabler.api.schemas` and never runs inside
 the API event loop.
+
+The root Compose stack also exposes a local-only, read-only Pgweb console at
+`http://127.0.0.1:18081` for inspecting the actual PostgreSQL schema and rows.

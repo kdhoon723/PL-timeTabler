@@ -47,6 +47,8 @@ browser → Nginx/React web → FastAPI → PostgreSQL ← OR-Tools worker
 | `api` | FastAPI 카탈로그·인증·최적화 API |
 | `optimizer` | OR-Tools CP-SAT 작업 처리 |
 | `db` | PostgreSQL 영속 저장소 |
+| `db-console` | localhost 전용 읽기 전용 PostgreSQL 웹 콘솔(Pgweb) |
+| `db-console-init` | DB 콘솔 전용 최소권한 역할과 SELECT 권한 멱등 설정 |
 | `migrate` | Alembic 스키마 마이그레이션 |
 | `ingest` | DREAMS 전체 원본과 2016~2026 교육과정·졸업요건 정규화 자료를 checksum 검증 후 DB에 무손실·멱등 적재 |
 
@@ -67,13 +69,18 @@ git clone https://github.com/kdhoon723/PL-timeTabler.git
 cd PL-timeTabler
 cp .env.example .env
 
-# .env의 POSTGRES_PASSWORD를 긴 무작위 값으로 교체
+# .env의 POSTGRES_PASSWORD와 DB_VIEWER_PASSWORD를 서로 다른 긴 무작위 값으로 교체
 docker network create kdhoon-public 2>/dev/null || true
 docker compose up -d --build
 curl http://127.0.0.1:18080/api/v1/health/ready
 ```
 
-기본 웹 주소는 <http://127.0.0.1:18080>이며 DB는 호스트에 공개하지 않습니다. 다른 서버에서도 저장소, `.env`, Docker와 Compose만 있으면 같은 스택을 실행할 수 있습니다.
+기본 웹 주소는 <http://127.0.0.1:18080>입니다. 실제 PostgreSQL의 테이블과 데이터를
+확인하는 읽기 전용 DB 콘솔은 <http://127.0.0.1:18081>에서 열립니다. 두 포트 모두
+localhost에만 바인딩되며 PostgreSQL 자체 포트는 호스트에 공개하지 않습니다. DB 콘솔은
+별도 `timetabler_viewer` 최소권한 DB 역할을 사용하고, 세션 연결이 잠겨 있으며, PostgreSQL
+역할과 Pgweb 양쪽에서 쓰기 쿼리가 차단됩니다. 다른 서버에서도 저장소, `.env`, Docker와
+Compose만 있으면 같은 스택을 실행할 수 있습니다.
 
 주요 환경 변수는 [`.env.example`](.env.example)에 있습니다. `.env`와 운영 자격 증명은 Git에서 제외됩니다.
 
@@ -166,7 +173,7 @@ GitHub Actions는 GitHub가 제공하는 `ubuntu-latest` runner에서 백엔드,
 ```bash
 ./scripts/backup-db.sh
 ./scripts/restore-db.sh backups/timetabler-YYYYMMDDTHHMMSSZ.dump
-docker compose logs -f api optimizer web
+docker compose logs -f api optimizer web db-console
 ```
 
 로그인 사용자가 저장한 프로필·시간표·이수내역은 계정 소유 데이터로 PostgreSQL에 저장되며 회원 탈퇴 시 함께 삭제됩니다. 공유 URL과 공개 강의 아카이브에는 개인 이수내역을 포함하지 않습니다.
@@ -190,7 +197,7 @@ docker compose logs -f api optimizer web
 
 - [`DESIGN.md`](DESIGN.md) — 모바일 우선 제품·UI/UX 규칙
 - [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — 기술·배포·최적화 경계
-- [`docs/ERD.md`](docs/ERD.md) · [`HTML`](docs/ERD.html) — 실제 PostgreSQL 테이블·관계·제약조건
+- [`docs/ERD.md`](docs/ERD.md) · [`핵심 ERD HTML`](docs/ERD.html) — 실제 PostgreSQL 테이블·관계·제약조건
 - [`docs/API_SPEC.md`](docs/API_SPEC.md) — 파일·PostgreSQL 저장 경계와 HTTP API 계약
 - [`docs/PRODUCT_PLAN.md`](docs/PRODUCT_PLAN.md) — 기능과 출시 기준
 - [`docs/IMPLEMENTATION_READINESS.md`](docs/IMPLEMENTATION_READINESS.md) — OR-Tools 검증 기준

@@ -27,7 +27,10 @@ from timetabler.db.models import (
     CurriculumProgramAlias,
     CurriculumProgramRequirement,
     CurriculumRequiredCourse,
-    GraduationRequirementRule,
+)
+from timetabler.requirements.graduation_repository import (
+    GraduationRuleScope,
+    load_graduation_rules,
 )
 from timetabler.requirements.normalizer import academic_unit_key
 from timetabler.types import normalize_search_text
@@ -163,56 +166,14 @@ async def _database_rules(
     database: DatabaseDependency,
     profile: RequirementProfile,
 ) -> tuple[dict[str, Any], ...]:
-    requested_key = academic_unit_key(profile.department_id)
-    async with database.session_factory() as session:
-        canonical_keys = {requested_key}
-        program_keys = list(
-            await session.scalars(
-                select(CurriculumProgramRequirement.academic_unit_key)
-                .join(
-                    CurriculumProgramAlias,
-                    CurriculumProgramAlias.program_id == CurriculumProgramRequirement.id,
-                )
-                .where(
-                    CurriculumProgramAlias.admission_year == profile.admission_year,
-                    CurriculumProgramAlias.alias_key == requested_key,
-                )
-            )
-        )
-        canonical_keys.update(program_keys)
-        rows = list(
-            await session.scalars(
-                select(GraduationRequirementRule).where(
-                    GraduationRequirementRule.rule_kind.in_(
-                        (
-                            "DEGREE_CREDIT_PROFILE",
-                            "DEPARTMENT_ASSESSMENT_PROFILE",
-                            "LEGACY_DEPARTMENT_ASSESSMENT",
-                        )
-                    ),
-                    GraduationRequirementRule.academic_unit_key.in_(canonical_keys),
-                )
-            )
-        )
-    applicable: list[dict[str, Any]] = []
-    for row in rows:
-        if row.student_type and row.student_type != profile.student_type:
-            continue
-        if row.rule_kind == "DEGREE_CREDIT_PROFILE" and (
-            row.admission_year_start != profile.admission_year
-            or row.admission_year_end != profile.admission_year
-            or row.program_path != profile.program_path
-        ):
-            continue
-        applicable.append(row.raw_payload)
-    return tuple(
-        sorted(
-            applicable,
-            key=lambda rule: (
-                rule.get("kind") != "DEGREE_CREDIT_PROFILE",
-                str(rule.get("id", "")),
-            ),
-        )
+    return await load_graduation_rules(
+        database.session_factory,
+        GraduationRuleScope(
+            admission_year=profile.admission_year,
+            academic_unit=profile.department_id,
+            student_type=profile.student_type,
+            program_path=profile.program_path,
+        ),
     )
 
 

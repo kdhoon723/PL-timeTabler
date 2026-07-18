@@ -25,7 +25,7 @@ POST /optimizations ─────┴─> PostgreSQL optimization_jobs
 /auth/* ─────────────────────> PostgreSQL auth_* tables
 /history/* ──────────────────> PostgreSQL historical_* tables
 /users/me/* ─────────────────> PostgreSQL account-owned tables
-/requirements/evaluate ──────> PostgreSQL curriculum_program_* + curriculum_required_courses + graduation_requirement_rules
+/requirements/evaluate ──────> PostgreSQL curriculum_program_* + graduation_credit_* + graduation_liberal_* + graduation_assessment_* + graduation_legacy_*
 ```
 
 | 데이터 | 저장 위치 | 이유 |
@@ -36,7 +36,7 @@ POST /optimizations ─────┴─> PostgreSQL optimization_jobs
 | OTP·로그인 세션·인증 제한 이벤트 | PostgreSQL `auth_*` | 만료·폐기·동시성 제어가 필요한 상태 |
 | 로그인 프로필·시간표·이수내역·리뷰 | PostgreSQL 계정 소유 테이블 | 여러 기기 동기화·졸업요건 자동 반영·탈퇴 cascade 삭제 |
 | 2016~2026 입학연도별 전공기초·전공필수 | PostgreSQL `curriculum_program_*`, `curriculum_required_courses` | 학과명 별칭 검색과 입학연도별 이수 판정 |
-| 2020~2026 정량 졸업요건·학과별 졸업심사 | 파일 snapshot + PostgreSQL `graduation_requirement_rules` | 학과·입학연도·전공경로별 자동 점검, 자유서술·개인 증빙은 수동 검토 |
+| 2020~2026 정량 졸업요건·학과별 졸업심사 | 파일 snapshot + PostgreSQL `graduation_credit_*`, `graduation_liberal_*`, `graduation_assessment_*`, `graduation_legacy_*` | 타입화된 컬럼으로 학과·입학연도·전공경로별 자동 점검, 자유서술·개인 증빙은 수동 검토 |
 | 시간표 공유 | PostgreSQL share + 비개인 snapshot | 공유 응답에 개인 이수내역을 포함하지 않음 |
 
 DB에는 미래의 DB 기반 카탈로그를 위한 `semesters`, `courses`, `sections`, `sessions`,
@@ -59,6 +59,8 @@ DB에는 미래의 DB 기반 카탈로그를 위한 `semesters`, `courses`, `sec
 
 로컬 Compose 기본 진입점은 `http://127.0.0.1:18080`이다. 운영 주소는
 `https://timetabler.kdhoon.me`이며 아래 예시는 경로만 표기한다.
+실제 DB 열람용 `http://127.0.0.1:18081`은 HTTP API가 아니라 localhost 전용 읽기 전용
+운영 도구이며 외부 서비스 계약에 포함하지 않는다.
 
 ### 공통 오류 형식
 
