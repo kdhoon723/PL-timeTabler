@@ -59,8 +59,6 @@ DB에는 미래의 DB 기반 카탈로그를 위한 `semesters`, `courses`, `sec
 
 로컬 Compose 기본 진입점은 `http://127.0.0.1:18080`이다. 운영 주소는
 `https://timetabler.kdhoon.me`이며 아래 예시는 경로만 표기한다.
-실제 DB 열람용 `http://127.0.0.1:18081`은 HTTP API가 아니라 localhost 전용 읽기 전용
-운영 도구이며 외부 서비스 계약에 포함하지 않는다.
 
 ### 공통 오류 형식
 

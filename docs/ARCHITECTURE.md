@@ -20,7 +20,7 @@
 | 데이터베이스 | PostgreSQL 18 | 학기·과목·분반·교육과정·규칙 버전·최적화 작업을 관계형 구조로 관리 |
 | DB 접근 | SQLAlchemy 2 + Alembic | Python 도메인 모델과 명시적인 버전 마이그레이션 유지 |
 | API 계약 | OpenAPI 3.1 → 생성된 TypeScript 타입 | Python과 React 사이 요청·응답 타입의 수동 중복 제거 |
-| 배포 | Docker Compose | web, api, optimizer, db, migrate, ingest, 읽기 전용 DB 콘솔을 한 선언으로 재현 |
+| 배포 | Docker Compose | web, api, optimizer, db, migrate, ingest를 한 선언으로 재현 |
 | 웹 진입점 | Nginx 기반 React 정적 이미지 | 정적 파일 제공, `/api` 동일 출처 프록시, 캐시·압축 제어 |
 
 Python과 모든 패키지는 호환성이 확인된 안정 버전으로 lockfile과 이미지 digest를 고정한다. PostgreSQL은 18.x 보안·버그 수정 패치를 계획적으로 반영한다.
@@ -100,7 +100,6 @@ PL-timeTabler/
 
 ```text
 browser
-  ├────────────── db-console :8081 ── Pgweb(read only) ── timetabler_viewer
   │
   └─ web :80 ─── React 정적 파일 / /api 프록시
   │
@@ -120,9 +119,6 @@ db :5432 ──────── PostgreSQL ◀──── optimizer worker + 
 - `db`: 공식 PostgreSQL 이미지와 named volume. 호스트 포트는 기본 공개하지 않는다.
 - `migrate`: Alembic upgrade를 일회 실행한다.
 - `ingest`: 활성 카탈로그와 DREAMS manifest checksum을 검증하고, 원본 gzip·루트 메타데이터·각 원본 JSON 객체를 역사 테이블에 멱등 적재한다. `api`는 이 작업이 성공한 뒤 시작한다.
-- `db-console-init`: 별도 `timetabler_viewer` 역할에 schema usage와 table select만 멱등 부여한다.
-- `db-console`: `127.0.0.1:18081`에만 노출되는 Pgweb. DB 역할과 애플리케이션
-  양쪽에서 read only이며 session lock, read-only filesystem, capability drop을 적용한다.
 
 ## API 경계
 

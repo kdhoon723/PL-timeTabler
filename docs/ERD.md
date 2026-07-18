@@ -2,11 +2,11 @@
 
 이 문서는 PL-timeTabler의 **실제 PostgreSQL 스키마**를 나타낸다. 기준 migration은
 Alembic `20260718_0007`이며, 시스템용 `alembic_version` 테이블은 ERD에서 제외한다.
+현재 `public` schema의 애플리케이션 테이블 44개를 아래 영역별 구조와 관계 표에서 모두
+다룬다.
 
 핵심 카탈로그·인증 구조를 브라우저에서 확대·축소하며 볼 수 있는 버전은
 [`ERD.html`](ERD.html)이다. 전체 관계형 구조의 기준은 이 문서다.
-실행 중인 실제 테이블·인덱스·행은 Compose 기동 후 localhost 전용 읽기 전용 Pgweb
-콘솔(<http://127.0.0.1:18081>)에서 확인한다.
 
 저장소 루트에서 다음처럼 열 수 있다.
 
@@ -18,7 +18,7 @@ python3 -m http.server 8088 --directory docs
 API별 저장 위치와 HTTP 계약은 [`API_SPEC.md`](API_SPEC.md), 서비스 경계와 배포 구조는
 [`ARCHITECTURE.md`](ARCHITECTURE.md)를 참고한다.
 
-## 1. 전체 ERD
+## 1. 핵심 ERD
 
 ```mermaid
 erDiagram
@@ -146,6 +146,9 @@ erDiagram
 | `courses` | `sections` | `(semester_id, course_code)` | 1:N | `CASCADE` |
 | `sections` | `sessions` | `(semester_id, course_code, section_code)` | 1:N | `CASCADE` |
 | `rooms` | `sessions` | `(semester_id, room_code)` | 1:N, session 측 선택 | `NO ACTION` |
+| `historical_term_datasets` | `historical_course_offerings` | `dataset_id` | 1:N | `CASCADE` |
+| `historical_curriculum_datasets` | `historical_curriculum_departments` | `dataset_id` | 1:N | `CASCADE` |
+| `historical_relation_datasets` | `historical_course_relations` | `dataset_id` | 1:N | `CASCADE` |
 | `requirement_datasets` | `curriculum_program_requirements` | `dataset_id` | 1:N | `CASCADE` |
 | `curriculum_program_requirements` | `curriculum_program_aliases` | `program_id` | 1:N | `CASCADE` |
 | `curriculum_program_requirements` | `curriculum_required_courses` | `program_id` | 1:N | `CASCADE` |
@@ -167,12 +170,20 @@ erDiagram
 | `requirement_datasets` | `graduation_legacy_requirements` | `dataset_id` | 1:N | `CASCADE` |
 | `graduation_legacy_requirements` | `graduation_legacy_source_refs` | `legacy_requirement_id` | 1:N | `CASCADE` |
 | `graduation_legacy_requirements` | `graduation_legacy_cohorts` | `legacy_requirement_id` | 1:N | `CASCADE` |
+| `users` | `privacy_consents` | `user_id` | 1:N | `CASCADE` |
+| `users` | `saved_timetables` | `user_id` | 1:N | `CASCADE` |
+| `users` | `course_reviews` | `user_id` | 1:N | `CASCADE` |
+| `users` | `completed_courses` | `user_id` | 1:N | `CASCADE` |
+| `users` | `timetable_shares` | `created_by` | 1:N | `CASCADE` |
+| `saved_timetables` | `timetable_shares` | `timetable_id` | 1:N | `CASCADE` |
+| `historical_course_offerings` | `completed_courses` | `historical_offering_id` | 1:N, completed course 측 선택 | `SET NULL` |
 
 `optimization_jobs`와 인증 테이블은 FK를 두지 않는 독립적인 운영 테이블이다.
 `auth_otp_challenges.student_number`, `auth_sessions.student_number`,
 `users.student_number`는 같은 사용자를 나타내는 논리적 식별자지만 인증 challenge와
 세션 정리를 계정 삭제와 분리하기 위해 FK 관계로 묶지 않는다. `privacy_consents`,
-`saved_timetables`, `course_reviews`, `completed_courses`는 `users.id`를 `CASCADE`로 참조한다.
+`saved_timetables`, `course_reviews`, `completed_courses`, `timetable_shares`는 `users.id`를
+`CASCADE`로 참조한다.
 
 ## 3. 영역별 역할
 
@@ -215,6 +226,40 @@ semesters
 - `auth_rate_events`: 계정·IP digest별 OTP 요청 제한 이벤트
 
 평문 OTP, 평문 세션 토큰과 원본 IP는 DB에 저장하지 않는다.
+
+### 사용자 소유 데이터와 공유
+
+```text
+users
+ ├─ privacy_consents
+ ├─ saved_timetables ── timetable_shares
+ ├─ course_reviews
+ └─ completed_courses ── historical_course_offerings (선택 참조)
+```
+
+- `users`: 학번 기반 프로필과 졸업요건 판정에 필요한 입학연도·학생유형·전공경로
+- `privacy_consents`: 동의 버전·동의 여부·시각 이력
+- `saved_timetables`: 시간표 항목과 최적화 선호 snapshot
+- `timetable_shares`: 저장 시간표를 가리키는 만료 가능한 공유 코드
+- `course_reviews`: 사용자별 과목·교수·학기 리뷰
+- `completed_courses`: 수동 입력 또는 역사 분반에서 연결한 개인 이수내역. 원본 역사
+  분반이 삭제되어도 `source_snapshot`은 보존한다.
+
+### 역사 아카이브
+
+```text
+historical_archive_manifests
+historical_term_datasets ── historical_course_offerings
+historical_curriculum_datasets ── historical_curriculum_departments
+historical_relation_datasets ── historical_course_relations
+```
+
+- `historical_archive_manifests`: 전체 아카이브 manifest와 원본 압축본
+- `historical_term_datasets`, `historical_course_offerings`: 학기 원본과 검색 가능한 분반
+- `historical_curriculum_datasets`, `historical_curriculum_departments`: 연도별 교육과정
+  원본과 학과 단위 레코드
+- `historical_relation_datasets`, `historical_course_relations`: 대체·동일과목 원본과
+  검색 가능한 관계 레코드
 
 ### 교육과정·졸업요건 정규화
 
