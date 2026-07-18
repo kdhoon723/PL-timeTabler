@@ -1,6 +1,6 @@
-# PL-timeTabler
+# timeTabler
 
-[![CI](https://github.com/kdhoon723/PL-timeTabler/actions/workflows/ci.yml/badge.svg)](https://github.com/kdhoon723/PL-timeTabler/actions/workflows/ci.yml)
+[![CI](https://github.com/kdhoon723/timeTabler/actions/workflows/ci.yml/badge.svg)](https://github.com/kdhoon723/timeTabler/actions/workflows/ci.yml)
 [![Live demo](https://img.shields.io/badge/demo-timetabler.kdhoon.me-2563eb)](https://timetabler.kdhoon.me)
 
 대진대학교 수강신청 전에 모바일과 데스크톱에서 과목을 고르고, 충돌 없는 시간표 후보를 자동으로 만드는 비공식 시간표 설계 도구입니다. 수동 편집을 우선하고 OR-Tools가 사용자의 선택과 생활 패턴을 보조합니다.
@@ -63,8 +63,8 @@ browser → Nginx/React web → FastAPI → PostgreSQL ← OR-Tools worker
 - 외부 reverse proxy를 연결하려는 경우 Compose에서 사용하는 Docker network
 
 ```bash
-git clone https://github.com/kdhoon723/PL-timeTabler.git
-cd PL-timeTabler
+git clone https://github.com/kdhoon723/timeTabler.git
+cd timeTabler
 cp .env.example .env
 
 # .env의 POSTGRES_PASSWORD를 긴 무작위 값으로 교체
