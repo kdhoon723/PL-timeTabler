@@ -46,6 +46,17 @@
       "requiredCourses": 2944,
       "sha256": "7182af948e599750c9317ef89d700dba90a25899f36a34ad1b85ba9f5589ce65",
       "transform": "Reconstructed curriculum handbook tables into admission-year, academic-unit, alias, classification, course, term, and source-locator records."
+    },
+    {
+      "path": "data/requirements/normalized/graduation-requirements-2020-2026.json",
+      "source": "data/requirements/raw/2020 through data/requirements/raw/2026 plus normalized 2026 graduation assessment CSVs",
+      "degreeCreditProfiles": 789,
+      "requiredLiberalCourses": 52,
+      "departmentAssessmentProfiles": 66,
+      "legacyDepartmentAssessmentRules": 35,
+      "rules": 890,
+      "sha256": "816f2221418181deaf17d1dd3bca7c495bfd156ad611ec8a9762d503456b055a",
+      "transform": "Extracted admission-year, academic-unit, program-path credit minima and required liberal courses; grouped department assessment evidence while preserving manual-review boundaries."
     }
   ],
   "join": {
@@ -57,7 +68,7 @@
     "courseCoveragePercent": 84.8
   },
   "academicRequirements": {
-    "asOf": "2026-07-17",
+    "asOf": "2026-07-18",
     "curriculumHandbooks": {
       "continuousYears": "2016-2026",
       "files": 11,
@@ -89,6 +100,15 @@
     "research": [
       "docs/research/DAEJIN_GRADUATION_RULES.md",
       "docs/research/DAEJIN_ACADEMIC_REQUIREMENTS_SOURCE_AUDIT.md"
-    ]
+    ],
+    "normalizedGraduationRequirements": {
+      "admissionYears": "2020-2026",
+      "degreeCreditProfiles": 789,
+      "requiredLiberalCourses": 52,
+      "departmentAssessmentProfiles": 66,
+      "legacyDepartmentAssessmentRules": 35,
+      "rules": 890,
+      "manualConsistencyWarnings": 7
+    }
   }
 }

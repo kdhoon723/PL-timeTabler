@@ -22,6 +22,7 @@
 - 정수 목표·최소·최대 학점, 공강 요일, 이른/늦은 수업, 점심 여유, 하루 수업시간, 공강 길이·현재 선택 유지 선호
 - OR-Tools CP-SAT 기반 결정론적 후보 3개와 등교일·공강·첫/마지막 수업·미반영 조건 설명
 - 2016~2026 입학연도별 712개 교육과정 단위의 전공기초·전공필수 2,944과목 정규화 및 공식 출처 추적
+- 2020~2026 학과·입학연도·전공경로별 졸업 최저학점 789개 프로필과 교양필수 52개 연도별 레코드 자동 점검
 - 2020~2026 정규·계절학기 20,031개 분반과 강의계획서 원본 검색, 과거 시간표·이수내역 연결
 - `내 학업`에서 과거 이수내역, 졸업요건, 저장 시간표, 계정정보 통합 관리
 - 첫 방문에서 학과·입학연도·학년을 단계별로 설정하거나 즉시 건너뛰는 모바일 온보딩
@@ -126,12 +127,13 @@ DNS CNAME 대상은 Cloudflare가 해당 계정에 발급한 `<tunnel-id>.cfargo
 uv --directory apps/backend run timetabler-validate-data
 uv --directory apps/backend run timetabler-export-static-catalog
 uv --directory apps/backend run timetabler-normalize-requirements
+uv --directory apps/backend run timetabler-normalize-graduation-requirements
 docker compose run --rm --build ingest
 ```
 
 API와 정적 fallback은 과목·강의실 checksum을 합친 같은 `datasetVersion`과 1,576개 분반의 동일한 세션 의미를 사용합니다. API는 이 버전을 최적화 요청과 함께 검증하므로 브라우저의 오래된 데이터와 새 카탈로그가 섞이지 않습니다.
 
-통합 교육과정 자료는 2016 HWP의 표 셀과 2017~2026 PDF의 세로 병합 좌표를 복원합니다. 입학연도·원문 학과명과 별칭·전공기초/전공필수·학년/학기·출처 위치를 보존하고 PostgreSQL에 적재합니다. 편입학 예외와 자유서술형 졸업심사 조건은 자동 충족으로 단정하지 않고 수동 확인 상태로 유지합니다.
+통합 교육과정 자료는 2016 HWP의 표 셀과 2017~2026 PDF의 세로 병합 좌표를 복원합니다. 입학연도·원문 학과명과 별칭·전공기초/전공필수·학년/학기·출처 위치를 보존하고 PostgreSQL에 적재합니다. 2020~2026은 편람의 졸업소요 최저학점 표도 학과·학번·전공경로별로 구조화해 총학점·교양·전공 영역과 교양필수 과목을 자동 점검합니다. 외국인·편입학 예외, 개인별 승인과 자유서술형 졸업심사 조건은 자동 충족으로 단정하지 않고 수동 확인 상태로 유지합니다.
 
 ## 개발과 검증
 

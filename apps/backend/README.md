@@ -10,6 +10,7 @@ checksums remain the immutable ingestion source.
 uv sync --all-groups
 uv run timetabler-validate-data
 uv run timetabler-normalize-requirements
+uv run timetabler-normalize-graduation-requirements
 uv run alembic -c ../../alembic.ini upgrade head
 uv run timetabler-ingest
 uv run timetabler-api

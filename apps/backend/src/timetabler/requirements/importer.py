@@ -21,9 +21,15 @@ from timetabler.db.models import (
     RequirementDataset,
 )
 from timetabler.db.session import Database
+from timetabler.requirements.graduation_normalizer import (
+    validate_bundle as validate_graduation_bundle,
+)
 from timetabler.requirements.normalizer import academic_unit_key, validate_bundle
 
 REQUIREMENT_BUNDLE = Path("requirements/normalized/curriculum-requirements-2016-2026.json")
+GRADUATION_REQUIREMENT_BUNDLE = Path(
+    "requirements/normalized/graduation-requirements-2020-2026.json"
+)
 
 
 @dataclass(frozen=True, slots=True)
@@ -148,7 +154,7 @@ def _common_rule_row(dataset_id: str, index: int, rule: dict[str, Any]) -> dict[
         "academic_unit_key": academic_unit_key(str(academic_unit)) if academic_unit else None,
         "admission_year_start": int(years["start"]) if years.get("start") else None,
         "admission_year_end": int(years["end"]) if years.get("end") else None,
-        "effective_year": None,
+        "effective_year": (int(rule["effectiveYear"]) if rule.get("effectiveYear") else None),
         "student_type": str(scope["studentType"]) if scope.get("studentType") else None,
         "program_path": str(scope["programPath"]) if scope.get("programPath") else None,
         "description": str(rule.get("id")) if rule.get("id") else None,
@@ -217,6 +223,25 @@ class RequirementDataImporter:
                 )
             for source in _objects(bundle.get("ruleSources"), label="rule sources"):
                 await self._import_rules(session, bundle, source, imported_at, counters)
+            graduation_path = self._root / GRADUATION_REQUIREMENT_BUNDLE
+            graduation_payload = _object(
+                json.loads(graduation_path.read_bytes()),
+                label="graduation requirement bundle",
+            )
+            validate_graduation_bundle(graduation_payload)
+            await self._import_rules(
+                session,
+                graduation_payload,
+                {
+                    "id": "graduation-requirements-2020-2026",
+                    "kind": "NORMALIZED_GRADUATION_REQUIREMENTS",
+                    "effectiveYear": 2026,
+                    "path": str(GRADUATION_REQUIREMENT_BUNDLE),
+                    "sha256": _sha256(graduation_path.read_bytes()),
+                },
+                imported_at,
+                counters,
+            )
         return RequirementImportReport(**counters)
 
     async def _import_curriculum(

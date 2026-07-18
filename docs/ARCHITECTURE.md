@@ -135,7 +135,7 @@ db :5432 ──────── PostgreSQL ◀──── optimizer worker + 
 - `POST /auth/otp/start`, `POST /auth/otp/verify`: 선택형 학교 이메일 OTP 시작·검증
 - `GET /auth/session`, `POST /auth/logout`: 서버 세션 조회·폐기와 로그인 기능 활성화 상태
 
-졸업요건 원본과 정규화 bundle은 검증된 정적 snapshot으로 버전 관리하고, ingest가 checksum을 검증해 PostgreSQL 검색 테이블에 멱등 적재한다. API의 입학연도별 전공필수 판정은 DB를 조회한다. 로그인 사용자의 프로필·저장 시간표·이수내역·리뷰는 계정 소유 DB 레코드이며 탈퇴 시 cascade 삭제한다. 공개 역사 강의정보와 공유 응답에는 개인 이수내역을 섞지 않는다.
+졸업요건 원본과 정규화 bundle은 검증된 정적 snapshot으로 버전 관리하고, ingest가 checksum을 검증해 PostgreSQL 검색 테이블에 멱등 적재한다. API는 DB에서 입학연도별 전공필수와 2020~2026 학과·전공경로별 총학점·교양·전공 영역·교양필수 조건을 함께 판정한다. 로그인 사용자의 프로필·저장 시간표·이수내역·리뷰는 계정 소유 DB 레코드이며 탈퇴 시 cascade 삭제한다. 공개 역사 강의정보와 공유 응답에는 개인 이수내역을 섞지 않는다.
 
 FastAPI가 생성한 OpenAPI 3.1 문서를 CI에서 snapshot으로 검증하고 TypeScript SDK를 생성한다. breaking change는 API 버전 또는 명시적 migration 없이 병합하지 않는다.
 
@@ -156,9 +156,9 @@ FastAPI가 생성한 OpenAPI 3.1 문서를 CI에서 snapshot으로 검증하고 
 - `curriculum_program_requirements`: 2016~2026 입학연도별 교육과정 단위와 출처 위치
 - `curriculum_program_aliases`: 학과·학부·전공 원문명과 검수 별칭
 - `curriculum_required_courses`: 전공기초·전공필수 과목코드, 학점, 학년·학기, 페이지/표 위치
-- `graduation_requirement_rules`: 공통 규칙과 학과별 졸업심사 원문 행, 적용연도, 수동 검토 상태
+- `graduation_requirement_rules`: 공통 규칙, 2020~2026 학과·입학연도·전공경로별 789개 정량 프로필, 학과별 졸업심사 조건, 출처와 수동 검토 상태
 
-공개 원문으로 기계 판정할 수 없는 편입학 예외·개인별 승인·자유서술 졸업심사 조건은 `requires_manual_review`로 저장하고 사용자에게 확정 충족으로 표시하지 않는다. 대체·동일과목은 현재 `historical_course_relations` 원본을 별도로 보존하며 완전 자동 판정에는 연결하지 않는다.
+공개 원문으로 기계 판정할 수 없는 외국인·편입학 예외, 개인별 승인·상담·증빙, 자유서술 졸업심사 조건은 `requires_manual_review`로 저장하고 사용자에게 확정 충족으로 표시하지 않는다. 원문 표의 합계가 내부적으로 어긋난 7개 행도 임의 보정하지 않는다. 대체·동일과목은 현재 `historical_course_relations` 원본을 별도로 보존하며 완전 자동 판정에는 연결하지 않는다.
 
 ### DREAMS 역사 아카이브
 

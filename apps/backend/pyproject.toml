@@ -39,6 +39,7 @@ timetabler-export-static-catalog = "timetabler.catalog.static_export:run"
 timetabler-ingest = "timetabler.history.importer:run"
 timetabler-import-dreams-history = "timetabler.history.importer:run_dreams"
 timetabler-normalize-requirements = "timetabler.requirements.normalizer:run"
+timetabler-normalize-graduation-requirements = "timetabler.requirements.graduation_normalizer:run"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/timetabler"]

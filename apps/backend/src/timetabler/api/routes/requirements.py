@@ -27,6 +27,7 @@ from timetabler.db.models import (
     CurriculumProgramAlias,
     CurriculumProgramRequirement,
     CurriculumRequiredCourse,
+    GraduationRequirementRule,
 )
 from timetabler.requirements.normalizer import academic_unit_key
 from timetabler.types import normalize_search_text
@@ -158,6 +159,83 @@ async def _major_requirements(
     return (), (f"{profile.admission_year}학번 학과 교육과정 매핑을 확인할 수 없습니다.",)
 
 
+async def _database_rules(
+    database: DatabaseDependency,
+    profile: RequirementProfile,
+) -> tuple[dict[str, Any], ...]:
+    requested_key = academic_unit_key(profile.department_id)
+    async with database.session_factory() as session:
+        canonical_keys = {requested_key}
+        program_keys = list(
+            await session.scalars(
+                select(CurriculumProgramRequirement.academic_unit_key)
+                .join(
+                    CurriculumProgramAlias,
+                    CurriculumProgramAlias.program_id == CurriculumProgramRequirement.id,
+                )
+                .where(
+                    CurriculumProgramAlias.admission_year == profile.admission_year,
+                    CurriculumProgramAlias.alias_key == requested_key,
+                )
+            )
+        )
+        canonical_keys.update(program_keys)
+        rows = list(
+            await session.scalars(
+                select(GraduationRequirementRule).where(
+                    GraduationRequirementRule.rule_kind.in_(
+                        (
+                            "DEGREE_CREDIT_PROFILE",
+                            "DEPARTMENT_ASSESSMENT_PROFILE",
+                            "LEGACY_DEPARTMENT_ASSESSMENT",
+                        )
+                    ),
+                    GraduationRequirementRule.academic_unit_key.in_(canonical_keys),
+                )
+            )
+        )
+    applicable: list[dict[str, Any]] = []
+    for row in rows:
+        if row.student_type and row.student_type != profile.student_type:
+            continue
+        if row.rule_kind == "DEGREE_CREDIT_PROFILE" and (
+            row.admission_year_start != profile.admission_year
+            or row.admission_year_end != profile.admission_year
+            or row.program_path != profile.program_path
+        ):
+            continue
+        applicable.append(row.raw_payload)
+    return tuple(
+        sorted(
+            applicable,
+            key=lambda rule: (
+                rule.get("kind") != "DEGREE_CREDIT_PROFILE",
+                str(rule.get("id", "")),
+            ),
+        )
+    )
+
+
+def _combined_rules(
+    common: tuple[dict[str, Any], ...],
+    database_rules: tuple[dict[str, Any], ...],
+) -> tuple[dict[str, Any], ...]:
+    if not any(rule.get("kind") == "DEGREE_CREDIT_PROFILE" for rule in database_rules):
+        return (*common, *database_rules)
+    replaced_kinds = {
+        "TOTAL_CREDITS",
+        "LIBERAL_TOTAL",
+        "REQUIRED_COURSE_GROUP",
+        "PRIMARY_MAJOR_CREDITS",
+        "MAJOR_CREDIT_PAIR",
+        "ACADEMIC_UNIT_OVERRIDE",
+    }
+    return (
+        *(rule for rule in common if rule.get("kind") not in replaced_kinds),
+        *database_rules,
+    )
+
+
 async def _completed(database: DatabaseDependency, user_id: str) -> list[CompletedCourse]:
     async with database.session_factory() as session:
         return list(
@@ -196,14 +274,60 @@ def _evaluate_rules(
     major = sum(item.credits for item in courses if item.category.startswith("전공"))
     liberal = sum(item.credits for item in courses if item.category.startswith("교양"))
     names = {normalize_search_text(item.course_name) for item in courses}
-    areas = {
-        area: round(sum(item.credits for item in courses if (item.area or "") == area), 2)
-        for area in _AREAS
-    }
+    course_codes = {item.course_code for item in courses if item.course_code}
+    categories: dict[str, float] = {}
+    for item in courses:
+        key = academic_unit_key(item.category)
+        categories[key] = categories.get(key, 0) + item.credits
     credit_status: list[RequirementStatus] = []
     course_status: list[RequirementStatus] = []
     missing: list[str] = []
     manual: list[str] = []
+    area_requirements: list[dict[str, Any]] = []
+
+    def category_credits(*keys: str) -> float:
+        normalized_keys = {academic_unit_key(key) for key in keys}
+        return sum(
+            credits for category, credits in categories.items() if category in normalized_keys
+        )
+
+    def add_credit_status(kind: str, required: float | None, current: float) -> None:
+        satisfied = current >= required if required is not None else None
+        credit_status.append(
+            RequirementStatus(
+                kind=kind,
+                required=required,
+                current=round(current, 2),
+                satisfied=satisfied,
+            )
+        )
+        if satisfied is False:
+            assert required is not None
+            missing.append(f"{kind}: {round(required - current, 2)}학점 부족")
+
+    def add_required_courses(kind: str, required: list[dict[str, Any]]) -> None:
+        missing_courses = tuple(
+            str(item["name"])
+            for item in required
+            if not (
+                item.get("courseCode") in course_codes
+                or normalize_search_text(str(item["name"])) in names
+                or any(
+                    normalize_search_text(str(alias)) in names for alias in item.get("aliases", [])
+                )
+            )
+        )
+        course_status.append(
+            RequirementStatus(
+                kind=kind,
+                required=float(len(required)),
+                current=float(len(required) - len(missing_courses)),
+                satisfied=not missing_courses,
+                missing=missing_courses,
+            )
+        )
+        missing.extend(f"필수과목: {name}" for name in missing_courses)
+
     for rule in rules:
         kind = str(rule.get("kind"))
         minimum = float(rule["min"]) if rule.get("min") is not None else None
@@ -213,33 +337,60 @@ def _evaluate_rules(
             "PRIMARY_MAJOR_CREDITS": major,
         }.get(kind)
         if current is not None:
-            satisfied = current >= minimum if minimum is not None else None
-            credit_status.append(
-                RequirementStatus(
-                    kind=kind,
-                    required=minimum,
-                    current=round(current, 2),
-                    satisfied=satisfied,
-                )
-            )
-            if satisfied is False:
-                assert minimum is not None
-                missing.append(f"{kind}: {round(minimum - current, 2)}학점 부족")
+            add_credit_status(kind, minimum, current)
         elif kind == "REQUIRED_COURSE_GROUP":
-            required = [str(item["name"]) for item in rule.get("courses", [])]
-            missing_courses = tuple(
-                name for name in required if normalize_search_text(name) not in names
+            add_required_courses(kind, list(rule.get("courses", [])))
+        elif kind == "DEGREE_CREDIT_PROFILE":
+            values = rule.get("values", {})
+            profile_metrics = (
+                ("TOTAL_CREDITS", values.get("totalCreditsMin"), total),
+                (
+                    "LIBERAL_REQUIRED_CREDITS",
+                    values.get("liberalRequiredMin"),
+                    category_credits("교양필수", "교필"),
+                ),
+                (
+                    "LIBERAL_ELECTIVE_CREDITS",
+                    values.get("liberalElectiveMin"),
+                    category_credits("교양선택", "교선"),
+                ),
+                ("LIBERAL_TOTAL", values.get("liberalMin"), liberal),
+                (
+                    "MAJOR_FOUNDATION_CREDITS",
+                    values.get("majorFoundationMin"),
+                    category_credits("전공기초", "전기"),
+                ),
+                (
+                    "MAJOR_REQUIRED_CREDITS",
+                    values.get("majorRequiredMin"),
+                    category_credits("전공필수", "전필"),
+                ),
+                (
+                    "MAJOR_ELECTIVE_CREDITS",
+                    values.get("majorElectiveMin"),
+                    category_credits("전공선택", "전선"),
+                ),
+                ("PRIMARY_MAJOR_CREDITS", values.get("primaryMajorMin"), major),
             )
-            course_status.append(
-                RequirementStatus(
-                    kind=kind,
-                    required=float(len(required)),
-                    current=float(len(required) - len(missing_courses)),
-                    satisfied=not missing_courses,
-                    missing=missing_courses,
+            for metric_kind, required, metric_current in profile_metrics:
+                add_credit_status(
+                    metric_kind,
+                    float(required) if required is not None else None,
+                    metric_current,
                 )
-            )
-            missing.extend(f"필수과목: {name}" for name in missing_courses)
+            required_liberal = list(rule.get("requiredLiberalCourses", []))
+            if required_liberal:
+                add_required_courses("LIBERAL_REQUIRED_COURSES", required_liberal)
+            area_requirements = list(rule.get("liberalAreaRequirements", []))
+            if values.get("secondaryProgramMin"):
+                manual.append("SECONDARY_PROGRAM_CREDITS")
+            if rule.get("consistencyWarnings"):
+                manual.append("SOURCE_CREDIT_TABLE_CONSISTENCY")
+        elif kind in {
+            "DEPARTMENT_ASSESSMENT_PROFILE",
+            "LEGACY_DEPARTMENT_ASSESSMENT",
+        }:
+            manual.append(kind)
         else:
             manual.append(kind)
         if rule.get("requiresManualReview") and kind not in manual:
@@ -258,9 +409,26 @@ def _evaluate_rules(
             )
         )
         missing.extend(f"전공필수: {name}" for name in missing_major)
+    if not area_requirements and any(
+        rule.get("kind") == "LIBERAL_TOTAL" and rule.get("components", {}).get("areaCount")
+        for rule in rules
+    ):
+        area_requirements = [{"area": area, "minCredits": 2, "minCourses": 1} for area in _AREAS]
     area_status = tuple(
-        AreaStatus(area=area, credits=credit, satisfied=credit >= 2)
-        for area, credit in areas.items()
+        AreaStatus(
+            area=str(requirement["area"]),
+            credits=round(
+                sum(item.credits for item in courses if (item.area or "") == requirement["area"]),
+                2,
+            ),
+            satisfied=(
+                sum(item.credits for item in courses if (item.area or "") == requirement["area"])
+                >= float(requirement.get("minCredits") or 0)
+                and sum(1 for item in courses if (item.area or "") == requirement["area"])
+                >= int(requirement.get("minCourses") or 0)
+            ),
+        )
+        for requirement in area_requirements
     )
     missing.extend(f"교양영역: {item.area}" for item in area_status if not item.satisfied)
     return RequirementEvaluation(
@@ -280,6 +448,7 @@ async def common_rules(settings: SettingsDependency) -> dict[str, Any]:
 @router.get("/rules", response_model=RequirementRuleList)
 async def list_requirement_rules(
     settings: SettingsDependency,
+    database: DatabaseDependency,
     admission_year: int = Query(alias="admissionYear", ge=1990, le=2100),
     department_id: str = Query(alias="departmentId"),
     student_type: str = Query(alias="studentType"),
@@ -287,9 +456,22 @@ async def list_requirement_rules(
 ) -> RequirementRuleList:
     payload = _rules(settings)
     profile = _profile(admission_year, department_id, student_type, program_path)
+    database_rules = await _database_rules(database, profile)
+    rules = _combined_rules(_filtered(payload, profile), database_rules)
     return RequirementRuleList(
-        rules=_filtered(payload, profile),
-        manual_review_items=tuple(payload.get("manualReviewReasons", [])),
+        rules=rules,
+        manual_review_items=tuple(
+            dict.fromkeys(
+                [
+                    *payload.get("manualReviewReasons", []),
+                    *(
+                        str(rule["kind"])
+                        for rule in database_rules
+                        if rule.get("requiresManualReview")
+                    ),
+                ]
+            )
+        ),
         as_of=str(payload.get("asOf", "")),
     )
 
@@ -302,9 +484,10 @@ async def evaluate_requirements(
     settings: SettingsDependency,
 ) -> RequirementEvaluation:
     payload = _rules(settings)
+    database_rules = await _database_rules(database, body)
     major_required, major_manual = await _major_requirements(database, settings, body)
     return _evaluate_rules(
-        _filtered(payload, body),
+        _combined_rules(_filtered(payload, body), database_rules),
         await _completed(database, user.id),
         (*tuple(payload.get("manualReviewReasons", [])), *major_manual),
         major_required,
@@ -328,9 +511,10 @@ async def requirement_recommendations(
     payload = _rules(settings)
     profile = _profile(admission_year, department_id, student_type, program_path)
     courses = await _completed(database, user.id)
+    database_rules = await _database_rules(database, profile)
     major_required, major_manual = await _major_requirements(database, settings, profile)
     evaluation = _evaluate_rules(
-        _filtered(payload, profile),
+        _combined_rules(_filtered(payload, profile), database_rules),
         courses,
         (*tuple(payload.get("manualReviewReasons", [])), *major_manual),
         major_required,

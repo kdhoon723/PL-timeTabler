@@ -258,7 +258,7 @@ erDiagram
 - `curriculum_program_requirements`: 2016~2026 입학연도별 원문 교육과정 단위
 - `curriculum_program_aliases`: 학과·학부·전공 명칭과 검수 별칭을 연도별 검색 키로 보존
 - `curriculum_required_courses`: 전공기초(`전기`)·전공필수(`전필`) 과목과 학년·학기·출처 위치
-- `graduation_requirement_rules`: 공통 규칙과 학과별 졸업심사 원문 행. 자유서술 조건은 수동 검토 표시
+- `graduation_requirement_rules`: 공통 규칙, 2020~2026 학과·입학연도·전공경로별 정량 프로필, 학과별 졸업심사 조건. 자유서술·출처 불일치 조건은 수동 검토 표시
 
 ## 4. 주요 제약조건과 인덱스
 
@@ -317,7 +317,8 @@ day IN ('월', '화', '수', '목', '금', '토', '일')
 | 2020~2026 역사 강의·강의계획서 조회 | `historical_term_datasets`, `historical_course_offerings` | 사용 |
 | 연도별 교육과정·대체/동일과목 원본 | `historical_curriculum_*`, `historical_*relations` | 사용 |
 | 2016~2026 입학연도별 전공기초·전공필수 판정 | `curriculum_program_*`, `curriculum_required_courses` | 사용 |
-| 공통·학과별 졸업심사 정규화 행 | `requirement_datasets`, `graduation_requirement_rules` | 적재·추적용, 자유서술 자동 확정 안 함 |
+| 2020~2026 학과·학번·전공경로별 정량 졸업요건 | `requirement_datasets`, `graduation_requirement_rules` | 사용: 789개 학점 프로필과 연도별 교양필수 자동 점검 |
+| 공통·학과별 졸업심사 정규화 행 | `requirement_datasets`, `graduation_requirement_rules` | 사용: 66개 학과 프로필 조회, 자유서술·개인 증빙은 자동 확정 안 함 |
 | 최적화 생성·조회·취소 | `optimization_jobs` | 사용 |
 | optimizer worker 처리 결과 | `optimization_jobs` | 사용 |
 | 선택형 OTP·로그인 | `auth_*` | 인증 활성화 시 사용 |
